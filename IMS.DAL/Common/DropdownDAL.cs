@@ -40,7 +40,7 @@ namespace IMS.DAL.Common
                 { "@CodeColumn", config.CodeColumn ?? (object)DBNull.Value },
                 { "@ActiveColumn", config.ActiveColumn ?? (object)DBNull.Value },
                 { "@ParentColumn", config.ParentColumn ?? (object)DBNull.Value },
-                { "@ParentId", request.ParentId ?? (object)DBNull.Value },
+                { "@ParentId", string.IsNullOrWhiteSpace(request.ParentId) ? (object)DBNull.Value : request.ParentId },
                 { "@Search", string.IsNullOrWhiteSpace(request.Search) ? (object)DBNull.Value : request.Search },
                 { "@ActiveOnly", request.ActiveOnly },
                 { "@OrderByColumn", config.OrderByColumn },
@@ -68,7 +68,7 @@ namespace IMS.DAL.Common
             {
                 list.Add(new DropdownItemModel
                 {
-                    Value = Convert.ToInt32(row["Value"]),
+                    Value = Convert.ToString(row["Value"]),
                     Text = row["Text"]?.ToString(),
                     Code = row.Table.Columns.Contains("Code")
                                 ? row["Code"]?.ToString()
@@ -76,8 +76,8 @@ namespace IMS.DAL.Common
 
                     ParentId = row.Table.Columns.Contains("ParentId")
                                 && row["ParentId"] != DBNull.Value
-                                ? Convert.ToInt32(row["ParentId"])
-                                : (int?)null,
+                                ? Convert.ToString(row["ParentId"])
+                                : null,
 
                     IsActive = row.Table.Columns.Contains("IsActive")
                                 && row["IsActive"] != DBNull.Value

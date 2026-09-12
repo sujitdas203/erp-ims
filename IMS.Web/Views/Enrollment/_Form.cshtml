@@ -5,7 +5,7 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label">Student <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.E_StudentId, Model.StudentOptions, "Select Student", new { @class = "form-select select2-student", @id = "E_StudentId" })
+        <select id="E_StudentId" name="E_StudentId" class="form-select select2-student" data-selected-value="@(Model.E_StudentId.ToString())"></select>
         <div class="text-danger small field-error" data-for="E_StudentId"></div>
     </div>
     <div class="col-md-6">
@@ -14,15 +14,15 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Academic Year <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.E_AcademicYearId, Model.AcademicYearOptions, "Select Year", new { @class = "form-select" })
+        <select id="E_AcademicYearId" name="E_AcademicYearId" class="form-select" data-selected-value="@(Model.E_AcademicYearId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Course <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.E_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <select id="E_CourseId" name="E_CourseId" class="form-select" data-selected-value="@(Model.E_CourseId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Batch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.E_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <select id="E_BatchId" name="E_BatchId" class="form-select" data-selected-value="@(Model.E_BatchId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Enrollment Date <span class="text-danger">*</span></label>

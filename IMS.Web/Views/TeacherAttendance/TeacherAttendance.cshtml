@@ -13,14 +13,14 @@
 <permission-check code="@Permissions.MarkOwnTeacherAttendance">
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white">
-            <h6 class="mb-0">Mark Today's Attendance — @DateTime.Today.ToString("dd-MMM-yyyy (dddd)")</h6>
+            <h6 class="mb-0">Mark Today's Attendance ï¿½ @DateTime.Today.ToString("dd-MMM-yyyy (dddd)")</h6>
         </div>
         <div class="card-body">
             @if (Model.TodayStatus == "OnLeave")
             {
                 <div class="alert alert-info mb-0">
                     <i class="fa-solid fa-circle-info me-1"></i>
-                    You have an approved leave covering today — no need to mark attendance.
+                    You have an approved leave covering today ï¿½ no need to mark attendance.
                 </div>
             }
             else
@@ -57,11 +57,11 @@
         {
             <div class="col-md-3">
                 <label class="form-label">From</label>
-                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                <input type="text" name="fromDate" class="form-control ims-datepicker-input" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
             </div>
             <div class="col-md-3">
                 <label class="form-label">To</label>
-                <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                <input type="text" name="toDate" class="form-control ims-datepicker-input" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">Filter</button>
@@ -103,4 +103,10 @@
 @section Scripts {
     <link rel="stylesheet" href="~/css/teacherHr.css" />
     <script src="~/js/teacherAttendance.js"></script>
+    <script>
+        $(function () {
+            IMSDatePicker.init('input[name="fromDate"]');
+            IMSDatePicker.init('input[name="toDate"]');
+        });
+    </script>
 }

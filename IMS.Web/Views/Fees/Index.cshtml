@@ -16,7 +16,9 @@
             </div>
             <div class="col-md-3">
                 @Html.Label("academicYearId", "Academic Year", new { @class = "form-label" })
-                @Html.DropDownList("academicYearId", Model.AcademicYearOptions, "All Years", new { @class = "form-select" })
+                <select name="academicYearId" id="filterAcademicYearId" class="form-select" data-selected-value="@(Model.AcademicYearFilter?.ToString())">
+                    <option value="">All Years</option>
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -59,5 +61,8 @@
 @Html.AntiForgeryToken()
 
 @section Scripts { <script src="~/js/fees.js"></script>
-<script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] }); });</script>
+<script>$(function () {
+    $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] });
+    Dropdown.load({ element: '#filterAcademicYearId', entityType: 'AcademicYear', defaultText: 'All Years', includeDefault: true, selectedValue: $('#filterAcademicYearId').data('selected-value') });
+});</script>
 }

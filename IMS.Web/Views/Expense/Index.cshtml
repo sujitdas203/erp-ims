@@ -20,11 +20,15 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("branchId", "Branch", new { @class = "form-label" })
-                @Html.DropDownList("branchId", Model.BranchOptions, "All Branches", new { @class = "form-select" })
+                <select name="branchId" id="filterBranchId" class="form-select" data-selected-value="@(Model.BranchFilter?.ToString())">
+                    <option value="">All Branches</option>
+                </select>
             </div>
             <div class="col-md-2">
                 @Html.Label("expenseCategoryId", "Category", new { @class = "form-label" })
-                @Html.DropDownList("expenseCategoryId", Model.ExpenseCategoryOptions, "All Categories", new { @class = "form-select" })
+                <select name="expenseCategoryId" id="filterCategoryId" class="form-select">
+                    <option value="">All Categories</option>
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -104,5 +108,9 @@
 
 @section Scripts {
     <script src="~/js/expenses.js"></script>
-    <script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'desc']] }); });</script>
+    <script>$(function () {
+        $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'desc']] });
+        Dropdown.load({ element: '#filterBranchId', entityType: 'Branch', defaultText: 'All Branches', includeDefault: true, selectedValue: $('#filterBranchId').data('selected-value') });
+        Dropdown.load({ element: '#filterCategoryId', entityType: 'ExpenseCategory', defaultText: 'All Categories', includeDefault: true, selectedValue: $('#filterCategoryId').data('selected-value') });
+    });</script>
 }

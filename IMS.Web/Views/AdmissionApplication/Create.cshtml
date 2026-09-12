@@ -19,6 +19,11 @@
 <script>
 $(function () {
     IMSDatePicker.init({ input: '#AA_DateOfBirth', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY', allowFutureDates: false });
+
+    Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+    Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true });
+    Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true });
+
     $("form").on("submit", function (e) {
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");

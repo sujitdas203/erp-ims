@@ -18,6 +18,9 @@
     <script src="~/js/common/datepicker.js"></script>
     <script>
         $(function () {
+            Dropdown.load({ element: '#CS_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true });
+            Dropdown.load({ element: '#CS_SubjectId', entityType: 'Subject', defaultText: 'Select Subject', includeDefault: true });
+
             $("form").on("submit", function (e) {
                 e.preventDefault();
                 var $form = $(this);

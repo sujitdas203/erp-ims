@@ -20,11 +20,13 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("branchId", "Branch", new { @class = "form-label" })
-                @Html.DropDownList("branchId", Model.BranchOptions, "All Branches", new { @class = "form-select" })
+                <select name="branchId" id="filterBranchId" class="form-select" data-selected-value="@(Model.BranchFilter?.ToString())">
+                    <option value="">All Branches</option>
+                </select>
             </div>
             <div class="col-md-2">
-                @Html.Label("date", "Date", new { @class = "form-label" })
-                @Html.TextBox("date", Model.DateFilter?.ToString("yyyy-MM-dd"), new { @class = "form-control", type = "date" })
+                <label for="date" class="form-label">Date</label>
+                <input type="text" name="date" class="form-control ims-datepicker-input" value="@(Model.DateFilter?.ToString("yyyy-MM-dd"))" />
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -104,5 +106,9 @@
 
 @section Scripts {
     <script src="~/js/attendance.js"></script>
-    <script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'desc']] }); });</script>
+    <script>$(function () {
+        $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'desc']] });
+        Dropdown.load({ element: '#filterBranchId', entityType: 'Branch', defaultText: 'All Branches', includeDefault: true, selectedValue: $('#filterBranchId').data('selected-value') });
+        IMSDatePicker.init('#date');
+    });</script>
 }

@@ -21,6 +21,12 @@ $(function () {
     IMSDatePicker.init({ input: '#TT_EffectiveFrom', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
     IMSDatePicker.init({ input: '#TT_EffectiveTo', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
 
+    Dropdown.load({ element: '#TT_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+    Dropdown.load({ element: '#TT_BatchId', entityType: 'Batch', defaultText: 'Select Batch', includeDefault: true });
+    Dropdown.load({ element: '#TT_SubjectId', entityType: 'Subject', defaultText: 'Select Subject', includeDefault: true });
+    Dropdown.load({ element: '#TT_StaffId', entityType: 'Staff', defaultText: 'Select Staff', includeDefault: true });
+    Dropdown.load({ element: '#TT_ClassroomId', entityType: 'Classroom', defaultText: 'Select Classroom', includeDefault: true });
+
     $('.select2-staff').select2({
         theme: 'bootstrap-5',
         width: '100%',

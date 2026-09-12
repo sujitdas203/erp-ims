@@ -7,7 +7,7 @@
     <h3 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Mark Attendance</h3>
     <div>
         <label class="form-label me-2 mb-0">Date</label>
-        <input type="date" id="attendanceDatePicker" class="form-control d-inline-block w-auto"
+        <input type="text" id="attendanceDatePicker" class="form-control d-inline-block w-auto ims-datepicker-input"
                value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
     </div>
 </div>
@@ -65,4 +65,9 @@
 @section Scripts {
     <link rel="stylesheet" href="~/css/teacherHr.css" />
     <script src="~/js/teacherAttendance.js"></script>
+    <script>
+        $(function () {
+            IMSDatePicker.init('#attendanceDatePicker');
+        });
+    </script>
 }

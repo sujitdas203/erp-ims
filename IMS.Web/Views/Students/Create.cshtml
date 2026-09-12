@@ -22,4 +22,26 @@
 
 @section Scripts {
     <script src="~/js/students.js"></script>
+    <script>
+        $(function () {
+            Dropdown.load({ element: '#S_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+
+            Dropdown.cascade({
+                parent: '#S_BranchId',
+                child: '#S_ClassId',
+                entityType: 'Class',
+                defaultText: 'Select Class'
+            });
+
+            Dropdown.cascade({
+                parent: '#S_ClassId',
+                child: '#S_SectionId',
+                entityType: 'Section',
+                defaultText: 'Select Section'
+            });
+
+            IMSDatePicker.init('#S_AdmissionDate');
+            IMSDatePicker.init('#S_DateOfBirth');
+        });
+    </script>
 }

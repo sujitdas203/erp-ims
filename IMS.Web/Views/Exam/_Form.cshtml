@@ -18,22 +18,22 @@
     </div>
     <div class="col-md-4">
         <label for="EX_AcademicYearId" class="form-label">Academic Year <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.EX_AcademicYearId, Model.AcademicYearOptions, "Select Year", new { @class = "form-select" })
+        <select id="EX_AcademicYearId" name="EX_AcademicYearId" class="form-select" data-selected-value="@(Model.EX_AcademicYearId.ToString())"></select>
         <div class="text-danger small field-error" data-for="EX_AcademicYearId"></div>
     </div>
     <div class="col-md-4">
         <label for="EX_CourseId" class="form-label">Course <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.EX_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <select id="EX_CourseId" name="EX_CourseId" class="form-select" data-selected-value="@(Model.EX_CourseId.ToString())"></select>
         <div class="text-danger small field-error" data-for="EX_CourseId"></div>
     </div>
     <div class="col-md-4">
         <label for="EX_BatchId" class="form-label">Batch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.EX_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <select id="EX_BatchId" name="EX_BatchId" class="form-select" data-selected-value="@(Model.EX_BatchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="EX_BatchId"></div>
     </div>
     <div class="col-md-4">
         <label for="EX_ExamTypeId" class="form-label">Exam Type <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.EX_ExamTypeId, Model.ExamTypeOptions, "Select Type", new { @class = "form-select" })
+        <select id="EX_ExamTypeId" name="EX_ExamTypeId" class="form-select" data-selected-value="@(Model.EX_ExamTypeId.ToString())"></select>
         <div class="text-danger small field-error" data-for="EX_ExamTypeId"></div>
     </div>
     <div class="col-md-4">

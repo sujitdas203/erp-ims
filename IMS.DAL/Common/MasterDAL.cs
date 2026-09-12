@@ -94,15 +94,22 @@ namespace IMS.DAL.Common
 
         public bool ExistsByField(MasterConfig config, string columnName, object value, Guid? excludeId = null)
         {
+            // Use direct parameterized SQL instead of passing @ColumnName to entity SPs
+            // which don't accept that parameter.
+            var sql = $"SELECT COUNT(1) FROM {config.TableName} WHERE [{columnName}] = @Value";
+
             var parameters = new Dictionary<string, object>
             {
-                { "@Action", "ExistsByField" },
-                { "@ColumnName", columnName },
-                { "@Value", value },
-                { "@ExcludeId", excludeId.HasValue ? (object)excludeId.Value : DBNull.Value }
+                { "@Value", value ?? (object)DBNull.Value }
             };
 
-            var result = _dbHelper.ExecuteStoredProcedureScalar(config.SpName, parameters);
+            if (excludeId.HasValue)
+            {
+                sql += $" AND [{config.KeyColumn}] <> @ExcludeId";
+                parameters["@ExcludeId"] = excludeId.Value;
+            }
+
+            var result = _dbHelper.ExecuteScalar(sql, parameters);
             return Convert.ToInt32(result) > 0;
         }
 

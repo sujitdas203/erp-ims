@@ -21,12 +21,12 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">From Date</label>
-                    <input type="date" name="FromDate" class="form-control" />
+                    <input type="text" name="FromDate" class="form-control ims-datepicker-input" />
                     <div class="text-danger small field-error" data-for="FromDate"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">To Date</label>
-                    <input type="date" name="ToDate" class="form-control" />
+                    <input type="text" name="ToDate" class="form-control ims-datepicker-input" />
                     <div class="text-danger small field-error" data-for="ToDate"></div>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
@@ -120,11 +120,11 @@
                 <div class="row g-2 mb-2">
                     <div class="col-6">
                         <label class="form-label">From</label>
-                        <input type="date" class="form-control edit-leave-from" />
+                        <input type="text" class="form-control ims-datepicker-input edit-leave-from" />
                     </div>
                     <div class="col-6">
                         <label class="form-label">To</label>
-                        <input type="date" class="form-control edit-leave-to" />
+                        <input type="text" class="form-control ims-datepicker-input edit-leave-to" />
                     </div>
                 </div>
                 <label class="form-label">Reason</label>
@@ -154,4 +154,12 @@
 @section Scripts {
     <link rel="stylesheet" href="~/css/teacherHr.css" />
     <script src="~/js/teacherLeave.js"></script>
+    <script>
+        $(function () {
+            IMSDatePicker.init('input[name="FromDate"]');
+            IMSDatePicker.init('input[name="ToDate"]');
+            IMSDatePicker.init('.edit-leave-from');
+            IMSDatePicker.init('.edit-leave-to');
+        });
+    </script>
 }

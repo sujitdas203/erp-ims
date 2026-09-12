@@ -8,7 +8,7 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label for="BT_BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.BT_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="BT_BranchId" name="BT_BranchId" class="form-select" data-selected-value="@(Model.BT_BranchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="BT_BranchId"></div>
     </div>
     <div class="col-md-6">
@@ -23,12 +23,12 @@
     </div>
     <div class="col-md-4">
         <label for="BT_CourseId" class="form-label">Course <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.BT_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <select id="BT_CourseId" name="BT_CourseId" class="form-select" data-selected-value="@(Model.BT_CourseId.ToString())"></select>
         <div class="text-danger small field-error" data-for="BT_CourseId"></div>
     </div>
     <div class="col-md-4">
         <label for="BT_AcademicYearId" class="form-label">Academic Year <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.BT_AcademicYearId, Model.AcademicYearOptions, "Select Year", new { @class = "form-select" })
+        <select id="BT_AcademicYearId" name="BT_AcademicYearId" class="form-select" data-selected-value="@(Model.BT_AcademicYearId.ToString())"></select>
         <div class="text-danger small field-error" data-for="BT_AcademicYearId"></div>
     </div>
     <div class="col-md-4">

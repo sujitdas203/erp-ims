@@ -8,7 +8,7 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label for="ST_BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.ST_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="ST_BranchId" name="ST_BranchId" class="form-select" data-selected-value="@(Model.ST_BranchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="ST_BranchId"></div>
     </div>
     <div class="col-md-6">
@@ -28,11 +28,11 @@
     </div>
     <div class="col-md-4">
         <label for="ST_DepartmentId" class="form-label">Department</label>
-        @Html.DropDownListFor(m => m.ST_DepartmentId, Model.DepartmentOptions, "Select Department", new { @class = "form-select" })
+        <select id="ST_DepartmentId" name="ST_DepartmentId" class="form-select" data-selected-value="@(Model.ST_DepartmentId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label for="ST_DesignationId" class="form-label">Designation</label>
-        @Html.DropDownListFor(m => m.ST_DesignationId, Model.DesignationOptions, "Select Designation", new { @class = "form-select" })
+        <select id="ST_DesignationId" name="ST_DesignationId" class="form-select" data-selected-value="@(Model.ST_DesignationId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label for="ST_Email" class="form-label">Email</label>

@@ -5,23 +5,23 @@
 <div class="row g-3">
     <div class="col-md-4">
         <label class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="TT_BranchId" name="TT_BranchId" class="form-select" data-selected-value="@(Model.TT_BranchId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Batch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <select id="TT_BatchId" name="TT_BatchId" class="form-select" data-selected-value="@(Model.TT_BatchId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Subject <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select" })
+        <select id="TT_SubjectId" name="TT_SubjectId" class="form-select" data-selected-value="@(Model.TT_SubjectId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Staff <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_StaffId, Model.StaffOptions, "Select Staff", new { @class = "form-select select2-staff" })
+        <select id="TT_StaffId" name="TT_StaffId" class="form-select select2-staff" data-selected-value="@(Model.TT_StaffId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Classroom</label>
-        @Html.DropDownListFor(m => m.TT_ClassroomId, Model.ClassroomOptions, "Select Classroom", new { @class = "form-select" })
+        <select id="TT_ClassroomId" name="TT_ClassroomId" class="form-select" data-selected-value="@(Model.TT_ClassroomId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Day <span class="text-danger">*</span></label>

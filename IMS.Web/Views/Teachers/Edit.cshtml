@@ -28,4 +28,11 @@
 
 @section Scripts {
     <script src="~/js/teacher.js"></script>
+    <script>
+        $(function () {
+            Dropdown.load({ element: '#T_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true, selectedValue: $('#T_BranchId').data('selected-value') });
+            Dropdown.load({ element: '#T_Designation', entityType: 'Designation', defaultText: 'Select Designation', includeDefault: true, selectedValue: $('#T_Designation').data('selected-value') });
+            IMSDatePicker.init('#T_JoiningDate');
+        });
+    </script>
 }

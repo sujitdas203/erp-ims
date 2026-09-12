@@ -17,6 +17,9 @@
 @section Scripts {
     <script>
         $(function () {
+            Dropdown.load({ element: '#CS_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true, selectedValue: $('#CS_CourseId').data('selected-value') });
+            Dropdown.load({ element: '#CS_SubjectId', entityType: 'Subject', defaultText: 'Select Subject', includeDefault: true, selectedValue: $('#CS_SubjectId').data('selected-value') });
+
             $("form").on("submit", function (e) {
                 e.preventDefault();
                 var $form = $(this);

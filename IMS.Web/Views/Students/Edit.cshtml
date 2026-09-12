@@ -22,4 +22,60 @@
 
 @section Scripts {
     <script src="~/js/students.js"></script>
+    <script>
+        $(function () {
+            var branchId = $('#S_BranchId').data('selected-value');
+            var classId = $('#S_ClassId').data('selected-value');
+            var sectionId = $('#S_SectionId').data('selected-value');
+
+            Dropdown.load({
+                element: '#S_BranchId',
+                entityType: 'Branch',
+                defaultText: 'Select Branch',
+                includeDefault: true,
+                selectedValue: branchId,
+                success: function () {
+                    if (branchId) {
+                        Dropdown.load({
+                            element: '#S_ClassId',
+                            entityType: 'Class',
+                            parentId: branchId,
+                            defaultText: 'Select Class',
+                            includeDefault: true,
+                            selectedValue: classId,
+                            success: function () {
+                                if (classId) {
+                                    Dropdown.load({
+                                        element: '#S_SectionId',
+                                        entityType: 'Section',
+                                        parentId: classId,
+                                        defaultText: 'Select Section',
+                                        includeDefault: true,
+                                        selectedValue: sectionId
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            IMSDatePicker.init('#S_AdmissionDate');
+            IMSDatePicker.init('#S_DateOfBirth');
+
+            Dropdown.cascade({
+                parent: '#S_BranchId',
+                child: '#S_ClassId',
+                entityType: 'Class',
+                defaultText: 'Select Class'
+            });
+
+            Dropdown.cascade({
+                parent: '#S_ClassId',
+                child: '#S_SectionId',
+                entityType: 'Section',
+                defaultText: 'Select Section'
+            });
+        });
+    </script>
 }

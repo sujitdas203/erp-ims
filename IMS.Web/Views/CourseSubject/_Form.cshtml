@@ -3,12 +3,12 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label for="CS_CourseId" class="form-label">Course <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.CS_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <select id="CS_CourseId" name="CS_CourseId" class="form-select" data-selected-value="@(Model.CS_CourseId.ToString())"></select>
         <div class="text-danger small field-error" data-for="CS_CourseId"></div>
     </div>
     <div class="col-md-6">
         <label for="CS_SubjectId" class="form-label">Subject <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.CS_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select" })
+        <select id="CS_SubjectId" name="CS_SubjectId" class="form-select" data-selected-value="@(Model.CS_SubjectId.ToString())"></select>
         <div class="text-danger small field-error" data-for="CS_SubjectId"></div>
     </div>
     <div class="col-md-4">

@@ -5,7 +5,7 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.AA_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="AA_BranchId" name="AA_BranchId" class="form-select" data-selected-value="@(Model.AA_BranchId.ToString())"></select>
     </div>
     <div class="col-md-6">
         <label class="form-label">Application Number</label>
@@ -37,11 +37,11 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Course</label>
-        @Html.DropDownListFor(m => m.AA_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <select id="AA_CourseId" name="AA_CourseId" class="form-select" data-selected-value="@(Model.AA_CourseId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Academic Year <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.AA_AcademicYearId, Model.AcademicYearOptions, "Select Year", new { @class = "form-select" })
+        <select id="AA_AcademicYearId" name="AA_AcademicYearId" class="form-select" data-selected-value="@(Model.AA_AcademicYearId.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Status</label>

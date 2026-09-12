@@ -13,8 +13,10 @@
         @using (Html.BeginForm("Index", "Timetable", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
         {
             <div class="col-md-4">
-                @Html.Label("batchId", "Batch", new { @class = "form-label" })
-                @Html.DropDownList("batchId", Model.BatchOptions, "All Batches", new { @class = "form-select" })
+                <label for="batchId" class="form-label">Batch</label>
+                <select name="batchId" id="batchId" class="form-select" data-selected-value="@(Model.BatchFilter?.ToString())">
+                    <option value="">All Batches</option>
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -63,6 +65,7 @@
 <script>
 $(function () {
     $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc'], [1, 'asc']] });
+    Dropdown.load({ element: '#batchId', entityType: 'Batch', defaultText: 'All Batches', includeDefault: true, selectedValue: $('#batchId').data('selected-value') });
     $(document).on("click", ".tt-delete-btn", function () {
         var id = $(this).data("id");
         if (!confirm("Delete this timetable entry?")) return;
