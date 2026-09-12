@@ -31,6 +31,9 @@ namespace IMS.Web.Extensions
             services.AddScoped<ITeacherAttendanceService, TeacherAttendanceService>();
             services.AddScoped<ITeacherLeaveService, TeacherLeaveService>();
             services.AddScoped<ITeacherDirectoryLookup, TeacherApiDirectoryLookup>();
+            services.AddScoped<IStudentLeaveService, StudentLeaveService>();
+            services.AddScoped<ITransferCertificateService, TransferCertificateService>();
+            services.AddScoped<IStuddentPortalService, StuddentStuddentPortalService>();
 
             return services;
         }
