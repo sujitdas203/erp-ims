@@ -43,43 +43,43 @@
         <div class="nav-section-label">Academic Management</div>
 
         <ul class="nav flex-column">
-            <permission-check code="@Permissions.ApproveTeacherLeave">
+            @* <permission-check code="@Permissions.ApproveTeacherLeave"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("", "TeacherLeave")" asp-controller="TeacherLeave" asp-action="Index">
                         <i class="fa-solid fa-calendar-xmark"></i>
                         <span>Leave Requests</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
-            <permission-check code="@Permissions.ApplyTeacherLeave">
+            @* <permission-check code="@Permissions.ApplyTeacherLeave"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("", "TeacherLeave")" asp-controller="TeacherLeave" asp-action="MyLeave">
                         <i class="fa-solid fa-calendar-check"></i>
                         <span>My Leave</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
-            <permission-check code="@Permissions.ManageTeacherAttendance">
+            @* <permission-check code="@Permissions.ManageTeacherAttendance"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("", "TeacherAttendance")" asp-controller="TeacherAttendance" asp-action="Index">
                         <i class="fa-solid fa-calendar-check"></i>
                         <span>Teacher Attendance</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
-            <permission-check code="@Permissions.ViewOwnTeacherAttendance">
+            @* <permission-check code="@Permissions.ViewOwnTeacherAttendance"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("", "TeacherAttendance")" asp-controller="TeacherAttendance" asp-action="TeacherAttendance">
                         <i class="fa-solid fa-calendar-week"></i>
                         <span>My Attendance</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
-            <permission-check code="@Permissions.ViewTeacher">
+            @* <permission-check code="@Permissions.ViewTeacher"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("Teacher", "Teacher")"
                        asp-controller="Teachers"
@@ -89,9 +89,9 @@
                         <span>Teachers</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
-            <permission-check code="@Permissions.ViewStudent">
+            @* <permission-check code="@Permissions.ViewStudent"> *@
                 <li class="nav-item">
                     <a class="nav-link @isActive("", "Students")"
                        asp-controller="Students"
@@ -100,7 +100,7 @@
                         <span>Students</span>
                     </a>
                 </li>
-            </permission-check>
+            @* </permission-check> *@
 
             <li class="nav-item">
                 <a class="nav-link @isActive("", "StudentLeave")"
@@ -140,6 +140,26 @@
                     </a>
                 </li>
             </permission-check> *@
+            @* <permission-check code="@Permissions.ViewAnnouncement"> *@
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Syllabus")"
+                   asp-controller="Syllabus"
+                   asp-action="Index">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>Syllabus</span>
+                </a>
+            </li>
+            @* </permission-check> *@
+            @* <permission-check code="@Permissions.ViewAnnouncement"> *@
+                <li class="nav-item">
+                    <a class="nav-link @isActive("", "Announcements")"
+                       asp-controller="Announcements"
+                       asp-action="Index">
+                        <i class="fa-solid fa-bullhorn"></i>
+                        <span>Announcements</span>
+                    </a>
+                </li>
+            @* </permission-check> *@
 
             <li class="nav-item">
                 <a class="nav-link @isActive("", "AdmissionApplication")"
@@ -197,6 +217,26 @@
 
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Timetable</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "HomeTasks")"
+                   asp-controller="HomeTasks"
+                   asp-action="Index">
+
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Home Tasks</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "MockTests")"
+                   asp-controller="MockTests"
+                   asp-action="Index">
+
+                    <i class="fa-solid fa-file-circle-check"></i>
+                    <span>Mock Tests</span>
                 </a>
             </li>
 

@@ -1,10 +1,11 @@
+using IMS.DAL.Common;
+using IMS.DAL.Interfaces;
+using IMS.Models.Entities;
+using IMS.Models.Portal;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using IMS.DAL.Common;
-using IMS.DAL.Interfaces;
-using IMS.Models.Portal;
 
 namespace IMS.DAL
 {
@@ -76,8 +77,8 @@ namespace IMS.DAL
             cmd.Parameters.Add("@Remarks", SqlDbType.NVarChar, -1).Value = (object?)remarks ?? DBNull.Value;
 
             await conn.OpenAsync();
-            var rows = await cmd.ExecuteNonQueryAsync();
-            return rows > 0;
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
         }
 
         public async Task<bool> DeleteAsync(Guid tcId, Guid tenantId)
@@ -88,8 +89,8 @@ namespace IMS.DAL
             cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
 
             await conn.OpenAsync();
-            var rows = await cmd.ExecuteNonQueryAsync();
-            return rows > 0;
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
         }
 
         public async Task<TransferCertificatePrintViewModel?> GetByIdAsync(Guid tcId, Guid tenantId)

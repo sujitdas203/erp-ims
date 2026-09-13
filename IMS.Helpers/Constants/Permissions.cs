@@ -45,6 +45,15 @@ namespace IMS.Helpers.Constants
         public const string ManageTeacherAttendance = "ManageTeacherAttendance";
         public const string MarkOwnTeacherAttendance = "MarkOwnTeacherAttendance";
 
+        public const string ViewAnnouncement = "ViewAnnouncement";
+        public const string AddAnnouncement = "AddAnnouncement";
+        public const string EditAnnouncement = "EditAnnouncement";
+        public const string DeleteAnnouncement = "DeleteAnnouncement";
+
+        public const string ViewSyllabus = "ViewSyllabus";
+        public const string AddSyllabus = "AddSyllabus";
+        public const string EditSyllabus = "EditSyllabus";
+        public const string DeleteSyllabus = "DeleteSyllabus";
 
         private const string StudentFeature = "STUDENT_MANAGEMENT";
         private const string StudentFeatureDisplay = "Student Management";
@@ -85,6 +94,17 @@ namespace IMS.Helpers.Constants
             new() { Id = ViewOwnTeacherAttendance, FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "View own attendance", ServiceName = ServiceName },
             new() { Id = ManageTeacherAttendance,  FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Mark and manage teacher attendance", ServiceName = ServiceName },
             new() { Id = MarkOwnTeacherAttendance, FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Self-mark today's attendance", ServiceName = ServiceName },
+
+            new() { Id = ViewAnnouncement,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "View announcements", ServiceName = ServiceName },
+            new() { Id = AddAnnouncement,    FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Add an announcement", ServiceName = ServiceName },
+            new() { Id = EditAnnouncement,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Edit an announcement", ServiceName = ServiceName },
+            new() { Id = DeleteAnnouncement, FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Delete an announcement", ServiceName = ServiceName },
+
+            new() { Id = ViewSyllabus,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "View subject syllabus", ServiceName = ServiceName },
+            new() { Id = AddSyllabus,    FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Add a syllabus unit", ServiceName = ServiceName },
+            new() { Id = EditSyllabus,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Edit a syllabus unit", ServiceName = ServiceName },
+            new() { Id = DeleteSyllabus, FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Delete a syllabus unit", ServiceName = ServiceName },
+
 
         };
 

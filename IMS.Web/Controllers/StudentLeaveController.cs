@@ -43,7 +43,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        [Permission(Permissions.ViewStudentLeave)]
+        //[Permission(Permissions.ViewStudentLeave)]
         public async Task<IActionResult> Index(string? status = null, string? search = null, int page = 1)
         {
             var tenantId = CurrentTenantId;
@@ -64,7 +64,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.ApproveStudentLeave)]
+        //[Permission(Permissions.ApproveStudentLeave)]
         public async Task<IActionResult> Review(Guid leaveId, string status, string? rejectionReason)
         {
             var tenantId = CurrentTenantId;
@@ -78,7 +78,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.ApproveStudentLeave)]
+       // [Permission(Permissions.ApproveStudentLeave)]
         public async Task<IActionResult> Delete(Guid leaveId)
         {
             var tenantId = CurrentTenantId;
