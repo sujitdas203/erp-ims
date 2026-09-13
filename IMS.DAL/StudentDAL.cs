@@ -276,6 +276,7 @@ namespace IMS.DAL.Repositories
             cmd.Parameters.Add("@S_Status", SqlDbType.NVarChar, 20).Value = s.S_Status;
             cmd.Parameters.Add("@S_ClassId", SqlDbType.UniqueIdentifier).Value = (object)s.S_ClassId ?? DBNull.Value;
             cmd.Parameters.Add("@S_SectionId", SqlDbType.UniqueIdentifier).Value = (object)s.S_SectionId ?? DBNull.Value;
+            cmd.Parameters.Add("@S_BatchId", SqlDbType.UniqueIdentifier).Value = (object)s.S_BatchId ?? DBNull.Value;
             cmd.Parameters.Add("@S_BloodGroup", SqlDbType.NVarChar, 10).Value = (object)s.S_BloodGroup ?? DBNull.Value;
             cmd.Parameters.Add("@S_AddressLine1", SqlDbType.NVarChar, 255).Value = (object)s.S_AddressLine1 ?? DBNull.Value;
             cmd.Parameters.Add("@S_AddressLine2", SqlDbType.NVarChar, 255).Value = (object)s.S_AddressLine2 ?? DBNull.Value;
@@ -304,6 +305,7 @@ namespace IMS.DAL.Repositories
             S_Status = r["S_Status"] as string,
             S_ClassId = r["S_ClassId"] as Guid?,
             S_SectionId = r["S_SectionId"] as Guid?,
+            S_BatchId = HasColumn(r, "S_BatchId") && r["S_BatchId"] != DBNull.Value ? (Guid?)r["S_BatchId"] : null,
             S_BloodGroup = r["S_BloodGroup"] as string,
             S_AddressLine1 = r["S_AddressLine1"] as string,
             S_AddressLine2 = r["S_AddressLine2"] as string,
@@ -315,5 +317,15 @@ namespace IMS.DAL.Repositories
             S_UpdatedAt = r.GetDateTime(r.GetOrdinal("S_UpdatedAt")),
             S_DeletedAt = r["S_DeletedAt"] as DateTime?
         };
+
+        private static bool HasColumn(SqlDataReader r, string columnName)
+        {
+            for (int i = 0; i < r.FieldCount; i++)
+            {
+                if (r.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
     }
 }

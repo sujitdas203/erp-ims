@@ -57,6 +57,10 @@
                         <i class="bi bi-mortarboard"></i>
                         @Model.ClassName@(Model.SectionName != "-" ? $" - {Model.SectionName}" : "")
                     </span>
+                    @if (!string.IsNullOrWhiteSpace(Model.BatchName) && Model.BatchName != "-")
+                    {
+                        <span class="sd-chip"><i class="bi bi-collection"></i>@Model.BatchName</span>
+                    }
                     @if (Model.S_AdmissionDate.HasValue)
                     {
                         <span class="sd-chip"><i class="bi bi-calendar-check"></i>Admitted @Model.S_AdmissionDate.Value.ToString("dd MMM yyyy")</span>

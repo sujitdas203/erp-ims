@@ -28,5 +28,7 @@ namespace IMS.Services.Interfaces
         Task<ServiceResult> UpdateStudentAsync(StudentFormViewModel model, Guid tenantId);
 
         Task<ServiceResult> DeleteStudentAsync(Guid id, Guid tenantId);
+
+        void PopulateDropdowns(StudentFormViewModel vm);
     }
 }

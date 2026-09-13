@@ -23,6 +23,7 @@ namespace IMS.Models.Entities
 
         public Guid? S_ClassId { get; set; }
         public Guid? S_SectionId { get; set; }
+        public Guid? S_BatchId { get; set; }
         public string S_BloodGroup { get; set; }
         public string S_AddressLine1 { get; set; }
         public string S_AddressLine2 { get; set; }

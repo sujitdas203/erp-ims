@@ -1,0 +1,69 @@
+@model IMS.Models.HomeTask.HomeTaskFormViewModel
+
+@if (Model.HT_Id.HasValue)
+{
+    @Html.HiddenFor(m => m.HT_Id)
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="HT_BatchId" class="form-label">Batch <span class="text-danger">*</span></label>
+        @Html.DropDownListFor(m => m.HT_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select", id = "HT_BatchId" })
+        <div class="text-danger small field-error" data-for="HT_BatchId"></div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="HT_SubjectId" class="form-label">Subject <span class="text-danger">*</span></label>
+        @Html.DropDownListFor(m => m.HT_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select", id = "HT_SubjectId" })
+        <div class="text-danger small field-error" data-for="HT_SubjectId"></div>
+    </div>
+
+    <div class="col-md-12">
+        <label for="HT_Title" class="form-label">Task Title <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.HT_Title, new { @class = "form-control", placeholder = "e.g. Chapter 4 Trigonometry Problem Set", id = "HT_Title" })
+        <div class="text-danger small field-error" data-for="HT_Title"></div>
+    </div>
+
+    <div class="col-md-12">
+        <label for="HT_Description" class="form-label">Description / Instructions</label>
+        @Html.TextAreaFor(m => m.HT_Description, 4, 0, new { @class = "form-control", placeholder = "Provide instructions or questions for the students...", id = "HT_Description" })
+        <div class="text-danger small field-error" data-for="HT_Description"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="HT_DueDate" class="form-label">Due Date <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.HT_DueDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "HT_DueDate" })
+        <div class="text-danger small field-error" data-for="HT_DueDate"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="HT_MaxMarks" class="form-label">Max Marks</label>
+        @Html.TextBoxFor(m => m.HT_MaxMarks, new { @class = "form-control", type = "number", step = "0.5", min = "0", placeholder = "e.g. 50", id = "HT_MaxMarks" })
+        <div class="text-danger small field-error" data-for="HT_MaxMarks"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="HT_TeacherId" class="form-label">Assigned Teacher</label>
+        @Html.DropDownListFor(m => m.HT_TeacherId, Model.TeacherOptions, "Select Teacher (Optional)", new { @class = "form-select", id = "HT_TeacherId" })
+        <div class="text-danger small field-error" data-for="HT_TeacherId"></div>
+    </div>
+
+    <div class="col-md-12">
+        <label for="HT_AttachmentUrl" class="form-label">Attachment / Resource Link (URL or Document Reference)</label>
+        @Html.TextBoxFor(m => m.HT_AttachmentUrl, new { @class = "form-control", placeholder = "https://... or resource path", id = "HT_AttachmentUrl" })
+        <div class="text-danger small field-error" data-for="HT_AttachmentUrl"></div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="HT_Status" class="form-label">Status</label>
+        @Html.DropDownListFor(m => m.HT_Status, Model.StatusOptions, "Select Status", new { @class = "form-select", id = "HT_Status" })
+        <div class="text-danger small field-error" data-for="HT_Status"></div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-4">
+    <a asp-controller="HomeTasks" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary" id="btnSubmitHomeTask">
+        <i class="bi bi-check-lg me-1"></i> @(Model.HT_Id.HasValue ? "Update Home Task" : "Save Home Task")
+    </button>
+</div>
