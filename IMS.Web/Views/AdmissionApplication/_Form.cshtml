@@ -33,7 +33,7 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Gender</label>
-        @Html.DropDownListFor(m => m.AA_Gender, Model.GenderOptions, "Select Gender", new { @class = "form-select" })
+        <select id="AA_Gender" name="AA_Gender" class="form-select" data-selected-value="@(Model.AA_Gender)"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Course</label>
@@ -45,7 +45,7 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Status</label>
-        @Html.DropDownListFor(m => m.AA_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="AA_Status" name="AA_Status" class="form-select" data-selected-value="@(Model.AA_Status)"></select>
     </div>
     <div class="col-md-12">
         <label class="form-label">Notes</label>

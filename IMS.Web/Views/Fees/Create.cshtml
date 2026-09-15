@@ -35,7 +35,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Active</label>
-                    @Html.DropDownListFor(m => m.FS_IsActive, new List<SelectListItem> { new("Yes", "true"), new("No", "false") }, new { @class = "form-select" })
+                    <select id="FS_IsActive" name="FS_IsActive" class="form-select"></select>
                 </div>
                 <div class="col-md-12">
                     <label class="form-label">Description</label>
@@ -56,10 +56,7 @@
                         <div class="col-md-2"><input type="number" name="Items[@i].FSI_Amount" class="form-control form-control-sm" min="0" step="0.01" value="@Model.Items[i].FSI_Amount" placeholder="Amount" /></div>
                         <div class="col-md-2"><input type="number" name="Items[@i].FSI_DueDays" class="form-control form-control-sm" min="0" value="@Model.Items[i].FSI_DueDays" placeholder="Due Days" /></div>
                         <div class="col-md-2">
-                            <select name="Items[@i].FSI_IsMandatory" class="form-select form-select-sm">
-                                <option value="true" selected="@Model.Items[i].FSI_IsMandatory">Mandatory</option>
-                                <option value="false" selected="@(!Model.Items[i].FSI_IsMandatory)">Optional</option>
-                            </select>
+                            <select name="Items[@i].FSI_IsMandatory" class="form-select form-select-sm mandatory-select" data-selected-value="@(Model.Items[i].FSI_IsMandatory)"></select>
                         </div>
                         <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger remove-fee-item"><i class="fa-solid fa-times"></i></button></div>
                     </div>
@@ -81,9 +78,14 @@ $(function(){
     Dropdown.load({ element: '#FS_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true, selectedValue: $('#FS_AcademicYearId').data('selected-value') });
     Dropdown.load({ element: '#FS_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true, selectedValue: $('#FS_CourseId').data('selected-value') });
     Dropdown.load({ element: '#FS_BatchId', entityType: 'Batch', defaultText: 'Select Batch', includeDefault: true, selectedValue: $('#FS_BatchId').data('selected-value') });
+    Dropdown.load({ element: '#FS_IsActive', entityType: 'YesNo', defaultText: '-- Select --', includeDefault: false });
 
     $('.fee-category-select').each(function() {
         Dropdown.load({ element: this, entityType: 'FeeCategory', defaultText: 'Select Category', includeDefault: true, selectedValue: $(this).data('selected-value') });
+    });
+
+    $('.mandatory-select').each(function() {
+        Dropdown.load({ element: this, entityType: 'MandatoryOptional', defaultText: '-- Select --', includeDefault: false, selectedValue: $(this).data('selected-value') });
     });
 
     var idx = @Model.Items.Count;
@@ -92,10 +94,11 @@ $(function(){
             + '<div class="col-md-4"><select name="Items['+idx+'].FSI_FeeCategoryId" class="form-select form-select-sm fee-category-select"><option value="">Select Category</option></select></div>'
             + '<div class="col-md-2"><input type="number" name="Items['+idx+'].FSI_Amount" class="form-control form-control-sm" min="0" step="0.01" placeholder="Amount" /></div>'
             + '<div class="col-md-2"><input type="number" name="Items['+idx+'].FSI_DueDays" class="form-control form-control-sm" min="0" placeholder="Due Days" /></div>'
-            + '<div class="col-md-2"><select name="Items['+idx+'].FSI_IsMandatory" class="form-select form-select-sm"><option value="true">Mandatory</option><option value="false">Optional</option></select></div>'
+            + '<div class="col-md-2"><select name="Items['+idx+'].FSI_IsMandatory" class="form-select form-select-sm mandatory-select"><option value="">Select</option></select></div>'
             + '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger remove-fee-item"><i class="fa-solid fa-times"></i></button></div></div>';
         $("#feeItemsContainer").append(html); idx++;
         Dropdown.load({ element: '#feeItemsContainer .fee-item-row:last .fee-category-select', entityType: 'FeeCategory', defaultText: 'Select Category', includeDefault: true });
+        Dropdown.load({ element: '#feeItemsContainer .fee-item-row:last .mandatory-select', entityType: 'MandatoryOptional', defaultText: '-- Select --', includeDefault: false });
     });
     $(document).on("click", ".remove-fee-item", function(){ $(this).closest(".fee-item-row").remove(); });
 });

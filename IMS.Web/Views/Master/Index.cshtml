@@ -122,7 +122,7 @@
 </div> *@
 
 <!-- Create / Edit Modal -->
-<div class="modal fade" id="masterFormModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="masterFormModal" aria-hidden="true">
     <div class="modal-dialog @(formFields.Count > 3 ? "modal-lg" : "modal-sm")">
         <div class="modal-content">
 
@@ -185,7 +185,13 @@
                                             <option value="">
                                                 -- Select @field.DisplayName --
                                             </option>
-
+                                            @if (field.DropdownOptions != null && field.DropdownOptions.Count > 0)
+                                            {
+                                                @foreach (var opt in field.DropdownOptions)
+                                                {
+                                                    <option value="@opt.Key">@opt.Value</option>
+                                                }
+                                            }
                                         </select>
                                     }
                                     else if (field.FieldType == IMS.Models.Common.Master.MasterFieldType.Date)
@@ -203,6 +209,14 @@
                                                @(field.MaxDate.HasValue ? $"data-max-date={field.MaxDate.Value:yyyy-MM-dd}" : "")
                                                data-required="@(field.IsRequired ? "true" : "false")"
                                                autocomplete="off" />
+                                    }
+                                    else if (field.FieldType == IMS.Models.Common.Master.MasterFieldType.TextArea)
+                                    {
+                                        <textarea class="form-control master-field"
+                                                  id="field_@field.ColumnName"
+                                                  data-column="@field.ColumnName"
+                                                  rows="3"
+                                                  maxlength="@field.MaxLength"></textarea>
                                     }
                                     else
                                     {
@@ -269,6 +283,7 @@
         ));
         const formColumns = @Html.Raw(Json.Serialize(formFields.Select(f => new {
             column = f.ColumnName,
+            displayName = f.DisplayName,
             type = f.FieldType.ToString(),
             lookupEntity = f.LookupEntityType,
             lookupValueField = f.LookupValueField,
@@ -333,7 +348,7 @@
                 data: null,
                 orderable: false,
                 render: function (data) {
-                    const id = data[keyColumn];
+                    const id = getPropValue(data, keyColumn);
                     return `<button class="action-btn btn-edit" data-id="${id}"><i class="fa fa-pen"></i></button>
                             <button class="action-btn btn-delete" data-id="${id}"><i class="fa fa-trash"></i></button>`;
                 }
@@ -363,17 +378,44 @@
             });
         }
 
+        function getPropValue(obj, propName) {
+            if (!obj || !propName) return undefined;
+            if (obj[propName] !== undefined && obj[propName] !== null) return obj[propName];
+            var lower = propName.toLowerCase();
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key) && key.toLowerCase() === lower) {
+                    return obj[key];
+                }
+            }
+            return undefined;
+        }
+
         function loadDropdowns() {
             formColumns.filter(f => f.type === "Dropdown").forEach(f => {
-                $.get("/Master/" + f.lookupEntity + "/List", function (res) {
-                    if (!res.success) return;
-                    const $select = $("#field_" + f.column);
-                    res.data.forEach(item => {
-                        const value = item[f.lookupValueField];
-                        const text = item[f.lookupTextField];
-                        $select.append(`<option value="${value}">${text}</option>`);
+                var $field = $('#field_' + f.column);
+                if (f.lookupEntity) {
+                    Dropdown.loadSelect2({
+                        element: '#field_' + f.column,
+                        entityType: f.lookupEntity,
+                        defaultText: '-- Select ' + (f.displayName || '') + ' --',
+                        includeDefault: true
                     });
-                });
+                } else if ($field.length > 0) {
+                    // For static dropdowns rendered in HTML
+                    var modalParent = $field.closest('.modal');
+                    var defaultOpts = {
+                        theme: "bootstrap-5",
+                        width: "100%",
+                        placeholder: '-- Select ' + (f.displayName || '') + ' --',
+                        allowClear: true
+                    };
+                    if (modalParent.length > 0) {
+                        defaultOpts.dropdownParent = modalParent;
+                    }
+                    if (!$field.hasClass("select2-hidden-accessible")) {
+                        $field.select2(defaultOpts);
+                    }
+                }
             });
         }
 
@@ -404,6 +446,10 @@
                     $el.prop("checked", true);
                 } else if (fieldConfig && fieldConfig.type === "Date") {
                     IMSDatePicker.clear('#field_' + col);
+                } else if ($el.is("select")) {
+                    $el.removeAttr("data-selected-value").removeData("selected-value");
+                    $el.val("");
+                    $el.trigger("change");
                 } else {
                     $el.val("");
                 }
@@ -411,6 +457,10 @@
         }
 
         function editRecord(id) {
+            if (!id) {
+                console.error("editRecord called without id");
+                return;
+            }
             $.get(baseUrl + "/" + id, function (res) {
                 if (!res.success) { alert(res.message); return; }
                 $("#recordId").val(id);
@@ -418,24 +468,43 @@
                     var $el = $(this);
                     var col = $el.data("column");
                     var fieldConfig = formColumns.find(f => f.column === col);
+                    var rawVal = getPropValue(res.data, col);
 
                     if ($el.attr("type") === "checkbox") {
-                        $el.prop("checked", !!res.data[col]);
+                        $el.prop("checked", !!rawVal);
                     } else if (fieldConfig && fieldConfig.type === "Date") {
-                        var dateVal = res.data[col];
-                        if (dateVal) {
-                            // Handle both ISO date strings and formatted dates
-                            var parsed = IMSDatePicker.parseDate(dateVal);
+                        if (rawVal) {
+                            var parsed = IMSDatePicker.parseDate(rawVal);
                             if (parsed) {
                                 IMSDatePicker.setValue('#field_' + col, IMSDatePicker.formatDate(parsed, 'yyyy-MM-dd'));
                             } else {
-                                IMSDatePicker.setValue('#field_' + col, dateVal);
+                                IMSDatePicker.setValue('#field_' + col, rawVal);
                             }
                         } else {
                             IMSDatePicker.clear('#field_' + col);
                         }
+                    } else if ($el.is("select")) {
+                        var valStr = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
+                        $el.attr("data-selected-value", valStr);
+                        $el.data("selected-value", valStr);
+
+                        if (valStr) {
+                            $el.val(valStr);
+                            if (!$el.val()) {
+                                var lowerVal = valStr.trim().toLowerCase();
+                                $el.find("option").each(function () {
+                                    if (String($(this).val()).trim().toLowerCase() === lowerVal) {
+                                        $el.val($(this).val());
+                                        return false;
+                                    }
+                                });
+                            }
+                        } else {
+                            $el.val("");
+                        }
+                        $el.trigger("change");
                     } else {
-                        $el.val(res.data[col]);
+                        $el.val(rawVal !== undefined && rawVal !== null ? rawVal : "");
                     }
                 });
                 $("#masterFormTitle").text("Edit @Model.DisplayName");
@@ -506,8 +575,12 @@
                 } else if (fieldConfig && fieldConfig.type === "Number") {
                     var numVal = $el.val();
                     values[col] = numVal !== "" ? numVal : null;
+                } else if ($el.is("select")) {
+                    var selVal = $el.val();
+                    values[col] = (selVal !== "" && selVal !== null && selVal !== undefined) ? selVal : null;
                 } else {
-                    values[col] = $el.val() || null;
+                    var textVal = $el.val();
+                    values[col] = (textVal !== "" && textVal !== null && textVal !== undefined) ? textVal : null;
                 }
             });
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace IMS.Models.Common.Master
@@ -25,6 +25,7 @@ namespace IMS.Models.Common.Master
         public string LookupEntityType { get; set; }  // references another MasterConfig.EntityType
         public string LookupValueField { get; set; }  // e.g. "Id"
         public string LookupTextField { get; set; }   // e.g. "Name"
+        public System.Collections.Generic.Dictionary<string, string> DropdownOptions { get; set; } // static options (e.g. Percentage, Fixed)
 
         // Date-specific configuration (only applies when FieldType == MasterFieldType.Date)
         public DateTime? MinDate { get; set; }
@@ -60,9 +61,8 @@ namespace IMS.Models.Common.Master
         public string DisplayName { get; set; }         // e.g. "Bank Master" (page title)
         public string SpName { get; set; }   // e.g. "USP_Bank" — single multi-action SP for this entity
 
-        // ADD THIS:
         public string IsActiveColumn =>
-            Fields.FirstOrDefault(f => f.FieldType == MasterFieldType.Boolean)?.ColumnName;
+            Fields.FirstOrDefault(f => f.ColumnName.EndsWith("_IsActive", StringComparison.OrdinalIgnoreCase) || string.Equals(f.PropertyName, "IsActive", StringComparison.OrdinalIgnoreCase) || string.Equals(f.ColumnName, "IsActive", StringComparison.OrdinalIgnoreCase))?.ColumnName;
 
 
         public List<MasterFieldConfig> Fields { get; set; } = new List<MasterFieldConfig>();

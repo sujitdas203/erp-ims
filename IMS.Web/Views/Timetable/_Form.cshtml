@@ -25,7 +25,7 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Day <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_DayOfWeek, Model.DayOfWeekOptions, "Select Day", new { @class = "form-select" })
+        <select id="TT_DayOfWeek" name="TT_DayOfWeek" class="form-select" data-selected-value="@(Model.TT_DayOfWeek)"></select>
     </div>
     <div class="col-md-3">
         <label class="form-label">Start Time <span class="text-danger">*</span></label>

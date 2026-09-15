@@ -21,12 +21,11 @@
             <div class="col-md-2">
                 @Html.Label("branchId", "Branch", new { @class = "form-label" })
                 <select name="branchId" id="filterBranchId" class="form-select" data-selected-value="@(Model.BranchFilter?.ToString())">
-                    <option value="">All Branches</option>
                 </select>
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -120,5 +119,6 @@
     <script>$(function () {
         $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[1, 'asc']] });
         Dropdown.load({ element: '#filterBranchId', entityType: 'Branch', defaultText: 'All Branches', includeDefault: true, selectedValue: $('#filterBranchId').data('selected-value') });
+        Dropdown.load({ element: '#filterStatus', entityType: 'StaffStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
     });</script>
 }

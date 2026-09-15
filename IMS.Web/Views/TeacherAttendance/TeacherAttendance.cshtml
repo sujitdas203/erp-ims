@@ -28,12 +28,7 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="form-label">Status</label>
-                        <select id="markOwnStatus" class="form-select">
-                            <option value="">-- Select --</option>
-                            <option value="Present" selected="@(Model.TodayStatus == "Present")">Present</option>
-                            <option value="Late" selected="@(Model.TodayStatus == "Late")">Late</option>
-                            <option value="HalfDay" selected="@(Model.TodayStatus == "HalfDay")">Half-day</option>
-                        </select>
+                        <select id="markOwnStatus" class="form-select" data-selected-value="@(Model.TodayStatus)"></select>
                     </div>
                     <div class="col-md-5">
                         <label class="form-label">Remarks (optional)</label>
@@ -107,6 +102,7 @@
         $(function () {
             IMSDatePicker.init('input[name="fromDate"]');
             IMSDatePicker.init('input[name="toDate"]');
+            Dropdown.load({ element: '#markOwnStatus', entityType: 'TeacherAttendanceStatus', defaultText: '-- Select --', includeDefault: false });
         });
     </script>
 }

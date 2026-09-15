@@ -48,7 +48,7 @@
     </div>
     <div class="col-md-4">
         <label for="ST_Status" class="form-label">Status <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.ST_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="ST_Status" name="ST_Status" class="form-select" data-selected-value="@(Model.ST_Status)"></select>
     </div>
 </div>
 

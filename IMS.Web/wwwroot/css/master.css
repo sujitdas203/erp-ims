@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    Master Module — Classic Clean Design
    ========================================================= */
 
@@ -652,21 +652,19 @@ table.master-table tbody tr:hover {
    Modal
    --------------------------------------------------------- */
 
-#masterFormModal .modal-dialog {
-    max-width: 560px;
-}
-
 #masterFormModal .modal-content {
     border: 1px solid #e3e7ed;
     border-radius: 9px;
     box-shadow: 0 12px 35px rgba(30, 41, 59, 0.16);
-    overflow: hidden;
+    overflow: visible !important;
 }
 
 #masterFormModal .modal-header {
     padding: 15px 20px;
     background: #ffffff;
     border-bottom: 1px solid #e9edf2;
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
 }
 
 #masterFormModal .modal-title {
@@ -676,14 +674,17 @@ table.master-table tbody tr:hover {
 }
 
 #masterFormModal .modal-body {
-    padding: 20px;
+    padding: 20px 22px;
     background: #ffffff;
+    overflow: visible !important;
 }
 
 #masterFormModal .modal-footer {
     padding: 12px 20px;
     background: #fafbfc;
     border-top: 1px solid #e9edf2;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
 }
 
 /* ---------------------------------------------------------
@@ -838,3 +839,21 @@ table.master-table tbody tr:hover {
         width: 100%;
     }
 }
+
+/* =========================================================
+   Select2 Modal & Search Input Integration
+   ========================================================= */
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-dropdown {
+    z-index: 1060 !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    outline: none !important;
+    padding: 6px 10px !important;
+    border-radius: 5px !important;
+}
+

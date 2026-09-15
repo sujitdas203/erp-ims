@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using IMS.DAL.Interfaces;
@@ -44,7 +44,8 @@ namespace IMS.DAL.Common
                 { "@Search", string.IsNullOrWhiteSpace(request.Search) ? (object)DBNull.Value : request.Search },
                 { "@ActiveOnly", request.ActiveOnly },
                 { "@OrderByColumn", config.OrderByColumn },
-                { "@OrderByDirection", config.OrderByDirection }
+                { "@OrderByDirection", config.OrderByDirection },
+                { "@AdditionalWhereClause", string.IsNullOrWhiteSpace(config.AdditionalWhereClause) ? (object)DBNull.Value : config.AdditionalWhereClause }
             };
 
             DataTable dt = _dbHelper.ExecuteStoredProcedure(
@@ -80,13 +81,57 @@ namespace IMS.DAL.Common
                                 : null,
 
                     IsActive = row.Table.Columns.Contains("IsActive")
-                                && row["IsActive"] != DBNull.Value
-                                ? Convert.ToBoolean(row["IsActive"])
+                                ? ParseIsActive(row["IsActive"])
                                 : true
                 });
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// Safely parses boolean value from various database types (bit, int, string status values like 'active').
+        /// </summary>
+        private static bool ParseIsActive(object value)
+        {
+            if (value == null || value == DBNull.Value)
+                return true;
+
+            if (value is bool b)
+                return b;
+
+            if (value is int or long or short or byte)
+            {
+                return Convert.ToInt64(value) != 0;
+            }
+
+            var str = value.ToString()?.Trim();
+            if (string.IsNullOrEmpty(str))
+                return true;
+
+            if (bool.TryParse(str, out var boolResult))
+                return boolResult;
+
+            if (string.Equals(str, "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "active", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "yes", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "y", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(str, "0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "inactive", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "no", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "n", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "suspended", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "pending", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(str, "deleted", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

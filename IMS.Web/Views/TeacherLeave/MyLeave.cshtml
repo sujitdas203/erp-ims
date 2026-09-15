@@ -16,7 +16,7 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Leave Type</label>
-                    @Html.DropDownList("LeaveType", Model.LeaveTypeOptions, "Select Type", new { @class = "form-select" })
+                    <select name="LeaveType" id="LeaveType" class="form-select"></select>
                     <div class="text-danger small field-error" data-for="LeaveType"></div>
                 </div>
                 <div class="col-md-3">
@@ -110,12 +110,7 @@
                 <input type="hidden" class="edit-leave-id" />
                 <div class="mb-2">
                     <label class="form-label">Leave Type</label>
-                    <select class="form-select edit-leave-type">
-                        @foreach (var t in IMS.Helpers.Constants.TeacherHrOptions.LeaveTypes)
-                        {
-                            <option value="@t">@t</option>
-                        }
-                    </select>
+                    <select class="form-select edit-leave-type"></select>
                 </div>
                 <div class="row g-2 mb-2">
                     <div class="col-6">
@@ -156,6 +151,12 @@
     <script src="~/js/teacherLeave.js"></script>
     <script>
         $(function () {
+            Dropdown.load({ element: '#LeaveType', entityType: 'LeaveType', defaultText: 'Select Type', includeDefault: true });
+
+            $('.edit-leave-type').each(function() {
+                Dropdown.load({ element: this, entityType: 'LeaveType', defaultText: 'Select Type', includeDefault: true, selectedValue: $(this).data('selected-value') });
+            });
+
             IMSDatePicker.init('input[name="FromDate"]');
             IMSDatePicker.init('input[name="ToDate"]');
             IMSDatePicker.init('.edit-leave-from');

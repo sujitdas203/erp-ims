@@ -38,13 +38,7 @@
                                 }
                             </td>
                             <td>
-                                <select class="form-select form-select-sm attendance-status-select" @(row.IsOnLeaveToday ? "disabled" : "")>
-                                    <option value="">-- Select --</option>
-                                    @foreach (var status in IMS.Helpers.Constants.TeacherHrOptions.AttendanceStatuses)
-                                    {
-                                        <option value="@status" selected="@(status == row.CurrentStatus)">@status</option>
-                                    }
-                                </select>
+                                <select class="form-select form-select-sm attendance-status-select" data-selected-value="@(row.CurrentStatus)" @(row.IsOnLeaveToday ? "disabled" : "")></select>
                             </td>
                             <td>
                                 <input type="text" class="form-control form-control-sm attendance-remarks-input" value="@row.Remarks" @(row.IsOnLeaveToday ? "disabled" : "") />
@@ -68,6 +62,9 @@
     <script>
         $(function () {
             IMSDatePicker.init('#attendanceDatePicker');
+            $('.attendance-status-select').each(function () {
+                Dropdown.load({ element: this, entityType: 'TeacherAttendanceStatus', defaultText: '-- Select --', includeDefault: false, selectedValue: $(this).data('selected-value') });
+            });
         });
     </script>
 }

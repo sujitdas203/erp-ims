@@ -30,7 +30,7 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Status <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.E_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="E_Status" name="E_Status" class="form-select" data-selected-value="@(Model.E_Status)"></select>
     </div>
     <div class="col-md-4">
         <label class="form-label">Completion Date</label>

@@ -40,6 +40,14 @@
                 defaultText: 'Select Section'
             });
 
+            Dropdown.load({ element: '#S_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true });
+            Dropdown.load({ element: '#S_BloodGroup', entityType: 'BloodGroup', defaultText: 'Select Blood Group', includeDefault: true });
+            Dropdown.load({ element: '#S_Status', entityType: 'StudentStatus', defaultText: '-- Select --', includeDefault: false });
+
+            $('.relation-select').each(function () {
+                Dropdown.load({ element: this, entityType: 'Relation', defaultText: 'Select Relation', includeDefault: true, selectedValue: $(this).data('selected-value') });
+            });
+
             IMSDatePicker.init('#S_AdmissionDate');
             IMSDatePicker.init('#S_DateOfBirth');
         });

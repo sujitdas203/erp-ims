@@ -42,9 +42,9 @@ namespace IMS.Services
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount,
-                BranchOptions = HardcodedMasterData.GetBranchSelectList(branchId),
-                CourseOptions = new(),
-                AcademicYearOptions = new(),
+                BranchOptions = GetMasterSelectList("Branch", branchId?.ToString()),
+                CourseOptions = GetMasterSelectList("Course", courseId?.ToString()),
+                AcademicYearOptions = GetMasterSelectList("AcademicYear", academicYearId?.ToString()),
                 StatusOptions = GetBatchStatusSelectList(status)
             };
 
@@ -55,7 +55,7 @@ namespace IMS.Services
                     BT_Id = b.BT_Id,
                     BT_Name = b.BT_Name,
                     BT_Code = b.BT_Code,
-                    BranchName = HardcodedMasterData.GetBranchName(b.BT_BranchId),
+                    BranchName = !string.IsNullOrEmpty(b.BranchName) ? b.BranchName : HardcodedMasterData.GetBranchName(b.BT_BranchId),
                     CourseName = b.CourseName ?? "-",
                     AcademicYearName = b.AcademicYearName ?? "-",
                     BT_StartDate = b.BT_StartDate,
@@ -79,7 +79,7 @@ namespace IMS.Services
                 BT_Id = b.BT_Id,
                 BT_Name = b.BT_Name,
                 BT_Code = b.BT_Code,
-                BranchName = HardcodedMasterData.GetBranchName(b.BT_BranchId),
+                BranchName = !string.IsNullOrEmpty(b.BranchName) ? b.BranchName : HardcodedMasterData.GetBranchName(b.BT_BranchId),
                 CourseName = b.CourseName ?? "-",
                 AcademicYearName = b.AcademicYearName ?? "-",
                 BT_StartDate = b.BT_StartDate,
@@ -151,7 +151,9 @@ namespace IMS.Services
 
         public void PopulateDropdowns(BatchFormViewModel vm)
         {
-            vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.BT_BranchId);
+            vm.BranchOptions = GetMasterSelectList("Branch", vm.BT_BranchId.ToString());
+            if (vm.BranchOptions == null || !vm.BranchOptions.Any())
+                vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.BT_BranchId);
             vm.CourseOptions = GetMasterSelectList("Course", vm.BT_CourseId.ToString());
             vm.AcademicYearOptions = GetMasterSelectList("AcademicYear", vm.BT_AcademicYearId.ToString());
             vm.StatusOptions = GetBatchStatusSelectList(vm.BT_Status);

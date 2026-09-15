@@ -31,7 +31,7 @@
     }
     <div class="col-md-4">
         <label for="CustomRoleId" class="form-label">Role</label>
-        @Html.DropDownListFor(m => m.CustomRoleId, Model.RoleOptions, "Select Role", new { @class = "form-select" })
+        <select id="CustomRoleId" name="CustomRoleId" class="form-select" data-selected-value="@(Model.CustomRoleId)"></select>
         <div class="text-danger small field-error" data-for="CustomRoleId"></div>
     </div>
 
@@ -79,7 +79,7 @@
     </div>
     <div class="col-md-4">
         <label for="T_Status" class="form-label">Status</label>
-        @Html.DropDownListFor(m => m.T_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="T_Status" name="T_Status" class="form-select" data-selected-value="@(Model.T_Status)"></select>
         <div class="text-danger small field-error" data-for="T_Status"></div>
     </div>
 
@@ -93,7 +93,7 @@
     </div>
     <div class="col-md-4">
         <label for="T_BloodGroup" class="form-label">Blood Group</label>
-        @Html.DropDownListFor(m => m.T_BloodGroup, Model.BloodGroupOptions, "Select Blood Group", new { @class = "form-select" })
+        <select id="T_BloodGroup" name="T_BloodGroup" class="form-select" data-selected-value="@(Model.T_BloodGroup)"></select>
     </div>
 </div>
 

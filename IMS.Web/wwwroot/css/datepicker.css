@@ -105,12 +105,12 @@
     position: absolute;
     top: 100%;
     left: 0;
-    z-index: 1050;
+    z-index: 1070;
     min-width: 280px;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(17, 24, 39, .12), 0 2px 8px rgba(17, 24, 39, .06);
+    box-shadow: 0 10px 30px rgba(17, 24, 39, .18), 0 3px 10px rgba(17, 24, 39, .08);
     padding: 12px;
     margin-top: 4px;
     user-select: none;

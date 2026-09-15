@@ -27,14 +27,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    <option value="Submitted" selected="@(currentStatus == "Submitted")">Submitted</option>
-                    <option value="UnderReview" selected="@(currentStatus == "UnderReview")">Under Review</option>
-                    <option value="Approved" selected="@(currentStatus == "Approved")">Approved</option>
-                    <option value="Issued" selected="@(currentStatus == "Issued")">Issued / Completed</option>
-                    <option value="Rejected" selected="@(currentStatus == "Rejected")">Rejected</option>
-                </select>
+                <select name="status" id="filterStatus" class="form-select" onchange="this.form.submit()" data-selected-value="@(currentStatus)"></select>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100 rounded-3">Filter</button>
@@ -210,13 +203,7 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold small text-muted">Application Status</label>
-                    <select id="modalStatus" class="form-select rounded-3">
-                        <option value="Submitted">Submitted</option>
-                        <option value="UnderReview">Under Review</option>
-                        <option value="Approved">Approve &amp; Generate TC</option>
-                        <option value="Issued">Issue Certificate</option>
-                        <option value="Rejected">Reject</option>
-                    </select>
+                    <select id="modalStatus" class="form-select rounded-3"></select>
                 </div>
 
                 <div class="mb-3">
@@ -254,4 +241,8 @@
 
 @section Scripts {
     <script src="~/js/transferCertificate.js"></script>
+    <script>
+        Dropdown.load({ element: '#filterStatus', entityType: 'TCStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+        Dropdown.load({ element: '#modalStatus', entityType: 'TCStatus', defaultText: '-- Select --', includeDefault: false });
+    </script>
 }

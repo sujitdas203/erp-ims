@@ -98,6 +98,18 @@ namespace IMS.DAL.Common
             // which don't accept that parameter.
             var sql = $"SELECT COUNT(1) FROM {config.TableName} WHERE [{columnName}] = @Value";
 
+            if (config.SoftDelete)
+            {
+                if (config.TableName.EndsWith("_C"))
+                    sql += " AND C_DeletedAt IS NULL AND C_Status = 'active'";
+                else if (config.TableName.EndsWith("_P"))
+                    sql += " AND P_Status = 'active'";
+                else if (config.TableName.EndsWith("_B"))
+                    sql += " AND B_Status = 'active'";
+                else if (!string.IsNullOrEmpty(config.IsActiveColumn))
+                    sql += $" AND [{config.IsActiveColumn}] = 1";
+            }
+
             var parameters = new Dictionary<string, object>
             {
                 { "@Value", value ?? (object)DBNull.Value }
@@ -169,6 +181,11 @@ namespace IMS.DAL.Common
                     if (stringValue == "1") return true;
                     if (stringValue == "0") return false;
                     return rawValue;
+
+                case MasterFieldType.Dropdown:
+                    if (Guid.TryParse(stringValue, out var guidVal))
+                        return guidVal;
+                    return stringValue;
 
                 default:
                     return rawValue;

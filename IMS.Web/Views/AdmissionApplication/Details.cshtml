@@ -46,11 +46,7 @@
                     <input type="hidden" name="AA_Id" value="@Model.AA_Id" />
                     <div class="mb-3">
                         <label class="form-label">Decision</label>
-                        <select name="AA_Status" class="form-select">
-                            <option value="Approved">Approve</option>
-                            <option value="Rejected">Reject</option>
-                            <option value="Waitlisted">Waitlist</option>
-                        </select>
+                        <select id="AA_Status" name="AA_Status" class="form-select"></select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Notes</label>
@@ -78,6 +74,8 @@
 @section Scripts {
 <script>
 $(function () {
+    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionReviewDecision', defaultText: '-- Select --', includeDefault: false });
+
     $("#reviewForm").on("submit", function (e) {
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");

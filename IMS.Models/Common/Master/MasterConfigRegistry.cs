@@ -73,7 +73,7 @@ namespace IMS.Models.Common.Master
                 {
                     new MasterFieldConfig { ColumnName = "C_Name", PropertyName = "Name", DisplayName = "Course Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
                     new MasterFieldConfig { ColumnName = "C_Code", PropertyName = "Code", DisplayName = "Course Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "C_ProgramId", PropertyName = "ProgramId", DisplayName = "Program", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Program", LookupValueField = "P_Id", LookupTextField = "P_Name" },
+                    new MasterFieldConfig { ColumnName = "C_ProgramId", GridColumnName = "P_Name", PropertyName = "ProgramId", DisplayName = "Program", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Program", LookupValueField = "P_Id", LookupTextField = "P_Name" },
                     new MasterFieldConfig { ColumnName = "C_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
                 }
             },
@@ -170,7 +170,7 @@ namespace IMS.Models.Common.Master
                 {
                     new MasterFieldConfig { ColumnName = "D_Name", PropertyName = "Name", DisplayName = "Department Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
                     new MasterFieldConfig { ColumnName = "D_Code", PropertyName = "Code", DisplayName = "Department Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "D_BranchId", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name" },
+                    new MasterFieldConfig { ColumnName = "D_BranchId", GridColumnName = "B_Name", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name" },
                     new MasterFieldConfig { ColumnName = "D_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
                 }
             },
@@ -211,7 +211,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 6,
-                Icon = "fa-file-text",
+                Icon = "fa-file-lines",
 
                 ViewPermission = "Master.DocumentType.View",
                 CreatePermission = "Master.DocumentType.Create",
@@ -245,8 +245,17 @@ namespace IMS.Models.Common.Master
                         ColumnName = "DT_EntityType",
                         PropertyName = "EntityType",
                         DisplayName = "Entity Type",
+                        FieldType = MasterFieldType.Dropdown,
                         IsRequired = true,
-                        MaxLength = 30
+                        MaxLength = 30,
+                        DropdownOptions = new Dictionary<string, string>
+                        {
+                            { "Student", "Student" },
+                            { "Staff", "Staff" },
+                            { "Teacher", "Teacher" },
+                            { "Admission", "Admission Application" },
+                            { "General", "General" }
+                        }
                     },
 
                     new MasterFieldConfig
@@ -270,7 +279,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 7,
-                Icon = "fa-pencil-square-o",
+                Icon = "fa-pen-to-square",
 
                 ViewPermission = "Master.ExamType.View",
                 CreatePermission = "Master.ExamType.Create",
@@ -305,7 +314,15 @@ namespace IMS.Models.Common.Master
                         PropertyName = "WeightagePercentage",
                         DisplayName = "Weightage %",
                         FieldType = MasterFieldType.Number,
-                        IsRequired = true
+                        IsRequired = false
+                    },
+
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "ET_Description",
+                        PropertyName = "Description",
+                        DisplayName = "Description",
+                        FieldType = MasterFieldType.TextArea
                     }
                 }
             },
@@ -321,7 +338,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 8,
-                Icon = "fa-money",
+                Icon = "fa-receipt",
 
                 ViewPermission = "Master.ExpenseCategory.View",
                 CreatePermission = "Master.ExpenseCategory.Create",
@@ -347,7 +364,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 9,
-                Icon = "fa-credit-card",
+                Icon = "fa-wallet",
 
                 ViewPermission = "Master.FeeCategory.View",
                 CreatePermission = "Master.FeeCategory.Create",
@@ -374,7 +391,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = true,
                 HasAuditColumns = true,
                 MenuOrder = 10,
-                Icon = "fa-graduation-cap",
+                Icon = "fa-award",
 
                 ViewPermission = "Master.GradeScale.View",
                 CreatePermission = "Master.GradeScale.Create",
@@ -401,7 +418,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 11,
-                Icon = "fa-home",
+                Icon = "fa-chalkboard",
 
                 ViewPermission = "Master.Classroom.View",
                 CreatePermission = "Master.Classroom.Create",
@@ -432,6 +449,7 @@ namespace IMS.Models.Common.Master
                     new MasterFieldConfig
                     {
                         ColumnName = "CR_BranchId",
+                        GridColumnName = "B_Name",
                         PropertyName = "BranchId",
                         DisplayName = "Branch",
                         FieldType = MasterFieldType.Dropdown,
@@ -470,7 +488,7 @@ namespace IMS.Models.Common.Master
                 SoftDelete = true,
                 HasAuditColumns = true,
                 MenuOrder = 12,
-                Icon = "fa-credit-card-alt",
+                Icon = "fa-credit-card",
 
                 ViewPermission = "Master.PaymentMethod.View",
                 CreatePermission = "Master.PaymentMethod.Create",
@@ -494,8 +512,18 @@ namespace IMS.Models.Common.Master
                         ColumnName = "PM_Type",
                         PropertyName = "Type",
                         DisplayName = "Method Type",
+                        FieldType = MasterFieldType.Dropdown,
                         IsRequired = true,
-                        MaxLength = 30
+                        MaxLength = 30,
+                        DropdownOptions = new Dictionary<string, string>
+                        {
+                            { "Cash", "Cash" },
+                            { "Card", "Card" },
+                            { "Bank Transfer", "Bank Transfer" },
+                            { "Cheque", "Cheque" },
+                            { "Online", "Online / UPI" },
+                            { "Other", "Other" }
+                        }
                     }
                 }
             },
@@ -508,7 +536,7 @@ namespace IMS.Models.Common.Master
                 TableName = "dbo.Discounts_DIS",
                 KeyColumn = "DIS_Id",
                 DisplayName = "Discount Master",
-                SoftDelete = true,
+                SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 13,
                 Icon = "fa-percent",
@@ -545,8 +573,14 @@ namespace IMS.Models.Common.Master
                         ColumnName = "DIS_DiscountType",
                         PropertyName = "DiscountType",
                         DisplayName = "Type",
+                        FieldType = MasterFieldType.Dropdown,
                         IsRequired = true,
-                        MaxLength = 20
+                        MaxLength = 20,
+                        DropdownOptions = new Dictionary<string, string>
+                        {
+                            { "percentage", "Percentage" },
+                            { "fixed", "Fixed" }
+                        }
                     },
 
                     new MasterFieldConfig
@@ -564,6 +598,15 @@ namespace IMS.Models.Common.Master
                         PropertyName = "Description",
                         DisplayName = "Description",
                         FieldType = MasterFieldType.TextArea
+                    },
+
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "DIS_IsActive",
+                        PropertyName = "IsActive",
+                        DisplayName = "Is Active",
+                        FieldType = MasterFieldType.Boolean,
+                        ShowInGrid = false
                     }
                 }
             },
@@ -654,69 +697,38 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 17. Student (lookup only — full CRUD via StudentsController)
-            new MasterConfig
-            {
-                EntityType = "Student",
-                SpName = "USP_Students_S",
-                TableName = "dbo.Students_S",
-                KeyColumn = "S_Id",
-                DisplayName = "Student",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 20,
-                Icon = "fa-user-graduate",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "S_FirstName", PropertyName = "FirstName", DisplayName = "First Name", IsRequired = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "S_LastName", PropertyName = "LastName", DisplayName = "Last Name", IsRequired = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "S_StudentCode", PropertyName = "StudentCode", DisplayName = "Student Code", IsRequired = true, MaxLength = 50 }
-                }
-            },
-
-            // 18. Batch (lookup only — full CRUD via BatchController)
+            // 17. Batch Master
             new MasterConfig
             {
                 EntityType = "Batch",
                 SpName = "USP_Batches_BT",
                 TableName = "dbo.Batches_BT",
                 KeyColumn = "BT_Id",
-                DisplayName = "Batch",
+                DisplayName = "Batch Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
                 MenuOrder = 21,
                 Icon = "fa-users",
 
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, MaxLength = 150 },
-                    new MasterFieldConfig { ColumnName = "BT_Code", PropertyName = "Code", DisplayName = "Batch Code", IsRequired = true, MaxLength = 50 }
-                }
-            },
-
-            // 19. Staff (lookup only — full CRUD via dedicated controller)
-            new MasterConfig
-            {
-                EntityType = "Staff",
-                SpName = "USP_Staff_ST",
-                TableName = "dbo.Staff_ST",
-                KeyColumn = "ST_Id",
-                DisplayName = "Staff",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 22,
-                Icon = "fa-chalkboard-user",
+                ViewPermission = "Batch.View",
+                CreatePermission = "Batch.Create",
+                EditPermission = "Batch.Edit",
+                DeletePermission = "Batch.Delete",
 
                 Fields = new List<MasterFieldConfig>
                 {
-                    new MasterFieldConfig { ColumnName = "ST_FirstName", PropertyName = "FirstName", DisplayName = "First Name", IsRequired = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "ST_LastName", PropertyName = "LastName", DisplayName = "Last Name", IsRequired = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "ST_EmployeeCode", PropertyName = "EmployeeCode", DisplayName = "Employee Code", IsRequired = true, MaxLength = 50 }
+                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
+                    new MasterFieldConfig { ColumnName = "BT_Code", PropertyName = "Code", DisplayName = "Batch Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "BT_BranchId", GridColumnName = "BranchName", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_CourseId", GridColumnName = "CourseName", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_AcademicYearId", GridColumnName = "AcademicYearName", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_StartDate", PropertyName = "StartDate", DisplayName = "Start Date", FieldType = MasterFieldType.Date, IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_EndDate", PropertyName = "EndDate", DisplayName = "End Date", FieldType = MasterFieldType.Date },
+                    new MasterFieldConfig { ColumnName = "BT_Capacity", PropertyName = "Capacity", DisplayName = "Capacity", FieldType = MasterFieldType.Number }
                 }
             },
 
-            // 20. Notification Template Master
+            // 18. Notification Template Master
             new MasterConfig
             {
                 EntityType = "NotificationTemplate",
@@ -761,8 +773,16 @@ namespace IMS.Models.Common.Master
                         ColumnName = "NT_Channel",
                         PropertyName = "Channel",
                         DisplayName = "Channel",
+                        FieldType = MasterFieldType.Dropdown,
                         IsRequired = true,
-                        MaxLength = 20
+                        MaxLength = 20,
+                        DropdownOptions = new Dictionary<string, string>
+                        {
+                            { "Email", "Email" },
+                            { "SMS", "SMS" },
+                            { "WhatsApp", "WhatsApp" },
+                            { "InApp", "In-App Notification" }
+                        }
                     },
 
                     new MasterFieldConfig

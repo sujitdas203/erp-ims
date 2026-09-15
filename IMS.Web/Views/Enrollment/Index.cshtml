@@ -18,7 +18,7 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -89,6 +89,8 @@ $(function () {
             error: function () { if (window.toastr) toastr.error("Request failed."); }
         });
     });
+
+    Dropdown.load({ element: '#filterStatus', entityType: 'EnrollmentStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
 });
 </script>
 }

@@ -517,6 +517,323 @@ namespace IMS.Models.Common.Dropdown
         },
 
         #endregion
+
+
+        #region Static Dropdowns (DropdownValues_DV table)
+
+        new DropdownConfig
+        {
+            EntityType = "Gender",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'Gender'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "BloodGroup",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'BloodGroup'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "ActiveStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'ActiveStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "StudentStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'StudentStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "TeacherStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'TeacherStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "DayOfWeek",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'DayOfWeek'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "Relation",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'Relation'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "LeaveType",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'LeaveType'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "AttendanceStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'AttendanceStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "TeacherAttendanceStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'TeacherAttendanceStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "AdmissionStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'AdmissionStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "AdmissionReviewDecision",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'AdmissionReviewDecision'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "EnrollmentStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'EnrollmentStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "ExamStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'ExamStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "BatchStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'BatchStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "StaffStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'StaffStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "PaymentStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'PaymentStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "InvoiceStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'InvoiceStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "TCStatus",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'TCStatus'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "YesNo",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'YesNo'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "MandatoryOptional",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'MandatoryOptional'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "TeacherRole",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'TeacherRole'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "EnquiryType",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'EnquiryType'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "ContactClass",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'ContactClass'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "PreferredContact",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'PreferredContact'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "StudentLeaveType",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'StudentLeaveType'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        #endregion
     };
 
         /// <summary>

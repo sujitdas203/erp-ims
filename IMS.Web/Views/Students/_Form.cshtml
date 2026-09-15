@@ -1,10 +1,5 @@
 @model IMS.Models.ViewModels.StudentFormViewModel
 
-@* Relation options exposed to JS so dynamically-added guardian rows can build their <select> *@
-<script>
-    window.__relationOptions = `@Html.Raw(string.Join("", Model.RelationOptions.Select(o => $"<option value=\"{o.Value}\">{o.Text}</option>")))`;
-</script>
-
 @if (Model.S_Id.HasValue)
 {
     @Html.HiddenFor(m => m.S_Id)
@@ -65,15 +60,15 @@
     </div>
     <div class="col-md-3">
         <label for="S_Gender" class="form-label">Gender</label>
-        @Html.DropDownListFor(m => m.S_Gender, Model.GenderOptions, "Select Gender", new { @class = "form-select" })
+        <select id="S_Gender" name="S_Gender" class="form-select" data-selected-value="@(Model.S_Gender)"></select>
     </div>
     <div class="col-md-3">
         <label for="S_BloodGroup" class="form-label">Blood Group</label>
-        @Html.DropDownListFor(m => m.S_BloodGroup, Model.BloodGroupOptions, "Select Blood Group", new { @class = "form-select" })
+        <select id="S_BloodGroup" name="S_BloodGroup" class="form-select" data-selected-value="@(Model.S_BloodGroup)"></select>
     </div>
     <div class="col-md-3">
         <label for="S_Status" class="form-label">Status</label>
-        @Html.DropDownListFor(m => m.S_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="S_Status" name="S_Status" class="form-select" data-selected-value="@(Model.S_Status)"></select>
         <div class="text-danger small field-error" data-for="S_Status"></div>
     </div>
 </div>
@@ -188,13 +183,7 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small">Relation</label>
-                        <select name="Guardians[@gIndex].Relation" class="form-select form-select-sm">
-                            <option value="">Select Relation</option>
-                            @foreach (var opt in Model.RelationOptions)
-                            {
-                                <option value="@opt.Value" selected="@(opt.Value == g.Relation)">@opt.Text</option>
-                            }
-                        </select>
+                        <select name="Guardians[@gIndex].Relation" class="form-select form-select-sm relation-select" data-selected-value="@(g.Relation)"></select>
                         <div class="text-danger small field-error" data-for="Guardians[@gIndex].Relation"></div>
                     </div>
                     <div class="col-md-4 d-flex align-items-center">

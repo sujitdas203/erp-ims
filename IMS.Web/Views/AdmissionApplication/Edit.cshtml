@@ -23,6 +23,8 @@ $(function () {
     Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true, selectedValue: $('#AA_BranchId').data('selected-value') });
     Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true, selectedValue: $('#AA_CourseId').data('selected-value') });
     Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true, selectedValue: $('#AA_AcademicYearId').data('selected-value') });
+    Dropdown.load({ element: '#AA_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true, selectedValue: $('#AA_Gender').data('selected-value') });
+    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionStatus', defaultText: '-- Select --', includeDefault: false, selectedValue: $('#AA_Status').data('selected-value') });
 
     $("form").on("submit", function (e) {
         e.preventDefault();
