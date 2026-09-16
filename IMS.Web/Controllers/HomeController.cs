@@ -88,7 +88,8 @@ namespace IMS.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApplyAdmission(
             IMS.Models.ViewModels.AdmissionApplicationFormViewModel model,
-            [FromServices] IAdmissionApplicationService admissionService)
+            [FromServices] IAdmissionApplicationService admissionService,
+            [FromServices] INotificationService notificationService)
         {
             if (!ModelState.IsValid)
             {
@@ -107,6 +108,19 @@ namespace IMS.Web.Controllers
             if (result.Success)
             {
                 TempData["AdmissionSuccess"] = $"Your application has been received! Your application reference number is: {model.AA_ApplicationNumber}. Our admissions office will contact you soon.";
+                
+                // Trigger operational notification
+                await notificationService.RaiseNotificationAsync(
+                    tenantId,
+                    "ADMISSION_SUBMITTED",
+                    $"New Admission Application: {model.AA_FirstName} {model.AA_LastName}",
+                    $"Application #{model.AA_ApplicationNumber} submitted for review.",
+                    "/AdmissionApplication",
+                    "TENANT_ADMIN",
+                    null,
+                    model.AA_Email
+                );
+
                 return RedirectToAction(nameof(Admission));
             }
 

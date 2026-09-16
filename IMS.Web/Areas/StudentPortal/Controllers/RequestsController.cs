@@ -33,7 +33,9 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LeaveApply(PortalLeaveApplyViewModel model)
+        public async Task<IActionResult> LeaveApply(
+            PortalLeaveApplyViewModel model,
+            [FromServices] INotificationService notificationService)
         {
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
@@ -57,6 +59,17 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             if (res.Success)
             {
                 TempData["SuccessMessage"] = "Leave application submitted successfully.";
+
+                // Trigger in-app / email notification to Admin
+                await notificationService.RaiseNotificationAsync(
+                    CurrentTenantId,
+                    "STUDENT_LEAVE_APPLIED",
+                    $"Student Leave Request ({model.LeaveType})",
+                    $"A student submitted a {model.LeaveType.ToLowerInvariant()} leave request from {model.FromDate.Value:dd MMM} to {model.ToDate.Value:dd MMM}. Reason: {model.Reason}",
+                    "/StudentLeave",
+                    "TENANT_ADMIN"
+                );
+
                 return RedirectToAction(nameof(LeaveApply));
             }
 

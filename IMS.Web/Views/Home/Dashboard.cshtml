@@ -1,161 +1,1132 @@
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
+    var currentHour = DateTime.Now.Hour;
+    var greeting = currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
+    var todayDate = DateTime.Now.ToString("dddd, dd MMMM yyyy");
+    var userName = User.Identity?.Name ?? "Administrator";
+    var userRole = ViewBag.RedisRoles != null ? ViewBag.RedisRoles.ToString() : "Tenant Admin";
 }
 
-<div class="container-fluid mt-4">
+@section Styles {
+<style>
+    /* ==========================================================================
+       ADMIN DASHBOARD STYLES
+       ========================================================================== */
+    :root {
+        --dash-primary-grad: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        --dash-accent-blue: #3b82f6;
+        --dash-accent-purple: #8b5cf6;
+        --dash-accent-emerald: #10b981;
+        --dash-accent-amber: #f59e0b;
+        --dash-accent-rose: #f43f5e;
+        --dash-accent-cyan: #06b6d4;
+    }
 
-    <!-- Welcome Section -->
-    <h3>Welcome, @User.Identity?.Name</h3>
-    <h5>You are logged in as: @ViewBag.RedisRoles</h5>
+    /* Hero Banner */
+    .dash-hero {
+        background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 50%, #0f172a 100%);
+        border-radius: 16px;
+        padding: 1.75rem 2rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3), 0 8px 10px -6px rgba(15, 23, 42, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-    <!-- Dashboard Statistics -->
-    <div class="row mt-4">
+    .dash-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
 
-        <!-- Total Students -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h5>Total Students</h5>
-                    <h2>120</h2>
+    .dash-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        right: 25%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .dash-hero-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.35rem;
+    }
+
+    .dash-hero-subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .dash-badge-role {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .dash-hero-chip {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+    }
+
+    .dash-pill-btn {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        font-size: 0.825rem;
+        font-weight: 500;
+        padding: 0.45rem 0.9rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .dash-pill-btn:hover {
+        background: #ffffff;
+        color: #0f172a;
+        border-color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    /* Metric Cards */
+    .metric-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+    }
+
+    .metric-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .metric-icon-box {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .metric-icon-blue { background: #eff6ff; color: #2563eb; }
+    .metric-icon-purple { background: #f5f3ff; color: #7c3aed; }
+    .metric-icon-emerald { background: #ecfdf5; color: #059669; }
+    .metric-icon-amber { background: #fffbeb; color: #d97706; }
+    .metric-icon-rose { background: #fff1f2; color: #e11d48; }
+    .metric-icon-cyan { background: #ecfeff; color: #0891b2; }
+
+    .metric-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin-bottom: 0.2rem;
+    }
+
+    .metric-value {
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.1;
+    }
+
+    .metric-badge {
+        font-size: 0.725rem;
+        font-weight: 600;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+    .metric-badge-success { background: #dcfce7; color: #15803d; }
+    .metric-badge-warning { background: #fef3c7; color: #b45309; }
+    .metric-badge-danger { background: #ffe4e6; color: #be123c; }
+    .metric-badge-info { background: #e0f2fe; color: #0369a1; }
+
+    .metric-footer {
+        margin-top: 0.75rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid #f1f5f9;
+        font-size: 0.78rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Dashboard Surface Cards */
+    .dash-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .dash-card-header {
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #ffffff;
+    }
+
+    .dash-card-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dash-card-body {
+        padding: 1.25rem 1.4rem;
+    }
+
+    /* Quick Action Grid Tiles */
+    .action-tile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.85rem;
+    }
+
+    .action-tile {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem 0.75rem;
+        text-align: center;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-tile:hover {
+        background: #ffffff;
+        border-color: #3b82f6;
+        color: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+    }
+
+    .action-tile-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        transition: transform 0.2s ease;
+    }
+
+    .action-tile:hover .action-tile-icon {
+        transform: scale(1.1);
+    }
+
+    .action-tile-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    /* Activity Feed & Timeline */
+    .timeline-feed {
+        position: relative;
+        padding-left: 1.25rem;
+    }
+
+    .timeline-feed::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: #e2e8f0;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.1rem;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -1.25rem;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3px solid #3b82f6;
+    }
+
+    .timeline-dot.emerald { border-color: #10b981; }
+    .timeline-dot.amber { border-color: #f59e0b; }
+    .timeline-dot.purple { border-color: #8b5cf6; }
+    .timeline-dot.rose { border-color: #f43f5e; }
+
+    .timeline-content {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 0.65rem 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .timeline-text {
+        font-size: 0.825rem;
+        font-weight: 500;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .timeline-meta {
+        font-size: 0.72rem;
+        color: #94a3b8;
+    }
+
+    /* Today's Schedule Table */
+    .schedule-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+    }
+
+    /* Action Required List */
+    .action-req-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .action-req-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    /* Chart Button Switchers */
+    .btn-chart-toggle {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        transition: all 0.15s ease;
+    }
+
+    .btn-chart-toggle.active,
+    .btn-chart-toggle:hover {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+
+    /* Pulsing status dot */
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 1.8s infinite;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
+}
+
+<div class="container-fluid px-3 py-3">
+
+    <!-- ========================================================================
+         HERO BANNER & LIVE SYSTEM GREETING
+         ======================================================================== -->
+    <div class="dash-hero mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="dash-badge-role">
+                        <i class="fa-solid fa-shield-halved"></i> @userRole
+                    </span>
+                    <span class="dash-hero-chip py-1 px-2" style="font-size: 0.75rem;">
+                        <span class="pulse-dot me-1"></span> ERP Core v2.4 Active
+                    </span>
+                </div>
+                <h1 class="dash-hero-title">@greeting, @userName</h1>
+                <p class="dash-hero-subtitle mb-0">
+                    Welcome to your Institute Management Workspace. Here is what is happening across admissions, batches, and operations today.
+                </p>
+            </div>
+            <div class="col-lg-5 text-lg-end">
+                <div class="d-inline-flex flex-column align-items-lg-end gap-2">
+                    <div class="dash-hero-chip">
+                        <i class="fa-regular fa-calendar-days text-warning"></i>
+                        <span>@todayDate</span>
+                        <span class="badge bg-light text-dark ms-1">Term 2</span>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap justify-content-lg-end mt-1">
+                        <a asp-controller="Students" asp-action="Index" class="dash-pill-btn">
+                            <i class="fa-solid fa-user-plus text-info"></i> + Student
+                        </a>
+                        <a asp-controller="Attendance" asp-action="Index" class="dash-pill-btn">
+                            <i class="fa-solid fa-calendar-check text-success"></i> Attendance
+                        </a>
+                        <a asp-controller="Fees" asp-action="Index" class="dash-pill-btn">
+                            <i class="fa-solid fa-indian-rupee-sign text-warning"></i> Fees
+                        </a>
+                        <a asp-controller="Announcements" asp-action="Index" class="dash-pill-btn">
+                            <i class="fa-solid fa-bullhorn text-danger"></i> Notice
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Total Teachers -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h5>Total Teachers</h5>
-                    <h2>35</h2>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Courses -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h5>Total Courses</h5>
-                    <h2>24</h2>
-                </div>
-            </div>
-        </div>
-
-        <!-- Active Batches -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h5>Active Batches</h5>
-                    <h2>18</h2>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-
-    <div class="row mt-4">
-
-        <!-- Recent Activities -->
-        <div class="col-md-8">
-
-            <div class="card">
-
-                <div class="card-header">
-                    <strong>Recent Activities</strong>
+    <!-- ========================================================================
+         6 EXECUTIVE KPI METRIC CARDS
+         ======================================================================== -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Students -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-blue">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-success">
+                            <i class="fa-solid fa-arrow-up"></i> 14.2%
+                        </span>
+                    </div>
+                    <div class="metric-label">Total Students</div>
+                    <div class="metric-value">1,248</div>
                 </div>
-
-                <div class="card-body">
-
-                    <table class="table table-striped">
-
-                        <thead>
-                            <tr>
-                                <th>Activity</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            <tr>
-                                <td>New Student Registered</td>
-                                <td>@DateTime.Now.ToString("dd-MMM-yyyy")</td>
-                            </tr>
-
-                            <tr>
-                                <td>New Batch Created</td>
-                                <td>@DateTime.Now.ToString("dd-MMM-yyyy")</td>
-                            </tr>
-
-                            <tr>
-                                <td>Teacher Assigned to Course</td>
-                                <td>@DateTime.Now.ToString("dd-MMM-yyyy")</td>
-                            </tr>
-
-                            <tr>
-                                <td>Student Fee Payment Received</td>
-                                <td>@DateTime.Now.ToString("dd-MMM-yyyy")</td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
+                <div class="metric-footer">
+                    <span>Active: <strong>1,192</strong></span>
+                    <span class="text-muted">18 Batches</span>
                 </div>
+            </div>
+        </div>
 
+        <!-- 2. Faculty & Staff -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-purple">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-info">
+                            <i class="fa-solid fa-check"></i> Active
+                        </span>
+                    </div>
+                    <div class="metric-label">Faculty & Staff</div>
+                    <div class="metric-value">48</div>
+                </div>
+                <div class="metric-footer">
+                    <span>Teaching: <strong>36</strong></span>
+                    <span>Staff: <strong>12</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Active Batches & Courses -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-cyan">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-success">
+                            <i class="fa-solid fa-bolt"></i> 100% Live
+                        </span>
+                    </div>
+                    <div class="metric-label">Active Batches</div>
+                    <div class="metric-value">24</div>
+                </div>
+                <div class="metric-footer">
+                    <span>Courses: <strong>14</strong></span>
+                    <span>Subjects: <strong>62</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Today's Attendance -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-emerald">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-success">
+                            <i class="fa-solid fa-circle-check"></i> High
+                        </span>
+                    </div>
+                    <div class="metric-label">Attendance Rate</div>
+                    <div class="metric-value">94.8%</div>
+                </div>
+                <div class="metric-footer">
+                    <span>Present: <strong>1,130</strong></span>
+                    <span class="text-danger">Absent: <strong>62</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Fee Collection (MTD) -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-amber">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-warning">
+                            <i class="fa-solid fa-clock"></i> 82%
+                        </span>
+                    </div>
+                    <div class="metric-label">Fee Collection</div>
+                    <div class="metric-value">₹18.4L</div>
+                </div>
+                <div class="metric-footer">
+                    <span>Target: <strong>₹22.5L</strong></span>
+                    <span class="text-warning">Pending: ₹4.1L</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Pending Actions -->
+        <div class="col-12 col-sm-6 col-xl-2">
+            <div class="metric-card">
+                <div>
+                    <div class="metric-card-top">
+                        <div class="metric-icon-box metric-icon-rose">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <span class="metric-badge metric-badge-danger">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Action
+                        </span>
+                    </div>
+                    <div class="metric-label">Pending Requests</div>
+                    <div class="metric-value">7</div>
+                </div>
+                <div class="metric-footer">
+                    <span>Admissions: <strong>4</strong></span>
+                    <span>Leaves: <strong>3</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         ANALYTICS & CHARTS SECTION
+         ======================================================================== -->
+    <div class="row g-3 mb-4">
+        <!-- Main Chart: Performance & Trends -->
+        <div class="col-12 col-lg-8">
+            <div class="dash-card h-100 mb-0">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-chart-line text-primary"></i>
+                        <span>Institutional Performance & Trends</span>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button class="btn-chart-toggle active" id="btnChartRevenue" onclick="switchChartData('revenue')">
+                            Fee Collection
+                        </button>
+                        <button class="btn-chart-toggle" id="btnChartAdmissions" onclick="switchChartData('admissions')">
+                            Admissions
+                        </button>
+                        <button class="btn-chart-toggle" id="btnChartAttendance" onclick="switchChartData('attendance')">
+                            Attendance %
+                        </button>
+                    </div>
+                </div>
+                <div class="dash-card-body">
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Chart: Department / Course Enrollment Breakdown -->
+        <div class="col-12 col-lg-4">
+            <div class="dash-card h-100 mb-0">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-chart-pie text-purple" style="color: #8b5cf6;"></i>
+                        <span>Student Stream Distribution</span>
+                    </div>
+                    <span class="badge bg-light text-muted border">2026-27</span>
+                </div>
+                <div class="dash-card-body d-flex flex-column align-items-center justify-content-center">
+                    <div style="position: relative; height: 210px; width: 100%;">
+                        <canvas id="streamChart"></canvas>
+                    </div>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap mt-3 text-center" style="font-size: 0.75rem;">
+                        <div><span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #3b82f6;"></span>Science (42%)</div>
+                        <div><span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #10b981;"></span>Commerce (28%)</div>
+                        <div><span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #8b5cf6;"></span>Arts & Hum. (18%)</div>
+                        <div><span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #f59e0b;"></span>Tech/Voc. (12%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         OPERATIONAL HUB & QUICK ACTIONS
+         ======================================================================== -->
+    <div class="row g-3">
+        <!-- Left Column: Operations & Activity Feed -->
+        <div class="col-12 col-xl-7">
+
+            <!-- Today's Classes & Live Timetable Highlight -->
+            <div class="dash-card mb-3">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+                        <span>Today's Live Classes & Timetable</span>
+                    </div>
+                    <a asp-controller="Timetable" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;">
+                        View Full Schedule
+                    </a>
+                </div>
+                <div class="dash-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Time</th>
+                                    <th>Subject & Course</th>
+                                    <th>Batch</th>
+                                    <th>Instructor</th>
+                                    <th>Room</th>
+                                    <th class="text-end pe-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-3 fw-semibold text-primary">09:00 - 10:00</td>
+                                    <td>
+                                        <div class="fw-semibold">Advanced Mathematics</div>
+                                        <small class="text-muted">Science Stream</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">Batch 12-A</span></td>
+                                    <td>Dr. R. Sharma</td>
+                                    <td><i class="fa-solid fa-door-open text-muted me-1"></i>Lab 102</td>
+                                    <td class="text-end pe-3"><span class="badge bg-secondary-subtle text-secondary schedule-badge">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 fw-semibold text-success">10:15 - 11:15</td>
+                                    <td>
+                                        <div class="fw-semibold">Physics Laboratory</div>
+                                        <small class="text-muted">Optics & Waves</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">Batch 11-B</span></td>
+                                    <td>Prof. S. Mukhopadhyay</td>
+                                    <td><i class="fa-solid fa-door-open text-muted me-1"></i>Physics Lab</td>
+                                    <td class="text-end pe-3"><span class="badge bg-success schedule-badge"><span class="pulse-dot me-1" style="width: 6px; height: 6px;"></span>In Progress</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 fw-semibold text-dark">11:30 - 12:30</td>
+                                    <td>
+                                        <div class="fw-semibold">Accountancy & Tax</div>
+                                        <small class="text-muted">Commerce</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">Batch 12-C</span></td>
+                                    <td>Ms. P. Kulkarni</td>
+                                    <td><i class="fa-solid fa-door-open text-muted me-1"></i>Room 204</td>
+                                    <td class="text-end pe-3"><span class="badge bg-primary-subtle text-primary schedule-badge">Upcoming</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 fw-semibold text-dark">01:30 - 02:30</td>
+                                    <td>
+                                        <div class="fw-semibold">Computer Applications</div>
+                                        <small class="text-muted">Data Structures & C#</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">Batch 11-A</span></td>
+                                    <td>Mr. A. Sengupta</td>
+                                    <td><i class="fa-solid fa-door-open text-muted me-1"></i>Comp Lab 1</td>
+                                    <td class="text-end pe-3"><span class="badge bg-primary-subtle text-primary schedule-badge">Upcoming</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent System Activity Log & Audit Trail -->
+            <div class="dash-card mb-0">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-list-check text-emerald" style="color: #10b981;"></i>
+                        <span>Recent Activities & Audit Trail</span>
+                    </div>
+                    <span class="badge bg-light text-muted border">Live Updates</span>
+                </div>
+                <div class="dash-card-body">
+                    <div class="timeline-feed">
+                        <div class="timeline-item">
+                            <div class="timeline-dot emerald"></div>
+                            <div class="timeline-content">
+                                <div>
+                                    <p class="timeline-text"><i class="fa-solid fa-indian-rupee-sign text-success me-1"></i> Student Fee Payment Received (₹14,500 - Roll #1042)</p>
+                                    <span class="timeline-meta">Receipt #REC-2026-8914 • By Cashier Admin</span>
+                                </div>
+                                <span class="badge bg-light text-muted">10 mins ago</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div>
+                                    <p class="timeline-text"><i class="fa-solid fa-user-plus text-primary me-1"></i> New Admission Application Submitted (#APP-202609-8412)</p>
+                                    <span class="timeline-meta">Candidate: Ananya Roy (Class XI Science)</span>
+                                </div>
+                                <span class="badge bg-light text-muted">35 mins ago</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-dot amber"></div>
+                            <div class="timeline-content">
+                                <div>
+                                    <p class="timeline-text"><i class="fa-solid fa-calendar-xmark text-warning me-1"></i> Teacher Leave Request Submitted</p>
+                                    <span class="timeline-meta">Instructor: Dr. R. Sharma (Casual Leave - 2 Days)</span>
+                                </div>
+                                <span class="badge bg-light text-muted">1 hr ago</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-dot purple"></div>
+                            <div class="timeline-content">
+                                <div>
+                                    <p class="timeline-text"><i class="fa-solid fa-file-circle-check text-purple me-1"></i> Mock Test Schedule Published</p>
+                                    <span class="timeline-meta">Test: Mid-Term Physics Assessment 2026</span>
+                                </div>
+                                <span class="badge bg-light text-muted">2 hrs ago</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-dot rose"></div>
+                            <div class="timeline-content">
+                                <div>
+                                    <p class="timeline-text"><i class="fa-solid fa-file-shield text-danger me-1"></i> Transfer Certificate Generated (#TC-2026-042)</p>
+                                    <span class="timeline-meta">Student: Rohan Sen • Approved by Principal</span>
+                                </div>
+                                <span class="badge bg-light text-muted">4 hrs ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
 
+        <!-- Right Column: Quick Action Grid & Approvals -->
+        <div class="col-12 col-xl-5">
 
-        <!-- Quick Actions -->
-        <div class="col-md-4">
-
-            <div class="card">
-
-                <div class="card-header">
-                    <strong>Quick Actions</strong>
+            <!-- Quick Action Grid Launcher -->
+            <div class="dash-card mb-3">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-compass text-warning"></i>
+                        <span>Quick Operations Launchpad</span>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.75rem;">Shortcuts</span>
                 </div>
+                <div class="dash-card-body">
+                    <div class="action-tile-grid">
+                        <a asp-controller="Students" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #eff6ff; color: #2563eb;">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                            <span class="action-tile-label">Students</span>
+                        </a>
 
-                <div class="card-body d-grid gap-2">
+                        <a asp-controller="Teachers" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #f5f3ff; color: #7c3aed;">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <span class="action-tile-label">Teachers</span>
+                        </a>
 
-                    <a href="#" class="btn btn-primary">
-                        <i class="bi bi-person-plus"></i>
-                        Add Student
-                    </a>
+                        <a asp-controller="AdmissionApplication" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #ecfeff; color: #0891b2;">
+                                <i class="fa-solid fa-address-book"></i>
+                            </div>
+                            <span class="action-tile-label">Admissions</span>
+                        </a>
 
-                    <a href="#" class="btn btn-success">
-                        <i class="bi bi-person-workspace"></i>
-                        Add Teacher
-                    </a>
+                        <a asp-controller="Attendance" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #ecfdf5; color: #059669;">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <span class="action-tile-label">Attendance</span>
+                        </a>
 
-                    <a href="#" class="btn btn-warning">
-                        <i class="bi bi-journal-plus"></i>
-                        Create Course
-                    </a>
+                        <a asp-controller="Fees" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #fffbeb; color: #d97706;">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <span class="action-tile-label">Fee Billing</span>
+                        </a>
 
-                    <a href="#" class="btn btn-info">
-                        <i class="bi bi-collection"></i>
-                        Create Batch
-                    </a>
+                        <a asp-controller="Batch" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #fdf2f8; color: #db2777;">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <span class="action-tile-label">Batches</span>
+                        </a>
 
-                    <a href="#" class="btn btn-secondary">
-                        <i class="bi bi-cash-stack"></i>
-                        Manage Fees
-                    </a>
+                        <a asp-controller="MockTests" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #f0fdf4; color: #16a34a;">
+                                <i class="fa-solid fa-file-circle-check"></i>
+                            </div>
+                            <span class="action-tile-label">Mock Tests</span>
+                        </a>
 
-                    <a href="#" class="btn btn-dark">
-                        <i class="bi bi-bar-chart"></i>
-                        View Reports
-                    </a>
+                        <a asp-controller="TeacherLeave" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #fff1f2; color: #e11d48;">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </div>
+                            <span class="action-tile-label">Leave Approvals</span>
+                        </a>
 
+                        <a asp-controller="TransferCertificate" asp-action="Index" class="action-tile">
+                            <div class="action-tile-icon" style="background: #f1f5f9; color: #475569;">
+                                <i class="fa-solid fa-file-shield"></i>
+                            </div>
+                            <span class="action-tile-label">Transfer Cert.</span>
+                        </a>
+
+                        <a href="/Master" class="action-tile">
+                            <div class="action-tile-icon" style="background: #fefce8; color: #ca8a04;">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <span class="action-tile-label">Master Data</span>
+                        </a>
+                    </div>
                 </div>
+            </div>
 
+            <!-- Pending Action Items & Approvals Card -->
+            <div class="dash-card mb-3">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-bell-concierge text-danger"></i>
+                        <span>Action Required</span>
+                    </div>
+                    <span class="badge bg-danger rounded-pill">4 Pending</span>
+                </div>
+                <div class="dash-card-body">
+                    <div class="action-req-item">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="p-2 rounded bg-primary-subtle text-primary">
+                                <i class="fa-solid fa-user-clock"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.84rem;">Admissions Pending Verification</div>
+                                <div class="text-muted" style="font-size: 0.74rem;">4 New online applications received</div>
+                            </div>
+                        </div>
+                        <a asp-controller="AdmissionApplication" asp-action="Index" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">Review</a>
+                    </div>
+
+                    <div class="action-req-item">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="p-2 rounded bg-warning-subtle text-warning">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.84rem;">Teacher Leave Requests</div>
+                                <div class="text-muted" style="font-size: 0.74rem;">2 Faculty members applied for leave</div>
+                            </div>
+                        </div>
+                        <a asp-controller="TeacherLeave" asp-action="Index" class="btn btn-sm btn-outline-warning" style="font-size: 0.75rem;">Approve</a>
+                    </div>
+
+                    <div class="action-req-item">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="p-2 rounded bg-danger-subtle text-danger">
+                                <i class="fa-solid fa-file-invoice"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.84rem;">Fee Defaulters Alert</div>
+                                <div class="text-muted" style="font-size: 0.74rem;">18 Students past due date this term</div>
+                            </div>
+                        </div>
+                        <a asp-controller="Fees" asp-action="Index" class="btn btn-sm btn-outline-danger" style="font-size: 0.75rem;">Notify</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Institute Bulletin & Announcements Preview -->
+            <div class="dash-card mb-0">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <i class="fa-solid fa-bullhorn text-warning"></i>
+                        <span>Notice Bulletin</span>
+                    </div>
+                    <a asp-controller="Announcements" asp-action="Index" class="btn btn-sm btn-link text-decoration-none p-0" style="font-size: 0.78rem;">
+                        All Notices <i class="fa-solid fa-chevron-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="dash-card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <div class="p-2 border rounded-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.7rem;">High Priority</span>
+                                <small class="text-muted" style="font-size: 0.72rem;">15 Sep 2026</small>
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size: 0.83rem;">Mid-Term Assessment & Exam Schedule</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.76rem;">Detailed examination timetable published for Classes IX, X, XI, and XII.</div>
+                        </div>
+
+                        <div class="p-2 border rounded-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem;">General Notice</span>
+                                <small class="text-muted" style="font-size: 0.72rem;">12 Sep 2026</small>
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size: 0.83rem;">Annual Science Exhibition & Tech Fest</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.76rem;">Project registration open for all senior batches until 25th September.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
-
     </div>
 
 </div>
+
+@section Scripts {
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        initTrendChart();
+        initStreamChart();
+    });
+
+    let trendChartInstance = null;
+
+    const chartDatasets = {
+        revenue: {
+            label: "Fee Collection (₹ in Lakhs)",
+            data: [12.4, 14.8, 16.2, 15.0, 18.4, 21.0, 19.5, 22.8, 20.4, 23.5, 24.8, 26.2],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+            fill: true,
+            unit: '₹'
+        },
+        admissions: {
+            label: "Student Admissions",
+            data: [45, 62, 85, 120, 180, 240, 195, 110, 75, 90, 130, 160],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            fill: true,
+            unit: ''
+        },
+        attendance: {
+            label: "Average Attendance (%)",
+            data: [92.1, 93.4, 94.0, 91.8, 95.2, 94.6, 93.8, 96.1, 94.8, 95.5, 96.0, 94.8],
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            fill: true,
+            unit: '%'
+        }
+    };
+
+    const monthsLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function initTrendChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        const initial = chartDatasets.revenue;
+
+        trendChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthsLabels,
+                datasets: [{
+                    label: initial.label,
+                    data: initial.data,
+                    borderColor: initial.borderColor,
+                    backgroundColor: initial.backgroundColor,
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    fill: initial.fill,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: initial.borderColor,
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e2e8f0',
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 }, color: '#64748b' }
+                    },
+                    y: {
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { size: 11 }, color: '#64748b' }
+                    }
+                }
+            }
+        });
+    }
+
+    function switchChartData(type) {
+        document.querySelectorAll('.btn-chart-toggle').forEach(btn => btn.classList.remove('active'));
+        if (type === 'revenue') document.getElementById('btnChartRevenue').classList.add('active');
+        if (type === 'admissions') document.getElementById('btnChartAdmissions').classList.add('active');
+        if (type === 'attendance') document.getElementById('btnChartAttendance').classList.add('active');
+
+        const selected = chartDatasets[type];
+        if (trendChartInstance && selected) {
+            trendChartInstance.data.datasets[0].label = selected.label;
+            trendChartInstance.data.datasets[0].data = selected.data;
+            trendChartInstance.data.datasets[0].borderColor = selected.borderColor;
+            trendChartInstance.data.datasets[0].backgroundColor = selected.backgroundColor;
+            trendChartInstance.data.datasets[0].pointBorderColor = selected.borderColor;
+            trendChartInstance.update();
+        }
+    }
+
+    function initStreamChart() {
+        const ctx = document.getElementById('streamChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Science', 'Commerce', 'Arts & Hum.', 'Tech / Voc.'],
+                datasets: [{
+                    data: [520, 350, 224, 154],
+                    backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e2e8f0',
+                        cornerRadius: 8,
+                        padding: 10
+                    }
+                }
+            }
+        });
+    }
+</script>
+}

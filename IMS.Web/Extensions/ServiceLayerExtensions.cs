@@ -38,6 +38,8 @@ namespace IMS.Web.Extensions
             services.AddScoped<ISubjectSyllabusService, SubjectSyllabusService>();
             services.AddScoped<IHomeTaskService, HomeTaskService>();
             services.AddScoped<IMockTestService, MockTestService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             return services;
         }
