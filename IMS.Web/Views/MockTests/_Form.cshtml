@@ -1,0 +1,70 @@
+@model IMS.Models.MockTest.MockTestFormViewModel
+
+@if (Model.MT_Id.HasValue)
+{
+    @Html.HiddenFor(m => m.MT_Id)
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="MT_BatchId" class="form-label">Batch <span class="text-danger">*</span></label>
+        @Html.DropDownListFor(m => m.MT_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select", id = "MT_BatchId" })
+        <div class="text-danger small field-error" data-for="MT_BatchId"></div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="MT_SubjectId" class="form-label">Subject <span class="text-danger">*</span></label>
+        @Html.DropDownListFor(m => m.MT_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select", id = "MT_SubjectId" })
+        <div class="text-danger small field-error" data-for="MT_SubjectId"></div>
+    </div>
+
+    <div class="col-md-12">
+        <label for="MT_Title" class="form-label">Test Title <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.MT_Title, new { @class = "form-control", placeholder = "e.g. Physics Mid-Term Mock Test", id = "MT_Title" })
+        <div class="text-danger small field-error" data-for="MT_Title"></div>
+    </div>
+
+    <div class="col-md-12">
+        <label for="MT_Description" class="form-label">Description / Topics Covered</label>
+        @Html.TextAreaFor(m => m.MT_Description, 3, 0, new { @class = "form-control", placeholder = "Describe the topics covered in this mock test...", id = "MT_Description" })
+        <div class="text-danger small field-error" data-for="MT_Description"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="MT_TestDate" class="form-label">Test Date & Time <span class="text-danger">*</span></label>
+        <input type="datetime-local" class="form-control" id="MT_TestDate" name="MT_TestDate"
+               value="@Model.MT_TestDate.ToString("yyyy-MM-ddTHH:mm")" />
+        <div class="text-danger small field-error" data-for="MT_TestDate"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="MT_DurationMinutes" class="form-label">Duration (Minutes) <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.MT_DurationMinutes, new { @class = "form-control", type = "number", min = "1", id = "MT_DurationMinutes" })
+        <div class="text-danger small field-error" data-for="MT_DurationMinutes"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="MT_Status" class="form-label">Status <span class="text-danger">*</span></label>
+        @Html.DropDownListFor(m => m.MT_Status, Model.StatusOptions, "Select Status", new { @class = "form-select", id = "MT_Status" })
+        <div class="text-danger small field-error" data-for="MT_Status"></div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="MT_TotalMarks" class="form-label">Total Marks <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.MT_TotalMarks, new { @class = "form-control", type = "number", step = "0.5", min = "1", id = "MT_TotalMarks" })
+        <div class="text-danger small field-error" data-for="MT_TotalMarks"></div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="MT_PassMarks" class="form-label">Pass Marks <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.MT_PassMarks, new { @class = "form-control", type = "number", step = "0.5", min = "0", id = "MT_PassMarks" })
+        <div class="text-danger small field-error" data-for="MT_PassMarks"></div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-4">
+    <a asp-controller="MockTests" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary" id="btnSubmitMockTest">
+        <i class="bi bi-check-lg me-1"></i> @(Model.MT_Id.HasValue ? "Update Mock Test" : "Save Mock Test")
+    </button>
+</div>

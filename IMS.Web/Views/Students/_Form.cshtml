@@ -30,6 +30,11 @@
         <select id="S_SectionId" name="S_SectionId" class="form-select" data-selected-value="@(Model.S_SectionId?.ToString())"></select>
     </div>
     <div class="col-md-4">
+        <label for="S_BatchId" class="form-label">Batch</label>
+        @Html.DropDownListFor(m => m.S_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <div class="text-danger small field-error" data-for="S_BatchId"></div>
+    </div>
+    <div class="col-md-4">
         <label for="S_AdmissionDate" class="form-label">Admission Date</label>
         @Html.TextBoxFor(m => m.S_AdmissionDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input" })
     </div>

@@ -170,7 +170,7 @@ namespace IMS.DAL.Repositories
             var rowsAffected = reader.GetInt32(reader.GetOrdinal("RowsAffected"));
             return new LeaveApplyResult
             {
-                TL_Id = rowsAffected > 0 ? leave.TL_Id : Guid.Empty, // Guid.Empty signals "not updated" to the service layer
+                TL_Id = rowsAffected > 0 ? leave.TL_Id : Guid.Empty, 
                 TotalDays = reader.GetInt32(reader.GetOrdinal("TotalDays"))
             };
         }

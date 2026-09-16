@@ -7,16 +7,19 @@ using IMS.Helpers.Constants;
 using IMS.Models.Entities;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace IMS.Services
 {
     public class StudentService : IStudentService
     {
         private readonly IStudentDAL _repo;
+        private readonly IMasterService _masterService;
 
-        public StudentService(IStudentDAL repo)
+        public StudentService(IStudentDAL repo, IMasterService masterService)
         {
             _repo = repo;
+            _masterService = masterService;
         }
 
         public async Task<StudentIndexViewModel> GetStudentListAsync(
@@ -38,12 +41,21 @@ namespace IMS.Services
                 TotalCount = totalCount,
                 BranchOptions = HardcodedMasterData.GetBranchSelectList(branchId),
                 StatusOptions = HardcodedMasterData.GetStatusSelectList(status),
-                ClassOptions = HardcodedMasterData.GetClassSelectList(classId)
+                ClassOptions = HardcodedMasterData.GetClassSelectList(classId),
+                BatchOptions = GetMasterSelectList("Batch")
             };
 
             foreach (var s in items)
             {
                 if (classId.HasValue && s.S_ClassId != classId) continue;
+
+                string batchName = "-";
+                if (s.S_BatchId.HasValue)
+                {
+                    var bObj = _masterService.GetById("Batch", s.S_BatchId.Value);
+                    if (bObj != null && bObj.TryGetValue("BT_Name", out var bName) && bName != null)
+                        batchName = bName.ToString();
+                }
 
                 vm.Students.Add(new StudentListItemViewModel
                 {
@@ -55,6 +67,7 @@ namespace IMS.Services
                     BranchName = HardcodedMasterData.GetBranchName(s.S_BranchId),
                     ClassName = HardcodedMasterData.GetClassName(s.S_ClassId),
                     SectionName = HardcodedMasterData.GetSectionName(s.S_SectionId),
+                    BatchName = batchName,
                     S_AdmissionDate = s.S_AdmissionDate,
                     S_Status = s.S_Status
                 });
@@ -70,6 +83,14 @@ namespace IMS.Services
 
             var guardianRecords = await _repo.GetGuardiansByStudentIdAsync(id);
 
+            string batchName = "-";
+            if (s.S_BatchId.HasValue)
+            {
+                var bObj = _masterService.GetById("Batch", s.S_BatchId.Value);
+                if (bObj != null && bObj.TryGetValue("BT_Name", out var bName) && bName != null)
+                    batchName = bName.ToString();
+            }
+
             return new StudentDetailsViewModel
             {
                 S_Id = s.S_Id,
@@ -83,6 +104,8 @@ namespace IMS.Services
                 BranchName = HardcodedMasterData.GetBranchName(s.S_BranchId),
                 ClassName = HardcodedMasterData.GetClassName(s.S_ClassId),
                 SectionName = HardcodedMasterData.GetSectionName(s.S_SectionId),
+                S_BatchId = s.S_BatchId,
+                BatchName = batchName,
                 S_BloodGroup = s.S_BloodGroup,
                 FullAddress = JoinAddress(s),
                 S_AdmissionDate = s.S_AdmissionDate,
@@ -117,6 +140,7 @@ namespace IMS.Services
                 S_Status = s.S_Status,
                 S_ClassId = s.S_ClassId,
                 S_SectionId = s.S_SectionId,
+                S_BatchId = s.S_BatchId,
                 S_BloodGroup = s.S_BloodGroup,
                 S_AddressLine1 = s.S_AddressLine1,
                 S_AddressLine2 = s.S_AddressLine2,
@@ -185,15 +209,45 @@ namespace IMS.Services
 
         // ---------- helpers ----------
 
-        public static void PopulateDropdowns(StudentFormViewModel vm)
+        public void PopulateDropdowns(StudentFormViewModel vm)
         {
             vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.S_BranchId);
             vm.GenderOptions = HardcodedMasterData.GetGenderSelectList(vm.S_Gender);
             vm.StatusOptions = HardcodedMasterData.GetStatusSelectList(vm.S_Status);
             vm.ClassOptions = HardcodedMasterData.GetClassSelectList(vm.S_ClassId);
             vm.SectionOptions = HardcodedMasterData.GetSectionSelectList(vm.S_SectionId);
+            vm.BatchOptions = GetMasterSelectList("Batch", vm.S_BatchId?.ToString());
             vm.BloodGroupOptions = HardcodedMasterData.GetBloodGroupSelectList(vm.S_BloodGroup);
             vm.RelationOptions = HardcodedMasterData.GetRelationSelectList();
+        }
+
+        private List<SelectListItem> GetMasterSelectList(string entityType, string selectedValue = null)
+        {
+            var items = _masterService?.GetAll(entityType);
+            var list = new List<SelectListItem>();
+            if (items == null) return list;
+            foreach (var item in items)
+            {
+                var keyEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Id"));
+                var id = keyEntry.Value?.ToString() ?? "";
+
+                string displayName = null;
+                var nameEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Name"));
+                if (nameEntry.Value != null) displayName = nameEntry.Value.ToString();
+
+                if (string.IsNullOrEmpty(displayName))
+                {
+                    var firstName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_FirstName")).Value?.ToString() ?? "";
+                    var lastName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_LastName")).Value?.ToString() ?? "";
+                    displayName = $"{firstName} {lastName}".Trim();
+                }
+
+                if (string.IsNullOrEmpty(displayName))
+                    displayName = item.Values.ElementAtOrDefault(1)?.ToString() ?? id;
+
+                list.Add(new SelectListItem { Value = id, Text = displayName, Selected = id == selectedValue });
+            }
+            return list;
         }
 
         private static Student MapToEntity(StudentFormViewModel m, Guid tenantId, Guid id) => new()
@@ -214,6 +268,7 @@ namespace IMS.Services
             S_Status = m.S_Status,
             S_ClassId = m.S_ClassId,
             S_SectionId = m.S_SectionId,
+            S_BatchId = m.S_BatchId,
             S_BloodGroup = m.S_BloodGroup,
             S_AddressLine1 = m.S_AddressLine1,
             S_AddressLine2 = m.S_AddressLine2,

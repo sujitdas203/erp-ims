@@ -1,0 +1,225 @@
+@model IMS.Models.MockTest.MockTestIndexViewModel
+@{
+    ViewData["Title"] = "Mock Tests";
+
+    string StatusBadge(string status) => (status ?? "").ToLower() switch
+    {
+        "scheduled" => "bg-primary",
+        "ongoing" => "bg-warning text-dark",
+        "completed" => "bg-success",
+        "cancelled" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-ui-checks-grid me-2"></i>Mock Tests</h3>
+        <p class="text-muted small mb-0">Create and manage scheduled mock tests, exams, and review student performance</p>
+    </div>
+    <div>
+        <a asp-controller="MockTests" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Create Mock Test
+        </a>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-controller="MockTests" asp-action="Index" id="mockTestsFilterForm" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Search Title</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Search by title..." value="@Model.SearchTerm" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Batch</label>
+                @Html.DropDownList("batchId", Model.BatchOptions, "All Batches", new { @class = "form-select", onchange = "this.form.submit();" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Subject</label>
+                @Html.DropDownList("subjectId", Model.SubjectOptions, "All Subjects", new { @class = "form-select", onchange = "this.form.submit();" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Status</label>
+                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select", onchange = "this.form.submit();" })
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary flex-grow-1"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <a asp-controller="MockTests" asp-action="Index" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Tests.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-ui-checks text-muted" style="font-size: 3rem;"></i>
+                <h5 class="text-muted mt-3">No Mock Tests Found</h5>
+                <p class="text-muted small">Try modifying your search criteria or create a new mock test.</p>
+                <a asp-controller="MockTests" asp-action="Create" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i> Create Mock Test
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Test Title</th>
+                            <th>Batch & Subject</th>
+                            <th>Date & Duration</th>
+                            <th>Marks</th>
+                            <th>Status</th>
+                            <th>Results / Submissions</th>
+                            <th class="text-center">Active</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var test in Model.Tests)
+                        {
+                            <tr id="test-row-@test.MT_Id">
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        <a asp-controller="MockTests" asp-action="Details" asp-route-id="@test.MT_Id" class="text-decoration-none text-dark">
+                                            @test.MT_Title
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div><span class="badge bg-light text-dark border">@test.BatchName</span></div>
+                                    <small class="text-muted">@test.SubjectName</small>
+                                </td>
+                                <td>
+                                    <div><i class="bi bi-calendar3 me-1 text-muted"></i>@test.MT_TestDate.ToString("dd MMM yyyy, hh:mm tt")</div>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>@test.MT_DurationMinutes mins</small>
+                                </td>
+                                <td>
+                                    <div><strong>@test.MT_TotalMarks.ToString("0.##")</strong> Max</div>
+                                    <small class="text-muted">Pass: @test.MT_PassMarks.ToString("0.##")</small>
+                                </td>
+                                <td>
+                                    <span class="badge @StatusBadge(test.MT_Status)">@test.MT_Status</span>
+                                </td>
+                                <td>
+                                    @if (test.ResultCount > 0)
+                                    {
+                                        <span class="badge bg-primary">@test.ResultCount Submissions</span>
+                                        @if (test.AvgScore.HasValue)
+                                        {
+                                            <div class="small text-muted mt-1">Avg: @test.AvgScore.Value.ToString("0.##")%</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-muted border">0 Submissions</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input test-toggle-active" type="checkbox" role="switch"
+                                               data-id="@test.MT_Id" @(test.MT_IsActive ? "checked" : "") />
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-controller="MockTests" asp-action="Details" asp-route-id="@test.MT_Id" class="btn btn-outline-info" title="View Results & Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="MockTests" asp-action="Edit" asp-route-id="@test.MT_Id" class="btn btn-outline-primary" title="Edit Test">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger confirm-delete-mocktest-btn" data-id="@test.MT_Id" data-title="@test.MT_Title" title="Delete Test">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" id="deleteModal-@test.MT_Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body text-start">
+                                                    Are you sure you want to delete mock test <strong>@test.MT_Title</strong>?
+                                                    This will also remove all associated student results. This action cannot be undone.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-danger do-delete-mocktest-btn" data-id="@test.MT_Id">Delete Test</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <span class="text-muted small">
+                        Showing page @Model.PageNumber of @Model.TotalPages (@Model.TotalCount total records)
+                    </span>
+                    <ul class="pagination pagination-sm mb-0">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="MockTests" asp-action="Index"
+                                   asp-route-page="@(Model.PageNumber - 1)"
+                                   asp-route-batchId="@Model.BatchFilter"
+                                   asp-route-subjectId="@Model.SubjectFilter"
+                                   asp-route-status="@Model.StatusFilter"
+                                   asp-route-search="@Model.SearchTerm">Previous</a>
+                            </li>
+                        }
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-controller="MockTests" asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-batchId="@Model.BatchFilter"
+                                   asp-route-subjectId="@Model.SubjectFilter"
+                                   asp-route-status="@Model.StatusFilter"
+                                   asp-route-search="@Model.SearchTerm">@i</a>
+                            </li>
+                        }
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="MockTests" asp-action="Index"
+                                   asp-route-page="@(Model.PageNumber + 1)"
+                                   asp-route-batchId="@Model.BatchFilter"
+                                   asp-route-subjectId="@Model.SubjectFilter"
+                                   asp-route-status="@Model.StatusFilter"
+                                   asp-route-search="@Model.SearchTerm">Next</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/mocktests.js"></script>
+}

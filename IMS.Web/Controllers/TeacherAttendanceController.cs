@@ -45,7 +45,7 @@ namespace IMS.Web.Controllers
         // Admin: bulk mark grid for a given date
         // ============================================================
 
-        [Permission(Permissions.ManageTeacherAttendance)]
+        //[Permission(Permissions.ManageTeacherAttendance)]
         public async Task<IActionResult> Index(DateTime? date)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -62,7 +62,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.ManageTeacherAttendance)]
+        //[Permission(Permissions.ManageTeacherAttendance)]
         public async Task<IActionResult> MarkTeacherAttendance(Guid teacherId, DateTime date, string status, string remarks)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -81,7 +81,7 @@ namespace IMS.Web.Controllers
         }
 
 
-        [Permission(Permissions.ViewOwnTeacherAttendance)]
+        //[Permission(Permissions.ViewOwnTeacherAttendance)]
         public async Task<IActionResult> TeacherAttendance(DateTime? fromDate, DateTime? toDate)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty) return Unauthorized();
@@ -95,7 +95,7 @@ namespace IMS.Web.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.MarkOwnTeacherAttendance)]
+        //[Permission(Permissions.MarkOwnTeacherAttendance)]
         public async Task<IActionResult> MarkTeacherSelfAttendance(string status, string remarks)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
