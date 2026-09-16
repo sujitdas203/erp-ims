@@ -22,8 +22,13 @@
     <script>
         $(function () {
             IMSBatchForm.init('/Batch/AddBatch');
-            IMSDatePicker.init({ input: '#BT_StartDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY', allowFutureDates: false });
+            IMSDatePicker.init({ input: '#BT_StartDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
             IMSDatePicker.init({ input: '#BT_EndDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+            Dropdown.load({ element: '#BT_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+            Dropdown.load({ element: '#BT_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true });
+            Dropdown.load({ element: '#BT_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true });
+            Dropdown.load({ element: '#BT_Status', entityType: 'BatchStatus', defaultText: '-- Select --', includeDefault: false });
         });
     </script>
 }

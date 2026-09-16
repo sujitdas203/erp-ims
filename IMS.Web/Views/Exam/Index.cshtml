@@ -20,7 +20,7 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -116,5 +116,8 @@
 
 @section Scripts {
     <script src="~/js/exams.js"></script>
-    <script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] }); });</script>
+    <script>$(function () {
+        Dropdown.load({ element: '#filterStatus', entityType: 'ExamStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+        $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] });
+    });</script>
 }

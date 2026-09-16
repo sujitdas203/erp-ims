@@ -94,15 +94,34 @@ namespace IMS.DAL.Common
 
         public bool ExistsByField(MasterConfig config, string columnName, object value, Guid? excludeId = null)
         {
+            // Use direct parameterized SQL instead of passing @ColumnName to entity SPs
+            // which don't accept that parameter.
+            var sql = $"SELECT COUNT(1) FROM {config.TableName} WHERE [{columnName}] = @Value";
+
+            if (config.SoftDelete)
+            {
+                if (config.TableName.EndsWith("_C"))
+                    sql += " AND C_DeletedAt IS NULL AND C_Status = 'active'";
+                else if (config.TableName.EndsWith("_P"))
+                    sql += " AND P_Status = 'active'";
+                else if (config.TableName.EndsWith("_B"))
+                    sql += " AND B_Status = 'active'";
+                else if (!string.IsNullOrEmpty(config.IsActiveColumn))
+                    sql += $" AND [{config.IsActiveColumn}] = 1";
+            }
+
             var parameters = new Dictionary<string, object>
             {
-                { "@Action", "ExistsByField" },
-                { "@ColumnName", columnName },
-                { "@Value", value },
-                { "@ExcludeId", excludeId.HasValue ? (object)excludeId.Value : DBNull.Value }
+                { "@Value", value ?? (object)DBNull.Value }
             };
 
-            var result = _dbHelper.ExecuteStoredProcedureScalar(config.SpName, parameters);
+            if (excludeId.HasValue)
+            {
+                sql += $" AND [{config.KeyColumn}] <> @ExcludeId";
+                parameters["@ExcludeId"] = excludeId.Value;
+            }
+
+            var result = _dbHelper.ExecuteScalar(sql, parameters);
             return Convert.ToInt32(result) > 0;
         }
 
@@ -162,6 +181,11 @@ namespace IMS.DAL.Common
                     if (stringValue == "1") return true;
                     if (stringValue == "0") return false;
                     return rawValue;
+
+                case MasterFieldType.Dropdown:
+                    if (Guid.TryParse(stringValue, out var guidVal))
+                        return guidVal;
+                    return stringValue;
 
                 default:
                     return rawValue;

@@ -239,35 +239,6 @@
                                                 name="EnquiryType"
                                                 class="form-select"
                                                 required>
-
-                                            <option value="">
-                                                Select an enquiry
-                                            </option>
-
-                                            <option value="Admission">
-                                                Admission
-                                            </option>
-
-                                            <option value="Academics">
-                                                Academics
-                                            </option>
-
-                                            <option value="Transport">
-                                                Transport
-                                            </option>
-
-                                            <option value="Fees">
-                                                Fees & Payment
-                                            </option>
-
-                                            <option value="General">
-                                                General Enquiry
-                                            </option>
-
-                                            <option value="Other">
-                                                Other
-                                            </option>
-
                                         </select>
 
                                         <div class="invalid-feedback">
@@ -287,28 +258,6 @@
                                         <select id="studentClass"
                                                 name="StudentClass"
                                                 class="form-select">
-
-                                            <option value="">
-                                                Select class / grade
-                                            </option>
-
-                                            <option>Pre-Nursery</option>
-                                            <option>Nursery</option>
-                                            <option>LKG</option>
-                                            <option>UKG</option>
-                                            <option>Class I</option>
-                                            <option>Class II</option>
-                                            <option>Class III</option>
-                                            <option>Class IV</option>
-                                            <option>Class V</option>
-                                            <option>Class VI</option>
-                                            <option>Class VII</option>
-                                            <option>Class VIII</option>
-                                            <option>Class IX</option>
-                                            <option>Class X</option>
-                                            <option>Class XI</option>
-                                            <option>Class XII</option>
-
                                         </select>
                                     </div>
                                 </div>
@@ -324,23 +273,6 @@
                                         <select id="preferredContact"
                                                 name="PreferredContact"
                                                 class="form-select">
-
-                                            <option value="">
-                                                Select preference
-                                            </option>
-
-                                            <option value="Phone">
-                                                Phone Call
-                                            </option>
-
-                                            <option value="Email">
-                                                Email
-                                            </option>
-
-                                            <option value="WhatsApp">
-                                                WhatsApp
-                                            </option>
-
                                         </select>
                                     </div>
                                 </div>
@@ -544,3 +476,13 @@
     </section>
 
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            Dropdown.load({ element: '#enquiryType', entityType: 'EnquiryType', defaultText: 'Select an enquiry', includeDefault: true });
+            Dropdown.load({ element: '#studentClass', entityType: 'ContactClass', defaultText: 'Select class / grade', includeDefault: true });
+            Dropdown.load({ element: '#preferredContact', entityType: 'PreferredContact', defaultText: 'Select preference', includeDefault: true });
+        });
+    </script>
+}

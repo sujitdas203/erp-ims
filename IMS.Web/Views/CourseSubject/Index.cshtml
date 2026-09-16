@@ -15,8 +15,9 @@
         @using (Html.BeginForm("Index", "CourseSubject", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
         {
             <div class="col-md-4">
-                @Html.Label("courseId", "Course", new { @class = "form-label" })
-                @Html.DropDownList("courseId", Model.CourseOptions, "All Courses", new { @class = "form-select" })
+                <label for="courseId" class="form-label">Course</label>
+                <select name="courseId" id="courseId" class="form-select" data-selected-value="@(Model.CourseFilter?.ToString())">
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -80,6 +81,7 @@
     <script>
         $(function () {
             $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] });
+            Dropdown.load({ element: '#courseId', entityType: 'Course', defaultText: 'All Courses', includeDefault: true, selectedValue: $('#courseId').data('selected-value') });
             $(document).on("click", ".cs-delete-btn", function () {
                 var courseId = $(this).data("course-id");
                 var subjectId = $(this).data("subject-id");

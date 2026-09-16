@@ -266,13 +266,40 @@ var IMSDatePicker = (function () {
 
         renderCalendar(inst);
 
-        // Position calendar below input
+        // Smart position calendar
         var inputRect = inst.wrapperEl[0].getBoundingClientRect();
-        inst.calendarEl.css({
-            'top': '100%',
-            'left': '0',
-            'right': 'auto'
-        });
+        var calHeight = 330;
+        var calWidth = 280;
+        var spaceBelow = window.innerHeight - inputRect.bottom;
+        var spaceRight = window.innerWidth - inputRect.left;
+
+        var cssPos = {
+            'z-index': 1070
+        };
+
+        // If not enough space below, flip upwards
+        if (spaceBelow < calHeight && inputRect.top > calHeight) {
+            cssPos.top = 'auto';
+            cssPos.bottom = '100%';
+            cssPos.marginTop = '0';
+            cssPos.marginBottom = '4px';
+        } else {
+            cssPos.top = '100%';
+            cssPos.bottom = 'auto';
+            cssPos.marginTop = '4px';
+            cssPos.marginBottom = '0';
+        }
+
+        // If right side of screen overflows, align right
+        if (spaceRight < calWidth) {
+            cssPos.left = 'auto';
+            cssPos.right = '0';
+        } else {
+            cssPos.left = '0';
+            cssPos.right = 'auto';
+        }
+
+        inst.calendarEl.css(cssPos);
     }
 
     function hideCalendar(inst) {

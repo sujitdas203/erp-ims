@@ -221,6 +221,46 @@ namespace IMS.DAL.Common
             return connection;
         }
         
+        /// <summary>
+        /// Executes a raw SQL scalar query with parameters.
+        /// </summary>
+        public object ExecuteScalar(string sql, Dictionary<string, object> parameters)
+        {
+            using (var connection = GetConnection())
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                if (parameters != null)
+                {
+                    foreach (var kvp in parameters)
+                    {
+                        cmd.Parameters.AddWithValue(kvp.Key, kvp.Value ?? DBNull.Value);
+                    }
+                }
+                connection.Open();
+                return cmd.ExecuteScalar();
+            }
+        }
+
+        /// <summary>
+        /// Executes a raw SQL non-query with parameters. Returns rows affected.
+        /// </summary>
+        public int ExecuteNonQuery(string sql, Dictionary<string, object> parameters)
+        {
+            using (var connection = GetConnection())
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                if (parameters != null)
+                {
+                    foreach (var kvp in parameters)
+                    {
+                        cmd.Parameters.AddWithValue(kvp.Key, kvp.Value ?? DBNull.Value);
+                    }
+                }
+                connection.Open();
+                return cmd.ExecuteNonQuery();
+            }
+        }
+
         public SqlCommand CreateStoredProcCommand(SqlConnection conn, string procedureName, SqlTransaction tx = null)
         {
             var cmd = new SqlCommand(procedureName, conn)

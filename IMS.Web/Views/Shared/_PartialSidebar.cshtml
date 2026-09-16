@@ -43,64 +43,34 @@
         <div class="nav-section-label">Academic Management</div>
 
         <ul class="nav flex-column">
-            @* <permission-check code="@Permissions.ApproveTeacherLeave"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "TeacherLeave")" asp-controller="TeacherLeave" asp-action="Index">
-                        <i class="fa-solid fa-calendar-xmark"></i>
-                        <span>Leave Requests</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
 
-            @* <permission-check code="@Permissions.ApplyTeacherLeave"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "TeacherLeave")" asp-controller="TeacherLeave" asp-action="MyLeave">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        <span>My Leave</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
+            <!-- 1. Admissions & Student Lifecycle -->
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "AdmissionApplication")"
+                   asp-controller="AdmissionApplication"
+                   asp-action="Index">
+                    <i class="fa-solid fa-address-card"></i>
+                    <span>Admissions</span>
+                </a>
+            </li>
 
-            @* <permission-check code="@Permissions.ManageTeacherAttendance"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "TeacherAttendance")" asp-controller="TeacherAttendance" asp-action="Index">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        <span>Teacher Attendance</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Enrollment")"
+                   asp-controller="Enrollment"
+                   asp-action="Index">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Enrollments</span>
+                </a>
+            </li>
 
-            @* <permission-check code="@Permissions.ViewOwnTeacherAttendance"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "TeacherAttendance")" asp-controller="TeacherAttendance" asp-action="TeacherAttendance">
-                        <i class="fa-solid fa-calendar-week"></i>
-                        <span>My Attendance</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
-
-            @* <permission-check code="@Permissions.ViewTeacher"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("Teacher", "Teacher")"
-                       asp-controller="Teachers"
-                       asp-action="Index">
-
-                        <i class="fa-solid fa-file-lines"></i>
-                        <span>Teachers</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
-
-            @* <permission-check code="@Permissions.ViewStudent"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "Students")"
-                       asp-controller="Students"
-                       asp-action="Index">
-                        <i class="fa-solid fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Students")"
+                   asp-controller="Students"
+                   asp-action="Index">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+            </li>
 
             <li class="nav-item">
                 <a class="nav-link @isActive("", "StudentLeave")"
@@ -119,64 +89,14 @@
                     <span>Transfer Certificates (TC)</span>
                 </a>
             </li>
-            @* <permission-check code="@Permissions.ViewStudentLeave">
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "StudentLeave")"
-                       asp-controller="StudentLeave"
-                       asp-action="Index">
-                        <i class="fa-solid fa-user-clock"></i>
-                        <span>Student Leaves</span>
-                    </a>
-                </li>
-            </permission-check>
 
-            <permission-check code="@Permissions.ViewTransferCertificate">
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "TransferCertificate")"
-                       asp-controller="TransferCertificate"
-                       asp-action="Index">
-                        <i class="fa-solid fa-file-shield"></i>
-                        <span>Transfer Certificates (TC)</span>
-                    </a>
-                </li>
-            </permission-check> *@
-            @* <permission-check code="@Permissions.ViewAnnouncement"> *@
+            <!-- 2. Classes, Curriculum & Schedule -->
             <li class="nav-item">
-                <a class="nav-link @isActive("", "Syllabus")"
-                   asp-controller="Syllabus"
+                <a class="nav-link @isActive("", "Batch")"
+                   asp-controller="Batch"
                    asp-action="Index">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span>Syllabus</span>
-                </a>
-            </li>
-            @* </permission-check> *@
-            @* <permission-check code="@Permissions.ViewAnnouncement"> *@
-                <li class="nav-item">
-                    <a class="nav-link @isActive("", "Announcements")"
-                       asp-controller="Announcements"
-                       asp-action="Index">
-                        <i class="fa-solid fa-bullhorn"></i>
-                        <span>Announcements</span>
-                    </a>
-                </li>
-            @* </permission-check> *@
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "AdmissionApplication")"
-                   asp-controller="AdmissionApplication"
-                   asp-action="Index">
-                    <i class="fa-solid fa-address-book"></i>
-                    <span>Admissions</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Staff")"
-                   asp-controller="Staff"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>Staff</span>
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    <span>Batches</span>
                 </a>
             </li>
 
@@ -184,29 +104,17 @@
                 <a class="nav-link @isActive("", "CourseSubject")"
                    asp-controller="CourseSubject"
                    asp-action="Index">
-
-                    <i class="fa-solid fa-link"></i>
+                    <i class="fa-solid fa-book-bookmark"></i>
                     <span>Course Subjects</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link @isActive("", "Batch")"
-                   asp-controller="Batch"
+                <a class="nav-link @isActive("", "Syllabus")"
+                   asp-controller="Syllabus"
                    asp-action="Index">
-
-                    <i class="fa-solid fa-users"></i>
-                    <span>Batches</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Enrollment")"
-                   asp-controller="Enrollment"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Enrollments</span>
+                    <i class="fa-solid fa-book-open-reader"></i>
+                    <span>Syllabus</span>
                 </a>
             </li>
 
@@ -214,18 +122,17 @@
                 <a class="nav-link @isActive("", "Timetable")"
                    asp-controller="Timetable"
                    asp-action="Index">
-
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Timetable</span>
                 </a>
             </li>
 
+            <!-- 3. Learning & Assessments -->
             <li class="nav-item">
                 <a class="nav-link @isActive("", "HomeTasks")"
                    asp-controller="HomeTasks"
                    asp-action="Index">
-
-                    <i class="fa-solid fa-book-open"></i>
+                    <i class="fa-solid fa-list-check"></i>
                     <span>Home Tasks</span>
                 </a>
             </li>
@@ -234,9 +141,55 @@
                 <a class="nav-link @isActive("", "MockTests")"
                    asp-controller="MockTests"
                    asp-action="Index">
-
-                    <i class="fa-solid fa-file-circle-check"></i>
+                    <i class="fa-solid fa-vial-circle-check"></i>
                     <span>Mock Tests</span>
+                </a>
+            </li>
+
+            <!-- 4. Faculty & Staff -->
+            <li class="nav-item">
+                <a class="nav-link @isActive("Teacher", "Teacher")"
+                   asp-controller="Teachers"
+                   asp-action="Index">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Teachers</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Staff")"
+                   asp-controller="Staff"
+                   asp-action="Index">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Staff</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "TeacherAttendance")"
+                   asp-controller="TeacherAttendance"
+                   asp-action="Index">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Teacher Attendance</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "TeacherLeave")"
+                   asp-controller="TeacherLeave"
+                   asp-action="Index">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                    <span>Teacher Leaves</span>
+                </a>
+            </li>
+
+            <!-- 5. Communication -->
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Announcements")"
+                   asp-controller="Announcements"
+                   asp-action="Index">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>Announcements</span>
                 </a>
             </li>
 
@@ -323,8 +276,18 @@
                                 <span>Master Overview</span>
                             </a>
                         </li>
+                        @{
+                            string lastGroup = "";
+                        }
                         @foreach (var master in masterConfigs)
                         {
+                            if (!string.IsNullOrEmpty(master.GroupName) && master.GroupName != lastGroup)
+                            {
+                                lastGroup = master.GroupName;
+                                <li class="nav-item pt-2 pb-1 px-3">
+                                    <span class="text-uppercase fw-semibold text-muted" style="font-size: 0.65rem; letter-spacing: 0.5px; opacity: 0.85;">@master.GroupName</span>
+                                </li>
+                            }
                             var isThisMasterActive = isMasterController && string.Equals(currentEntityType, master.EntityType, StringComparison.OrdinalIgnoreCase);
                             <li class="nav-item">
                                 <a class="nav-link sub-link @(isThisMasterActive ? "active" : "")"

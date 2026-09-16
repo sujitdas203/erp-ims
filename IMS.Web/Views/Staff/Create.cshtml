@@ -21,6 +21,11 @@
         $(function () {
             IMSStaffForm.init('/Staff/AddStaff');
             IMSDatePicker.init({ input: '#ST_JoiningDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+            Dropdown.load({ element: '#ST_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+            Dropdown.load({ element: '#ST_DepartmentId', entityType: 'Department', defaultText: 'Select Department', includeDefault: true });
+            Dropdown.load({ element: '#ST_DesignationId', entityType: 'Designation', defaultText: 'Select Designation', includeDefault: true });
+            Dropdown.load({ element: '#ST_Status', entityType: 'StaffStatus', defaultText: '-- Select --', includeDefault: false });
         });
     </script>
 }

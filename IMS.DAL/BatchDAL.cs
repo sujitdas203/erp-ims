@@ -142,6 +142,7 @@ namespace IMS.DAL.Repositories
             BT_UpdatedAt = r.GetDateTime(r.GetOrdinal("BT_UpdatedAt")),
             CourseName = r["CourseName"] as string,
             AcademicYearName = r["AcademicYearName"] as string,
+            BranchName = r["BranchName"] as string,
             EnrolledCount = r["EnrolledCount"] as int? ?? 0
         };
     }

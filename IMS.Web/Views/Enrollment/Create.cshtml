@@ -21,6 +21,12 @@ $(function () {
     IMSDatePicker.init({ input: '#E_EnrollmentDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
     IMSDatePicker.init({ input: '#E_CompletionDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
 
+    Dropdown.load({ element: '#E_StudentId', entityType: 'Student', defaultText: 'Select Student', includeDefault: true });
+    Dropdown.load({ element: '#E_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true });
+    Dropdown.load({ element: '#E_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true });
+    Dropdown.load({ element: '#E_BatchId', entityType: 'Batch', defaultText: 'Select Batch', includeDefault: true });
+    Dropdown.load({ element: '#E_Status', entityType: 'EnrollmentStatus', defaultText: '-- Select --', includeDefault: false });
+
     $('.select2-student').select2({
         theme: 'bootstrap-5',
         width: '100%',
