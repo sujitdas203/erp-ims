@@ -44,6 +44,8 @@ namespace IMS.Web.Extensions
             services.AddScoped<ISubjectSyllabusDAL, SubjectSyllabusDAL>();
             services.AddScoped<IHomeTaskDAL, HomeTaskDAL>();
             services.AddScoped<IMockTestDAL, MockTestDAL>();
+            services.AddScoped<INotificationConfigDAL, NotificationConfigDAL>();
+            services.AddScoped<INotificationDAL, NotificationDAL>();
 
             return services;
         }
