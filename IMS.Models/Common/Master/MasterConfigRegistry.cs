@@ -6,19 +6,89 @@ namespace IMS.Models.Common.Master
 {
     /// <summary>
     /// Single source of truth for all master entity configs.
-    /// Generic DAL/Service/Controller all read from this registry
-    /// instead of having table-specific logic scattered around.
-    /// 
-    /// Column names match actual database schema (verified via INFORMATION_SCHEMA.COLUMNS).
+    /// Arranged in logical School Management hierarchy and cascading dependency order:
+    /// 1. Academic Structure (AcademicYear -> Branch -> Department -> Classroom -> Program -> Course -> Subject -> Batch)
+    /// 2. Staff & Administration (Designation -> DocumentType)
+    /// 3. Fee & Finance (FeeCategory -> Discount -> PaymentMethod -> ExpenseCategory)
+    /// 4. Examinations & Grading (ExamType -> GradeScale)
+    /// 5. Operations & System (Vendor -> NotificationTemplate)
     /// </summary>
     public static class MasterConfigRegistry
     {
         private static readonly List<MasterConfig> _configs = new List<MasterConfig>
         {
-            // NOTE: BankMaster_BM excluded — BM_Id is INT (identity), not UNIQUEIDENTIFIER.
-            // The generic master module requires GUID keys. Bank should use a dedicated controller/SP.
+            // =========================================================================
+            // GROUP 1: ACADEMIC STRUCTURE & HIERARCHY (CASCADING ORDER)
+            // =========================================================================
 
-            // 1. Branch Master
+            // 1. Academic Year Master (Top-level timeline/session)
+            new MasterConfig
+            {
+                EntityType = "AcademicYear",
+                SpName = "USP_AcademicYears_AY",
+                TableName = "dbo.AcademicYears_AY",
+                KeyColumn = "AY_Id",
+                DisplayName = "Academic Year Master",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 1,
+                GroupName = "Academic Structure",
+                Icon = "fa-calendar-days",
+
+                ViewPermission = "Master.AcademicYear.View",
+                CreatePermission = "Master.AcademicYear.Create",
+                EditPermission = "Master.AcademicYear.Edit",
+                DeletePermission = "Master.AcademicYear.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "AY_Name",
+                        PropertyName = "Name",
+                        DisplayName = "Academic Year Name",
+                        IsRequired = true,
+                        IsUnique = true,
+                        MaxLength = 100
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "AY_Code",
+                        PropertyName = "Code",
+                        DisplayName = "Code",
+                        IsRequired = true,
+                        IsUnique = true,
+                        MaxLength = 50
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "AY_StartDate",
+                        PropertyName = "StartDate",
+                        DisplayName = "Start Date",
+                        FieldType = MasterFieldType.Date,
+                        IsRequired = true
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "AY_EndDate",
+                        PropertyName = "EndDate",
+                        DisplayName = "End Date",
+                        FieldType = MasterFieldType.Date,
+                        IsRequired = true,
+                        DateRangeStartField = "AY_StartDate",
+                        DateRangeEndField = "AY_EndDate"
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "AY_IsCurrent",
+                        PropertyName = "IsCurrent",
+                        DisplayName = "Is Current Year",
+                        FieldType = MasterFieldType.Boolean
+                    }
+                }
+            },
+
+            // 2. Branch Master (Institute Campus / Location)
             new MasterConfig
             {
                 EntityType = "Branch",
@@ -28,8 +98,9 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Branch Master",
                 SoftDelete = true,
                 HasAuditColumns = true,
-                MenuOrder = 1,
-                Icon = "fa-building",
+                MenuOrder = 2,
+                GroupName = "Academic Structure",
+                Icon = "fa-building-columns",
 
                 ViewPermission = "Master.Branch.View",
                 CreatePermission = "Master.Branch.Create",
@@ -51,104 +122,7 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 2. Course Master
-            new MasterConfig
-            {
-                EntityType = "Course",
-                SpName = "USP_Courses_C",
-                TableName = "dbo.Courses_C",
-                KeyColumn = "C_Id",
-                DisplayName = "Course Master",
-                SoftDelete = true,
-                HasAuditColumns = true,
-                MenuOrder = 2,
-                Icon = "fa-book",
-
-                ViewPermission = "Master.Course.View",
-                CreatePermission = "Master.Course.Create",
-                EditPermission = "Master.Course.Edit",
-                DeletePermission = "Master.Course.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "C_Name", PropertyName = "Name", DisplayName = "Course Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
-                    new MasterFieldConfig { ColumnName = "C_Code", PropertyName = "Code", DisplayName = "Course Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "C_ProgramId", GridColumnName = "P_Name", PropertyName = "ProgramId", DisplayName = "Program", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Program", LookupValueField = "P_Id", LookupTextField = "P_Name" },
-                    new MasterFieldConfig { ColumnName = "C_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
-                }
-            },
-
-            // 3. Academic Year Master
-            new MasterConfig
-            {
-                EntityType = "AcademicYear",
-                SpName = "USP_AcademicYears_AY",
-                TableName = "dbo.AcademicYears_AY",
-                KeyColumn = "AY_Id",
-                DisplayName = "Academic Year Master",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 3,
-                Icon = "fa-calendar",
-
-                ViewPermission = "Master.AcademicYear.View",
-                CreatePermission = "Master.AcademicYear.Create",
-                EditPermission = "Master.AcademicYear.Edit",
-                DeletePermission = "Master.AcademicYear.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "AY_Name",
-                        PropertyName = "Name",
-                        DisplayName = "Academic Year Name",
-                        IsRequired = true,
-                        IsUnique = true,
-                        MaxLength = 100
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "AY_Code",
-                        PropertyName = "Code",
-                        DisplayName = "Code",
-                        IsRequired = true,
-                        IsUnique = true,
-                        MaxLength = 50
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "AY_StartDate",
-                        PropertyName = "StartDate",
-                        DisplayName = "Start Date",
-                        FieldType = MasterFieldType.Date,
-                        IsRequired = true
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "AY_EndDate",
-                        PropertyName = "EndDate",
-                        DisplayName = "End Date",
-                        FieldType = MasterFieldType.Date,
-                        IsRequired = true,
-                        DateRangeStartField = "AY_StartDate",
-                        DateRangeEndField = "AY_EndDate"
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "AY_IsCurrent",
-                        PropertyName = "IsCurrent",
-                        DisplayName = "Is Current Year",
-                        FieldType = MasterFieldType.Boolean
-                    }
-                }
-            },
-
-            // 4. Department Master
+            // 3. Department Master (Belongs to Branch)
             new MasterConfig
             {
                 EntityType = "Department",
@@ -158,7 +132,8 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Department Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 4,
+                MenuOrder = 3,
+                GroupName = "Academic Structure",
                 Icon = "fa-sitemap",
 
                 ViewPermission = "Master.Department.View",
@@ -175,7 +150,197 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 5. Designation Master
+            // 4. Classroom Master (Rooms / Labs belonging to Branch)
+            new MasterConfig
+            {
+                EntityType = "Classroom",
+                SpName = "USP_Classrooms_CR",
+                TableName = "dbo.Classrooms_CR",
+                KeyColumn = "CR_Id",
+                DisplayName = "Classroom Master",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 4,
+                GroupName = "Academic Structure",
+                Icon = "fa-chalkboard-user",
+
+                ViewPermission = "Master.Classroom.View",
+                CreatePermission = "Master.Classroom.Create",
+                EditPermission = "Master.Classroom.Edit",
+                DeletePermission = "Master.Classroom.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "CR_Name",
+                        PropertyName = "Name",
+                        DisplayName = "Room Name",
+                        IsRequired = true,
+                        MaxLength = 100
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "CR_Code",
+                        PropertyName = "Code",
+                        DisplayName = "Room Code",
+                        IsRequired = true,
+                        IsUnique = true,
+                        MaxLength = 50
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "CR_BranchId",
+                        GridColumnName = "B_Name",
+                        PropertyName = "BranchId",
+                        DisplayName = "Branch",
+                        FieldType = MasterFieldType.Dropdown,
+                        LookupEntityType = "Branch",
+                        LookupValueField = "B_Id",
+                        LookupTextField = "B_Name"
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "CR_Capacity",
+                        PropertyName = "Capacity",
+                        DisplayName = "Seating Capacity",
+                        FieldType = MasterFieldType.Number,
+                        IsRequired = true
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "CR_Location",
+                        PropertyName = "Location",
+                        DisplayName = "Location",
+                        MaxLength = 255
+                    }
+                }
+            },
+
+            // 5. Program Master (Degrees / Streams / Standards)
+            new MasterConfig
+            {
+                EntityType = "Program",
+                SpName = "USP_Programs_P",
+                TableName = "dbo.Programs_P",
+                KeyColumn = "P_Id",
+                DisplayName = "Program Master",
+                SoftDelete = true,
+                HasAuditColumns = true,
+                MenuOrder = 5,
+                GroupName = "Academic Structure",
+                Icon = "fa-graduation-cap",
+
+                ViewPermission = "Master.Program.View",
+                CreatePermission = "Master.Program.Create",
+                EditPermission = "Master.Program.Edit",
+                DeletePermission = "Master.Program.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "P_Name", PropertyName = "Name", DisplayName = "Program Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
+                    new MasterFieldConfig { ColumnName = "P_Code", PropertyName = "Code", DisplayName = "Program Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "P_DurationValue", PropertyName = "DurationValue", DisplayName = "Duration Value", FieldType = MasterFieldType.Number },
+                    new MasterFieldConfig { ColumnName = "P_DurationUnit", PropertyName = "DurationUnit", DisplayName = "Duration Unit (e.g. Years, Months)", MaxLength = 20 },
+                    new MasterFieldConfig { ColumnName = "P_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                }
+            },
+
+            // 6. Course Master (Belongs to Program)
+            new MasterConfig
+            {
+                EntityType = "Course",
+                SpName = "USP_Courses_C",
+                TableName = "dbo.Courses_C",
+                KeyColumn = "C_Id",
+                DisplayName = "Course Master",
+                SoftDelete = true,
+                HasAuditColumns = true,
+                MenuOrder = 6,
+                GroupName = "Academic Structure",
+                Icon = "fa-book-open",
+
+                ViewPermission = "Master.Course.View",
+                CreatePermission = "Master.Course.Create",
+                EditPermission = "Master.Course.Edit",
+                DeletePermission = "Master.Course.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "C_Name", PropertyName = "Name", DisplayName = "Course Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
+                    new MasterFieldConfig { ColumnName = "C_Code", PropertyName = "Code", DisplayName = "Course Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "C_ProgramId", GridColumnName = "P_Name", PropertyName = "ProgramId", DisplayName = "Program", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Program", LookupValueField = "P_Id", LookupTextField = "P_Name" },
+                    new MasterFieldConfig { ColumnName = "C_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                }
+            },
+
+            // 7. Subject Master (Curriculum subjects)
+            new MasterConfig
+            {
+                EntityType = "Subject",
+                SpName = "USP_Subjects_SB",
+                TableName = "dbo.Subjects_SB",
+                KeyColumn = "SB_Id",
+                DisplayName = "Subject Master",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 7,
+                GroupName = "Academic Structure",
+                Icon = "fa-book-bookmark",
+
+                ViewPermission = "Master.Subject.View",
+                CreatePermission = "Master.Subject.Create",
+                EditPermission = "Master.Subject.Edit",
+                DeletePermission = "Master.Subject.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "SB_Name", PropertyName = "Name", DisplayName = "Subject Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
+                    new MasterFieldConfig { ColumnName = "SB_Code", PropertyName = "Code", DisplayName = "Subject Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "SB_Credits", PropertyName = "Credits", DisplayName = "Credits", FieldType = MasterFieldType.Number },
+                    new MasterFieldConfig { ColumnName = "SB_MaxMarks", PropertyName = "MaxMarks", DisplayName = "Maximum Marks", FieldType = MasterFieldType.Number },
+                    new MasterFieldConfig { ColumnName = "SB_PassMarks", PropertyName = "PassMarks", DisplayName = "Pass Marks", FieldType = MasterFieldType.Number },
+                    new MasterFieldConfig { ColumnName = "SB_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                }
+            },
+
+            // 8. Batch Master (Cohorts linking Academic Year + Branch + Course)
+            new MasterConfig
+            {
+                EntityType = "Batch",
+                SpName = "USP_Batches_BT",
+                TableName = "dbo.Batches_BT",
+                KeyColumn = "BT_Id",
+                DisplayName = "Batch Master",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 8,
+                GroupName = "Academic Structure",
+                Icon = "fa-users-rectangle",
+
+                ViewPermission = "Batch.View",
+                CreatePermission = "Batch.Create",
+                EditPermission = "Batch.Edit",
+                DeletePermission = "Batch.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
+                    new MasterFieldConfig { ColumnName = "BT_Code", PropertyName = "Code", DisplayName = "Batch Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "BT_BranchId", GridColumnName = "BranchName", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_CourseId", GridColumnName = "CourseName", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_AcademicYearId", GridColumnName = "AcademicYearName", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_StartDate", PropertyName = "StartDate", DisplayName = "Start Date", FieldType = MasterFieldType.Date, IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_EndDate", PropertyName = "EndDate", DisplayName = "End Date", FieldType = MasterFieldType.Date },
+                    new MasterFieldConfig { ColumnName = "BT_Capacity", PropertyName = "Capacity", DisplayName = "Capacity", FieldType = MasterFieldType.Number }
+                }
+            },
+
+            // =========================================================================
+            // GROUP 2: STAFF & INSTITUTIONAL ADMINISTRATION
+            // =========================================================================
+
+            // 9. Designation Master
             new MasterConfig
             {
                 EntityType = "Designation",
@@ -185,7 +350,8 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Designation Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 5,
+                MenuOrder = 9,
+                GroupName = "Staff & Administration",
                 Icon = "fa-id-badge",
 
                 ViewPermission = "Master.Designation.View",
@@ -200,7 +366,7 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 6. Document Type Master
+            // 10. Document Type Master
             new MasterConfig
             {
                 EntityType = "DocumentType",
@@ -210,8 +376,9 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Document Type Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 6,
-                Icon = "fa-file-lines",
+                MenuOrder = 10,
+                GroupName = "Staff & Administration",
+                Icon = "fa-file-circle-check",
 
                 ViewPermission = "Master.DocumentType.View",
                 CreatePermission = "Master.DocumentType.Create",
@@ -229,7 +396,6 @@ namespace IMS.Models.Common.Master
                         IsUnique = true,
                         MaxLength = 100
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "DT_Code",
@@ -239,7 +405,6 @@ namespace IMS.Models.Common.Master
                         IsUnique = true,
                         MaxLength = 50
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "DT_EntityType",
@@ -257,7 +422,6 @@ namespace IMS.Models.Common.Master
                             { "General", "General" }
                         }
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "DT_IsRequired",
@@ -268,92 +432,11 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-           // 7. Exam Type Master
-            new MasterConfig
-            {
-                EntityType = "ExamType",
-                SpName = "USP_ExamTypes_ET",
-                TableName = "dbo.ExamTypes_ET",
-                KeyColumn = "ET_Id",
-                DisplayName = "Exam Type Master",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 7,
-                Icon = "fa-pen-to-square",
+            // =========================================================================
+            // GROUP 3: FINANCE, FEE & CONCESSIONS
+            // =========================================================================
 
-                ViewPermission = "Master.ExamType.View",
-                CreatePermission = "Master.ExamType.Create",
-                EditPermission = "Master.ExamType.Edit",
-                DeletePermission = "Master.ExamType.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "ET_Name",
-                        PropertyName = "Name",
-                        DisplayName = "Exam Type Name",
-                        IsRequired = true,
-                        IsUnique = true,
-                        MaxLength = 100
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "ET_Code",
-                        PropertyName = "Code",
-                        DisplayName = "Exam Code",
-                        IsRequired = true,
-                        IsUnique = true,
-                        MaxLength = 50
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "ET_WeightagePercentage",
-                        PropertyName = "WeightagePercentage",
-                        DisplayName = "Weightage %",
-                        FieldType = MasterFieldType.Number,
-                        IsRequired = false
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "ET_Description",
-                        PropertyName = "Description",
-                        DisplayName = "Description",
-                        FieldType = MasterFieldType.TextArea
-                    }
-                }
-            },
-
-            // 8. Expense Category Master
-            new MasterConfig
-            {
-                EntityType = "ExpenseCategory",
-                SpName = "USP_ExpenseCategories_EC",
-                TableName = "dbo.ExpenseCategories_EC",
-                KeyColumn = "EC_Id",
-                DisplayName = "Expense Category Master",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 8,
-                Icon = "fa-receipt",
-
-                ViewPermission = "Master.ExpenseCategory.View",
-                CreatePermission = "Master.ExpenseCategory.Create",
-                EditPermission = "Master.ExpenseCategory.Edit",
-                DeletePermission = "Master.ExpenseCategory.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "EC_Name", PropertyName = "Name", DisplayName = "Category Name", IsRequired = true, IsUnique = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "EC_Code", PropertyName = "Code", DisplayName = "Category Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "EC_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
-                }
-            },
-
-            // 9. Fee Category Master
+            // 11. Fee Category Master
             new MasterConfig
             {
                 EntityType = "FeeCategory",
@@ -363,8 +446,9 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Fee Category Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 9,
-                Icon = "fa-wallet",
+                MenuOrder = 11,
+                GroupName = "Fee & Finance",
+                Icon = "fa-file-invoice-dollar",
 
                 ViewPermission = "Master.FeeCategory.View",
                 CreatePermission = "Master.FeeCategory.Create",
@@ -380,104 +464,86 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 10. Grade Scale Master
+            // 12. Discount Master
             new MasterConfig
             {
-                EntityType = "GradeScale",
-                SpName = "USP_GradeScales_GS",
-                TableName = "dbo.GradeScales_GS",
-                KeyColumn = "GS_Id",
-                DisplayName = "Grade Scale Master",
-                SoftDelete = true,
-                HasAuditColumns = true,
-                MenuOrder = 10,
-                Icon = "fa-award",
-
-                ViewPermission = "Master.GradeScale.View",
-                CreatePermission = "Master.GradeScale.Create",
-                EditPermission = "Master.GradeScale.Edit",
-                DeletePermission = "Master.GradeScale.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "GS_Name", PropertyName = "Name", DisplayName = "Grade Scale Name", IsRequired = true, IsUnique = true, MaxLength = 100 },
-                    new MasterFieldConfig { ColumnName = "GS_Code", PropertyName = "Code", DisplayName = "Grade Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "GS_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea },
-                    new MasterFieldConfig { ColumnName = "GS_IsDefault", PropertyName = "IsDefault", DisplayName = "Default Scale", FieldType = MasterFieldType.Boolean }
-                }
-            },
-
-            // 11. Classroom Master
-            new MasterConfig
-            {
-                EntityType = "Classroom",
-                SpName = "USP_Classrooms_CR",
-                TableName = "dbo.Classrooms_CR",
-                KeyColumn = "CR_Id",
-                DisplayName = "Classroom Master",
+                EntityType = "Discount",
+                SpName = "USP_Discounts_DIS",
+                TableName = "dbo.Discounts_DIS",
+                KeyColumn = "DIS_Id",
+                DisplayName = "Discount Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 11,
-                Icon = "fa-chalkboard",
+                MenuOrder = 12,
+                GroupName = "Fee & Finance",
+                Icon = "fa-percent",
 
-                ViewPermission = "Master.Classroom.View",
-                CreatePermission = "Master.Classroom.Create",
-                EditPermission = "Master.Classroom.Edit",
-                DeletePermission = "Master.Classroom.Delete",
+                ViewPermission = "Master.Discount.View",
+                CreatePermission = "Master.Discount.Create",
+                EditPermission = "Master.Discount.Edit",
+                DeletePermission = "Master.Discount.Delete",
 
                 Fields = new List<MasterFieldConfig>
                 {
                     new MasterFieldConfig
                     {
-                        ColumnName = "CR_Name",
+                        ColumnName = "DIS_Name",
                         PropertyName = "Name",
-                        DisplayName = "Room Name",
+                        DisplayName = "Discount Policy Name",
                         IsRequired = true,
+                        IsUnique = true,
                         MaxLength = 100
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "CR_Code",
+                        ColumnName = "DIS_Code",
                         PropertyName = "Code",
-                        DisplayName = "Room Code",
+                        DisplayName = "Code",
                         IsRequired = true,
                         IsUnique = true,
                         MaxLength = 50
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "CR_BranchId",
-                        GridColumnName = "B_Name",
-                        PropertyName = "BranchId",
-                        DisplayName = "Branch",
+                        ColumnName = "DIS_DiscountType",
+                        PropertyName = "DiscountType",
+                        DisplayName = "Type",
                         FieldType = MasterFieldType.Dropdown,
-                        LookupEntityType = "Branch",
-                        LookupValueField = "B_Id",
-                        LookupTextField = "B_Name"
+                        IsRequired = true,
+                        MaxLength = 20,
+                        DropdownOptions = new Dictionary<string, string>
+                        {
+                            { "percentage", "Percentage" },
+                            { "fixed", "Fixed" }
+                        }
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "CR_Capacity",
-                        PropertyName = "Capacity",
-                        DisplayName = "Seating Capacity",
+                        ColumnName = "DIS_Value",
+                        PropertyName = "Value",
+                        DisplayName = "Discount Value",
                         FieldType = MasterFieldType.Number,
                         IsRequired = true
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "CR_Location",
-                        PropertyName = "Location",
-                        DisplayName = "Location",
-                        MaxLength = 255
+                        ColumnName = "DIS_Description",
+                        PropertyName = "Description",
+                        DisplayName = "Description",
+                        FieldType = MasterFieldType.TextArea
+                    },
+                    new MasterFieldConfig
+                    {
+                        ColumnName = "DIS_IsActive",
+                        PropertyName = "IsActive",
+                        DisplayName = "Is Active",
+                        FieldType = MasterFieldType.Boolean,
+                        ShowInGrid = false
                     }
                 }
             },
 
-            // 12. Payment Method Master
+            // 13. Payment Method Master
             new MasterConfig
             {
                 EntityType = "PaymentMethod",
@@ -487,7 +553,8 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Payment Method Master",
                 SoftDelete = true,
                 HasAuditColumns = true,
-                MenuOrder = 12,
+                MenuOrder = 13,
+                GroupName = "Fee & Finance",
                 Icon = "fa-credit-card",
 
                 ViewPermission = "Master.PaymentMethod.View",
@@ -506,7 +573,6 @@ namespace IMS.Models.Common.Master
                         IsUnique = true,
                         MaxLength = 100
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "PM_Type",
@@ -528,147 +594,127 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 13. Discount Master
+            // 14. Expense Category Master
             new MasterConfig
             {
-                EntityType = "Discount",
-                SpName = "USP_Discounts_DIS",
-                TableName = "dbo.Discounts_DIS",
-                KeyColumn = "DIS_Id",
-                DisplayName = "Discount Master",
+                EntityType = "ExpenseCategory",
+                SpName = "USP_ExpenseCategories_EC",
+                TableName = "dbo.ExpenseCategories_EC",
+                KeyColumn = "EC_Id",
+                DisplayName = "Expense Category Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 13,
-                Icon = "fa-percent",
+                MenuOrder = 14,
+                GroupName = "Fee & Finance",
+                Icon = "fa-receipt",
 
-                ViewPermission = "Master.Discount.View",
-                CreatePermission = "Master.Discount.Create",
-                EditPermission = "Master.Discount.Edit",
-                DeletePermission = "Master.Discount.Delete",
+                ViewPermission = "Master.ExpenseCategory.View",
+                CreatePermission = "Master.ExpenseCategory.Create",
+                EditPermission = "Master.ExpenseCategory.Edit",
+                DeletePermission = "Master.ExpenseCategory.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "EC_Name", PropertyName = "Name", DisplayName = "Category Name", IsRequired = true, IsUnique = true, MaxLength = 100 },
+                    new MasterFieldConfig { ColumnName = "EC_Code", PropertyName = "Code", DisplayName = "Category Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "EC_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                }
+            },
+
+            // =========================================================================
+            // GROUP 4: EXAMINATIONS & GRADING
+            // =========================================================================
+
+            // 15. Exam Type Master
+            new MasterConfig
+            {
+                EntityType = "ExamType",
+                SpName = "USP_ExamTypes_ET",
+                TableName = "dbo.ExamTypes_ET",
+                KeyColumn = "ET_Id",
+                DisplayName = "Exam Type Master",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 15,
+                GroupName = "Examinations & Grading",
+                Icon = "fa-pen-to-square",
+
+                ViewPermission = "Master.ExamType.View",
+                CreatePermission = "Master.ExamType.Create",
+                EditPermission = "Master.ExamType.Edit",
+                DeletePermission = "Master.ExamType.Delete",
 
                 Fields = new List<MasterFieldConfig>
                 {
                     new MasterFieldConfig
                     {
-                        ColumnName = "DIS_Name",
+                        ColumnName = "ET_Name",
                         PropertyName = "Name",
-                        DisplayName = "Discount Policy Name",
+                        DisplayName = "Exam Type Name",
                         IsRequired = true,
                         IsUnique = true,
                         MaxLength = 100
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "DIS_Code",
+                        ColumnName = "ET_Code",
                         PropertyName = "Code",
-                        DisplayName = "Code",
+                        DisplayName = "Exam Code",
                         IsRequired = true,
                         IsUnique = true,
                         MaxLength = 50
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "DIS_DiscountType",
-                        PropertyName = "DiscountType",
-                        DisplayName = "Type",
-                        FieldType = MasterFieldType.Dropdown,
-                        IsRequired = true,
-                        MaxLength = 20,
-                        DropdownOptions = new Dictionary<string, string>
-                        {
-                            { "percentage", "Percentage" },
-                            { "fixed", "Fixed" }
-                        }
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "DIS_Value",
-                        PropertyName = "Value",
-                        DisplayName = "Discount Value",
+                        ColumnName = "ET_WeightagePercentage",
+                        PropertyName = "WeightagePercentage",
+                        DisplayName = "Weightage %",
                         FieldType = MasterFieldType.Number,
-                        IsRequired = true
+                        IsRequired = false
                     },
-
                     new MasterFieldConfig
                     {
-                        ColumnName = "DIS_Description",
+                        ColumnName = "ET_Description",
                         PropertyName = "Description",
                         DisplayName = "Description",
                         FieldType = MasterFieldType.TextArea
-                    },
-
-                    new MasterFieldConfig
-                    {
-                        ColumnName = "DIS_IsActive",
-                        PropertyName = "IsActive",
-                        DisplayName = "Is Active",
-                        FieldType = MasterFieldType.Boolean,
-                        ShowInGrid = false
                     }
                 }
             },
 
-            // 14. Subject Master
+            // 16. Grade Scale Master
             new MasterConfig
             {
-                EntityType = "Subject",
-                SpName = "USP_Subjects_SB",
-                TableName = "dbo.Subjects_SB",
-                KeyColumn = "SB_Id",
-                DisplayName = "Subject Master",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 14,
-                Icon = "fa-book",
-
-                ViewPermission = "Master.Subject.View",
-                CreatePermission = "Master.Subject.Create",
-                EditPermission = "Master.Subject.Edit",
-                DeletePermission = "Master.Subject.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "SB_Name", PropertyName = "Name", DisplayName = "Subject Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
-                    new MasterFieldConfig { ColumnName = "SB_Code", PropertyName = "Code", DisplayName = "Subject Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "SB_Credits", PropertyName = "Credits", DisplayName = "Credits", FieldType = MasterFieldType.Number },
-                    new MasterFieldConfig { ColumnName = "SB_MaxMarks", PropertyName = "MaxMarks", DisplayName = "Maximum Marks", FieldType = MasterFieldType.Number },
-                    new MasterFieldConfig { ColumnName = "SB_PassMarks", PropertyName = "PassMarks", DisplayName = "Pass Marks", FieldType = MasterFieldType.Number },
-                    new MasterFieldConfig { ColumnName = "SB_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
-                }
-            },
-
-            // 15. Program Master
-            new MasterConfig
-            {
-                EntityType = "Program",
-                SpName = "USP_Programs_P",
-                TableName = "dbo.Programs_P",
-                KeyColumn = "P_Id",
-                DisplayName = "Program Master",
+                EntityType = "GradeScale",
+                SpName = "USP_GradeScales_GS",
+                TableName = "dbo.GradeScales_GS",
+                KeyColumn = "GS_Id",
+                DisplayName = "Grade Scale Master",
                 SoftDelete = true,
                 HasAuditColumns = true,
-                MenuOrder = 15,
-                Icon = "fa-graduation-cap",
+                MenuOrder = 16,
+                GroupName = "Examinations & Grading",
+                Icon = "fa-award",
 
-                ViewPermission = "Master.Program.View",
-                CreatePermission = "Master.Program.Create",
-                EditPermission = "Master.Program.Edit",
-                DeletePermission = "Master.Program.Delete",
+                ViewPermission = "Master.GradeScale.View",
+                CreatePermission = "Master.GradeScale.Create",
+                EditPermission = "Master.GradeScale.Edit",
+                DeletePermission = "Master.GradeScale.Delete",
 
                 Fields = new List<MasterFieldConfig>
                 {
-                    new MasterFieldConfig { ColumnName = "P_Name", PropertyName = "Name", DisplayName = "Program Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
-                    new MasterFieldConfig { ColumnName = "P_Code", PropertyName = "Code", DisplayName = "Program Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "P_DurationValue", PropertyName = "DurationValue", DisplayName = "Duration Value", FieldType = MasterFieldType.Number },
-                    new MasterFieldConfig { ColumnName = "P_DurationUnit", PropertyName = "DurationUnit", DisplayName = "Duration Unit (e.g. Years, Months)", MaxLength = 20 },
-                    new MasterFieldConfig { ColumnName = "P_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                    new MasterFieldConfig { ColumnName = "GS_Name", PropertyName = "Name", DisplayName = "Grade Scale Name", IsRequired = true, IsUnique = true, MaxLength = 100 },
+                    new MasterFieldConfig { ColumnName = "GS_Code", PropertyName = "Code", DisplayName = "Grade Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "GS_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea },
+                    new MasterFieldConfig { ColumnName = "GS_IsDefault", PropertyName = "IsDefault", DisplayName = "Default Scale", FieldType = MasterFieldType.Boolean }
                 }
             },
 
-            // 16. Vendor Master
+            // =========================================================================
+            // GROUP 5: OPERATIONS & SYSTEM
+            // =========================================================================
+
+            // 17. Vendor Master
             new MasterConfig
             {
                 EntityType = "Vendor",
@@ -678,8 +724,9 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Vendor Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
-                MenuOrder = 16,
-                Icon = "fa-truck",
+                MenuOrder = 17,
+                GroupName = "Operations & System",
+                Icon = "fa-truck-field",
 
                 ViewPermission = "Master.Vendor.View",
                 CreatePermission = "Master.Vendor.Create",
@@ -697,37 +744,6 @@ namespace IMS.Models.Common.Master
                 }
             },
 
-            // 17. Batch Master
-            new MasterConfig
-            {
-                EntityType = "Batch",
-                SpName = "USP_Batches_BT",
-                TableName = "dbo.Batches_BT",
-                KeyColumn = "BT_Id",
-                DisplayName = "Batch Master",
-                SoftDelete = false,
-                HasAuditColumns = true,
-                MenuOrder = 21,
-                Icon = "fa-users",
-
-                ViewPermission = "Batch.View",
-                CreatePermission = "Batch.Create",
-                EditPermission = "Batch.Edit",
-                DeletePermission = "Batch.Delete",
-
-                Fields = new List<MasterFieldConfig>
-                {
-                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
-                    new MasterFieldConfig { ColumnName = "BT_Code", PropertyName = "Code", DisplayName = "Batch Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "BT_BranchId", GridColumnName = "BranchName", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_CourseId", GridColumnName = "CourseName", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_AcademicYearId", GridColumnName = "AcademicYearName", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_StartDate", PropertyName = "StartDate", DisplayName = "Start Date", FieldType = MasterFieldType.Date, IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_EndDate", PropertyName = "EndDate", DisplayName = "End Date", FieldType = MasterFieldType.Date },
-                    new MasterFieldConfig { ColumnName = "BT_Capacity", PropertyName = "Capacity", DisplayName = "Capacity", FieldType = MasterFieldType.Number }
-                }
-            },
-
             // 18. Notification Template Master
             new MasterConfig
             {
@@ -738,7 +754,8 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Notification Template Master",
                 SoftDelete = true,
                 HasAuditColumns = true,
-                MenuOrder = 17,
+                MenuOrder = 18,
+                GroupName = "Operations & System",
                 Icon = "fa-bell",
 
                 ViewPermission = "Master.NotificationTemplate.View",
@@ -757,7 +774,6 @@ namespace IMS.Models.Common.Master
                         IsUnique = true,
                         MaxLength = 150
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "NT_EventKey",
@@ -767,7 +783,6 @@ namespace IMS.Models.Common.Master
                         IsUnique = true,
                         MaxLength = 100
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "NT_Channel",
@@ -784,7 +799,6 @@ namespace IMS.Models.Common.Master
                             { "InApp", "In-App Notification" }
                         }
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "NT_Subject",
@@ -792,7 +806,6 @@ namespace IMS.Models.Common.Master
                         DisplayName = "Email Subject Line",
                         MaxLength = 255
                     },
-
                     new MasterFieldConfig
                     {
                         ColumnName = "NT_BodyTemplate",
@@ -802,9 +815,10 @@ namespace IMS.Models.Common.Master
                         IsRequired = true
                     }
                 }
-            } 
+            }
         };
-        public static List<MasterConfig> GetAll() => _configs;
+
+        public static List<MasterConfig> GetAll() => _configs.OrderBy(c => c.MenuOrder).ToList();
 
         public static MasterConfig GetByEntityType(string entityType)
         {

@@ -79,6 +79,7 @@ namespace IMS.Models.Common.Master
         public bool HasAuditColumns { get; set; } = true;
 
         public int MenuOrder { get; set; }
+        public string GroupName { get; set; } = "General";
         public string Icon { get; set; }
     }
 }
