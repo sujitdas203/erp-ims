@@ -42,28 +42,21 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Applications.Any())
+                @foreach (var a in Model.Applications)
                 {
-                    <tr><td colspan="7" class="text-center text-muted py-4">No applications found.</td></tr>
-                }
-                else
-                {
-                    foreach (var a in Model.Applications)
-                    {
-                        <tr id="aa-row-@a.AA_Id">
-                            <td>@a.AA_ApplicationNumber</td>
-                            <td>@a.FullName</td>
-                            <td>@a.CourseName</td>
-                            <td>@a.AcademicYearName</td>
-                            <td>@(a.AA_SubmittedAt?.ToString("dd-MMM-yyyy") ?? "-")</td>
-                            <td><span class="badge @StatusBadge(a.AA_Status)">@a.AA_Status</span></td>
-                            <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@a.AA_Id" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-action="Edit" asp-route-id="@a.AA_Id" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <button class="btn btn-sm btn-outline-danger aa-delete-btn" data-id="@a.AA_Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    }
+                    <tr id="aa-row-@a.AA_Id">
+                        <td>@a.AA_ApplicationNumber</td>
+                        <td>@a.FullName</td>
+                        <td>@a.CourseName</td>
+                        <td>@a.AcademicYearName</td>
+                        <td>@(a.AA_SubmittedAt?.ToString("dd-MMM-yyyy") ?? "-")</td>
+                        <td><span class="badge @StatusBadge(a.AA_Status)">@a.AA_Status</span></td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@a.AA_Id" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@a.AA_Id" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <button class="btn btn-sm btn-outline-danger aa-delete-btn" data-id="@a.AA_Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>

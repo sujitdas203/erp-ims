@@ -53,50 +53,43 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Batches.Any())
+                @foreach (var b in Model.Batches)
                 {
-                    <tr><td colspan="9" class="text-center text-muted py-4">No batches found.</td></tr>
-                }
-                else
-                {
-                    foreach (var b in Model.Batches)
-                    {
-                        <tr id="batch-row-@b.BT_Id">
-                            <td>@b.BT_Code</td>
-                            <td>@b.BT_Name</td>
-                            <td>@b.CourseName</td>
-                            <td>@b.AcademicYearName</td>
-                            <td>@b.BranchName</td>
-                            <td>@b.BT_StartDate.ToString("dd-MMM-yyyy")</td>
-                            <td>@b.EnrolledCount @(b.BT_Capacity.HasValue ? $"/ {b.BT_Capacity}" : "")</td>
-                            <td><span class="badge @StatusBadgeClass(b.BT_Status)">@b.BT_Status</span></td>
-                            <td class="text-end">
-                                <a asp-controller="Batch" asp-action="Details" asp-route-id="@b.BT_Id"
-                                   class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-controller="Batch" asp-action="Edit" asp-route-id="@b.BT_Id"
-                                   class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
-                                        data-id="@b.BT_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@b.BT_Id" title="Delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                                <div class="modal fade" id="deleteModal-@b.BT_Id" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Delete Batch</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">Are you sure you want to delete <strong>@b.BT_Name</strong>?</div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
-                                            </div>
+                    <tr id="batch-row-@b.BT_Id">
+                        <td>@b.BT_Code</td>
+                        <td>@b.BT_Name</td>
+                        <td>@b.CourseName</td>
+                        <td>@b.AcademicYearName</td>
+                        <td>@b.BranchName</td>
+                        <td>@b.BT_StartDate.ToString("dd-MMM-yyyy")</td>
+                        <td>@b.EnrolledCount @(b.BT_Capacity.HasValue ? $"/ {b.BT_Capacity}" : "")</td>
+                        <td><span class="badge @StatusBadgeClass(b.BT_Status)">@b.BT_Status</span></td>
+                        <td class="text-end">
+                            <a asp-controller="Batch" asp-action="Details" asp-route-id="@b.BT_Id"
+                               class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-controller="Batch" asp-action="Edit" asp-route-id="@b.BT_Id"
+                               class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
+                                    data-id="@b.BT_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@b.BT_Id" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <div class="modal fade" id="deleteModal-@b.BT_Id" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Batch</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">Are you sure you want to delete <strong>@b.BT_Name</strong>?</div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
                                         </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                    }
+                            </div>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>

@@ -43,29 +43,22 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Enrollments.Any())
+                @foreach (var e in Model.Enrollments)
                 {
-                    <tr><td colspan="8" class="text-center text-muted py-4">No enrollments found.</td></tr>
-                }
-                else
-                {
-                    foreach (var e in Model.Enrollments)
-                    {
-                        <tr id="enrollment-row-@e.E_Id">
-                            <td>@e.E_EnrollmentNumber</td>
-                            <td>@e.StudentName</td>
-                            <td>@e.CourseName</td>
-                            <td>@e.BatchName</td>
-                            <td>@e.AcademicYearName</td>
-                            <td>@e.E_EnrollmentDate.ToString("dd-MMM-yyyy")</td>
-                            <td><span class="badge @StatusBadge(e.E_Status)">@e.E_Status</span></td>
-                            <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@e.E_Id" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-action="Edit" asp-route-id="@e.E_Id" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <button class="btn btn-sm btn-outline-danger enroll-delete-btn" data-id="@e.E_Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    }
+                    <tr id="enrollment-row-@e.E_Id">
+                        <td>@e.E_EnrollmentNumber</td>
+                        <td>@e.StudentName</td>
+                        <td>@e.CourseName</td>
+                        <td>@e.BatchName</td>
+                        <td>@e.AcademicYearName</td>
+                        <td>@e.E_EnrollmentDate.ToString("dd-MMM-yyyy")</td>
+                        <td><span class="badge @StatusBadge(e.E_Status)">@e.E_Status</span></td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@e.E_Id" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@e.E_Id" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <button class="btn btn-sm btn-outline-danger enroll-delete-btn" data-id="@e.E_Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>

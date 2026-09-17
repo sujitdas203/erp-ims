@@ -31,12 +31,7 @@
                 <tr><th>Day</th><th>Time</th><th>Subject</th><th>Staff</th><th>Room</th><th class="text-end">Actions</th></tr>
             </thead>
             <tbody>
-                @if (!Model.Entries.Any())
-                {
-                    <tr><td colspan="6" class="text-center text-muted py-4">No timetable entries found.</td></tr>
-                }
-                else
-                {
+                @{
                     var ordered = Model.Entries.OrderBy(e => e.TT_DayOfWeek).ThenBy(e => e.TT_StartTime).ToList();
                     foreach (var t in ordered)
                     {

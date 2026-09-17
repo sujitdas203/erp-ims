@@ -31,7 +31,7 @@
     }
     <div class="col-md-4">
         <label for="CustomRoleId" class="form-label">Role</label>
-        <select id="CustomRoleId" name="CustomRoleId" class="form-select" data-selected-value="@(Model.CustomRoleId)"></select>
+        @Html.DropDownListFor(m => m.CustomRoleId, Model.RoleOptions, "Select Role", new { @class = "form-select" })
         <div class="text-danger small field-error" data-for="CustomRoleId"></div>
     </div>
 

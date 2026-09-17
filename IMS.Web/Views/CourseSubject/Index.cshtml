@@ -42,12 +42,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Items.Any())
-                {
-                    <tr><td colspan="8" class="text-center text-muted py-4">No subjects found.</td></tr>
-                }
-                else
-                {
+                @{
                     var idx = 0;
                     foreach (var item in Model.Items)
                     {
