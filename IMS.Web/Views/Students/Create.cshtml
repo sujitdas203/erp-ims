@@ -4,15 +4,18 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add Student</h3>
+    <div>
+        <h3 class="mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Add Student</h3>
+        <p class="text-muted small mb-0">Enter student admission, personal, contact details and guardian records.</p>
+    </div>
     <a asp-controller="Students" asp-action="Index" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Back to List
     </a>
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body p-4">
-        @using (Html.BeginForm("AddStudent", "Students", FormMethod.Post, new { id = "studentCreateForm" }))
+        @using (Html.BeginForm("AddStudent", "Students", FormMethod.Post, new { id = "studentCreateForm", novalidate = "novalidate" }))
         {
             @Html.AntiForgeryToken()
             @await Html.PartialAsync("_Form", Model)
@@ -24,32 +27,86 @@
     <script src="~/js/students.js"></script>
     <script>
         $(function () {
-            Dropdown.load({ element: '#S_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+            // Load master dropdowns
+            Dropdown.load({
+                element: '#S_BranchId',
+                entityType: 'Branch',
+                defaultText: 'Select Branch',
+                includeDefault: true,
+                selectedValue: $('#S_BranchId').data('selected-value')
+            });
 
-            Dropdown.cascade({
-                parent: '#S_BranchId',
-                child: '#S_ClassId',
+            Dropdown.load({
+                element: '#S_ClassId',
                 entityType: 'Class',
-                defaultText: 'Select Class'
+                defaultText: 'Select Class',
+                includeDefault: true,
+                selectedValue: $('#S_ClassId').data('selected-value')
             });
 
-            Dropdown.cascade({
-                parent: '#S_ClassId',
-                child: '#S_SectionId',
+            Dropdown.load({
+                element: '#S_SectionId',
                 entityType: 'Section',
-                defaultText: 'Select Section'
+                defaultText: 'Select Section',
+                includeDefault: true,
+                selectedValue: $('#S_SectionId').data('selected-value')
             });
 
-            Dropdown.load({ element: '#S_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true });
-            Dropdown.load({ element: '#S_BloodGroup', entityType: 'BloodGroup', defaultText: 'Select Blood Group', includeDefault: true });
-            Dropdown.load({ element: '#S_Status', entityType: 'StudentStatus', defaultText: '-- Select --', includeDefault: false });
+            Dropdown.load({
+                element: '#S_BatchId',
+                entityType: 'Batch',
+                defaultText: 'Select Batch',
+                includeDefault: true,
+                selectedValue: $('#S_BatchId').data('selected-value')
+            });
+
+            Dropdown.load({
+                element: '#S_Gender',
+                entityType: 'Gender',
+                defaultText: 'Select Gender',
+                includeDefault: true,
+                selectedValue: $('#S_Gender').data('selected-value')
+            });
+
+            Dropdown.load({
+                element: '#S_BloodGroup',
+                entityType: 'BloodGroup',
+                defaultText: 'Select Blood Group',
+                includeDefault: true,
+                selectedValue: $('#S_BloodGroup').data('selected-value')
+            });
+
+            Dropdown.load({
+                element: '#S_Status',
+                entityType: 'StudentStatus',
+                defaultText: 'Select Status',
+                includeDefault: false,
+                selectedValue: $('#S_Status').data('selected-value') || 'Admitted'
+            });
 
             $('.relation-select').each(function () {
-                Dropdown.load({ element: this, entityType: 'Relation', defaultText: 'Select Relation', includeDefault: true, selectedValue: $(this).data('selected-value') });
+                Dropdown.load({
+                    element: this,
+                    entityType: 'Relation',
+                    defaultText: 'Select Relation',
+                    includeDefault: true,
+                    selectedValue: $(this).data('selected-value')
+                });
             });
 
-            IMSDatePicker.init('#S_AdmissionDate');
-            IMSDatePicker.init('#S_DateOfBirth');
+            if (typeof IMSDatePicker !== 'undefined') {
+                IMSDatePicker.init('#S_AdmissionDate');
+                IMSDatePicker.init('#S_DateOfBirth');
+            }
+
+            // If no guardian rows exist on Create, auto-add 1 default row
+            if ($('#guardiansContainer .guardian-row').length === 0) {
+                if (typeof StudentModule !== 'undefined' && StudentModule.addGuardianRow) {
+                    StudentModule.addGuardianRow();
+                } else {
+                    $('#addGuardianBtn').trigger('click');
+                }
+            }
         });
     </script>
 }
