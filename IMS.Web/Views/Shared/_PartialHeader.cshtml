@@ -11,6 +11,36 @@
 
     <div class="IMS-topbar-actions">
 
+        <!-- Theme Switcher Dropdown (Light, Semi-Dark, Dark) -->
+        <div class="dropdown" id="themeSwitcherContainer">
+            <button class="IMS-icon-btn" type="button" id="themeSwitcherBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Switch Theme (Light, Semi-Dark, Dark)">
+                <i class="fa-solid fa-circle-half-stroke" id="themeSwitcherIcon"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm IMS-theme-menu" aria-labelledby="themeSwitcherBtn" style="min-width: 180px; border-radius: 10px;">
+                <li>
+                    <h6 class="dropdown-header text-uppercase fw-bold" style="font-size: 0.68rem; letter-spacing: 0.05em;">Theme Appearance</h6>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center justify-content-between py-2 theme-option-btn" type="button" data-theme-value="light" onclick="IMSTheme.setTheme('light');">
+                        <span class="d-flex align-items-center"><i class="fa-regular fa-sun me-2 text-warning" style="width: 16px;"></i> Light Mode</span>
+                        <i class="fa-solid fa-check text-primary theme-check-icon d-none" data-theme-check="light"></i>
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center justify-content-between py-2 theme-option-btn" type="button" data-theme-value="semi-dark" onclick="IMSTheme.setTheme('semi-dark');">
+                        <span class="d-flex align-items-center"><i class="fa-solid fa-circle-half-stroke me-2 text-primary" style="width: 16px;"></i> Semi-Dark</span>
+                        <i class="fa-solid fa-check text-primary theme-check-icon d-none" data-theme-check="semi-dark"></i>
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center justify-content-between py-2 theme-option-btn" type="button" data-theme-value="dark" onclick="IMSTheme.setTheme('dark');">
+                        <span class="d-flex align-items-center"><i class="fa-regular fa-moon me-2 text-info" style="width: 16px;"></i> Dark Mode</span>
+                        <i class="fa-solid fa-check text-primary theme-check-icon d-none" data-theme-check="dark"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
         <!-- Header Notification Bell & Dropdown -->
         <div class="dropdown" id="notificationDropdownContainer">
             <button class="IMS-icon-btn" type="button" id="notificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">

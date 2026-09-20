@@ -29,7 +29,8 @@ namespace IMS.Services
 
         public Dictionary<string, object> GetById(string entityType, Guid id)
         {
-            var config = GetConfigOrThrow(entityType);
+            var config = MasterConfigRegistry.GetByEntityType(entityType);
+            if (config == null) return null;
             return _masterDAL.GetById(config, id);
         }
 

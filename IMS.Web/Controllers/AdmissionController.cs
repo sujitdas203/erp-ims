@@ -22,7 +22,11 @@ namespace IMS.Web.Controllers
 
         private Guid CurrentTenantId
         {
-            get { var raw = User.FindFirst("tenant_id")?.Value; return Guid.TryParse(raw, out var id) ? id : Guid.Empty; }
+            get 
+            { 
+                var raw = User.FindFirst("tenant_id")?.Value; 
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId; 
+            }
         }
 
         private Guid? CurrentUserId
@@ -120,10 +124,10 @@ namespace IMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteApplication(Guid id)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
             try 
             { 
-                var r = await _service.DeleteAsync(id, CurrentTenantId); 
+                var r = await _service.DeleteAsync(id, tenantId); 
                 return Json(new { success = r.Success, message = r.Message }); 
             }
             catch (Exception ex) 
@@ -136,11 +140,11 @@ namespace IMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Review(AdmissionReviewViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
             var userId = CurrentUserId ?? Guid.Empty;
             try 
             { 
-                var r = await _service.ReviewAsync(model, CurrentTenantId, userId); 
+                var r = await _service.ReviewAsync(model, tenantId, userId); 
                 return Json(new { success = r.Success, message = r.Message }); 
             }
             catch (Exception ex) 
@@ -153,17 +157,36 @@ namespace IMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Enroll(AdmissionEnrollViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
             var userId = CurrentUserId ?? Guid.Empty;
             try 
             { 
-                var r = await _service.EnrollStudentAsync(model, CurrentTenantId, userId); 
+                var r = await _service.EnrollStudentAsync(model, tenantId, userId); 
                 return Json(new { success = r.Success, message = r.Message, studentId = r.Id }); 
             }
             catch (Exception ex) 
             { 
                 _logger.LogError(ex, "Error enrolling student in AdmissionController"); 
                 return Json(new { success = false, message = "Enrollment failed: " + ex.Message }); 
+            }
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadAttachment(Guid id, string docType, Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, message = "Please select a file to upload." });
+
+            try
+            {
+                var r = await _service.UploadAttachmentAsync(id, docType, file, tenantId);
+                return Json(new { success = r.Success, message = r.Message, url = r.Data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading attachment in AdmissionController for {AppId}", id);
+                return Json(new { success = false, message = "Upload failed: " + ex.Message });
             }
         }
     }

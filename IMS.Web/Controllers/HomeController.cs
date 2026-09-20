@@ -90,6 +90,7 @@ namespace IMS.Web.Controllers
             IMS.Models.ViewModels.AdmissionApplicationFormViewModel model,
             [FromServices] IAdmissionApplicationService admissionService,
             [FromServices] INotificationService notificationService,
+            [FromServices] IMasterService masterService,
             [FromServices] ILogger<HomeController> logger)
         {
             var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
@@ -98,6 +99,18 @@ namespace IMS.Web.Controllers
 
             try
             {
+                if (!model.AA_BranchId.HasValue || model.AA_BranchId == Guid.Empty)
+                {
+                    model.AA_BranchId = HardcodedMasterData.Branches[0].Id;
+                    ModelState.Remove("AA_BranchId");
+                }
+
+                if (!model.AA_AcademicYearId.HasValue || model.AA_AcademicYearId == Guid.Empty)
+                {
+                    model.AA_AcademicYearId = new Guid("33333333-3333-3333-3333-333333333303");
+                    ModelState.Remove("AA_AcademicYearId");
+                }
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState
@@ -136,6 +149,18 @@ namespace IMS.Web.Controllers
                 {
                     var raw = User.FindFirst("tenant_id")?.Value;
                     if (Guid.TryParse(raw, out var tId) && tId != Guid.Empty) tenantId = tId;
+                }
+                else if (model.AA_BranchId.HasValue && model.AA_BranchId != Guid.Empty)
+                {
+                    try
+                    {
+                        var branchObj = masterService.GetById("Branch", model.AA_BranchId.Value);
+                        if (branchObj != null && branchObj.TryGetValue("B_TenantId", out var bTenant) && Guid.TryParse(bTenant?.ToString(), out var branchTenant) && branchTenant != Guid.Empty)
+                        {
+                            tenantId = branchTenant;
+                        }
+                    }
+                    catch { }
                 }
 
                 var result = await admissionService.CreateAsync(model, tenantId);
@@ -185,6 +210,60 @@ namespace IMS.Web.Controllers
                 ModelState.AddModelError(string.Empty, "An error occurred while saving: " + ex.Message);
                 return View("Admission", model);
             }
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> TrackAdmission(
+            string appNumber, 
+            string phone, 
+            [FromServices] IAdmissionApplicationService admissionService)
+        {
+            if (string.IsNullOrWhiteSpace(appNumber))
+            {
+                return View();
+            }
+
+            var app = await admissionService.GetDetailsByNumberAsync(appNumber, phone);
+            ViewBag.SearchAttempted = true;
+            ViewBag.AppNumber = appNumber;
+            ViewBag.Phone = phone;
+            return View(app);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> TrackAdmissionStatus(
+            string appNumber, 
+            string phone, 
+            [FromServices] IAdmissionApplicationService admissionService)
+        {
+            if (string.IsNullOrWhiteSpace(appNumber))
+                return Json(new { success = false, message = "Please enter an Application Reference Number." });
+
+            var app = await admissionService.GetDetailsByNumberAsync(appNumber, phone);
+            if (app == null)
+                return Json(new { success = false, message = "No application found matching the provided reference number." });
+
+            return Json(new { 
+                success = true, 
+                data = new {
+                    id = app.AA_Id,
+                    applicationNumber = app.AA_ApplicationNumber,
+                    fullName = app.FullName,
+                    phone = app.AA_Phone,
+                    email = app.AA_Email,
+                    status = app.AA_Status,
+                    branchName = app.BranchName,
+                    className = app.ClassName,
+                    courseName = app.CourseName,
+                    academicYear = app.AcademicYearName,
+                    submittedAt = app.AA_SubmittedAt?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-",
+                    reviewedAt = app.AA_ReviewedAt?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-",
+                    notes = app.AA_Notes,
+                    studentCode = app.AdmittedStudentCode,
+                    photoUrl = app.AA_StudentPhotoUrl
+                }
+            });
         }
 
         [AllowAnonymous]

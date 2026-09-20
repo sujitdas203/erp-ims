@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace IMS.Models.ViewModels
@@ -25,8 +26,13 @@ namespace IMS.Models.ViewModels
         public string AA_FatherName { get; set; }
         public string AA_MotherName { get; set; }
         public string AA_GuardianName { get; set; }
+        public string? AA_StudentPhotoUrl { get; set; }
+        public bool AA_RequiresTransport { get; set; }
+        public bool AA_RequiresHostel { get; set; }
         public DateTime? AA_SubmittedAt { get; set; }
         public string AA_Status { get; set; }
+        public Guid? AA_AdmittedStudentId { get; set; }
+        public string? AdmittedStudentCode { get; set; }
     }
 
     public class AdmissionApplicationIndexViewModel
@@ -52,6 +58,8 @@ namespace IMS.Models.ViewModels
     public class AdmissionApplicationFormViewModel
     {
         public Guid? AA_Id { get; set; }
+        [Required(ErrorMessage = "Branch / Campus is required.")]
+        [Display(Name = "Branch / Campus")]
         public Guid? AA_BranchId { get; set; }
         public string? AA_ApplicationNumber { get; set; }
 
@@ -174,27 +182,82 @@ namespace IMS.Models.ViewModels
         [Display(Name = "Previous Grade")]
         public string? AA_PreviousGrade { get; set; }
 
-        [Display(Name = "Previous Marks")]
+        [Display(Name = "Previous Marks / %")]
         public string? AA_PreviousMarks { get; set; }
 
         [Display(Name = "Transfer Certificate Number")]
         public string? AA_TransferCertificateNumber { get; set; }
 
         // Academic Program Mapping
-        [Display(Name = "Class")]
+        [Display(Name = "Class / Grade")]
         public Guid? AA_ClassId { get; set; }
 
-        [Display(Name = "Course")]
+        [Display(Name = "Course / Stream")]
         public Guid? AA_CourseId { get; set; }
 
+        [Required(ErrorMessage = "Academic Year is required.")]
         [Display(Name = "Academic Year")]
         public Guid? AA_AcademicYearId { get; set; }
+
+        // Document & Media URLs
+        public string? AA_StudentPhotoUrl { get; set; }
+        public string? AA_BirthCertificateUrl { get; set; }
+        public string? AA_TransferCertificateUrl { get; set; }
+        public string? AA_MarksheetUrl { get; set; }
+        public string? AA_NationalIdDocUrl { get; set; }
+
+        // IFormFile upload properties
+        [Display(Name = "Student Photograph (Passport Size)")]
+        public IFormFile? StudentPhoto { get; set; }
+
+        [Display(Name = "Birth Certificate Document")]
+        public IFormFile? BirthCertificateDoc { get; set; }
+
+        [Display(Name = "Transfer Certificate Document")]
+        public IFormFile? TransferCertificateDoc { get; set; }
+
+        [Display(Name = "Previous Marksheet / Grade Sheet")]
+        public IFormFile? MarksheetDoc { get; set; }
+
+        [Display(Name = "Aadhaar / National ID Card Scan")]
+        public IFormFile? NationalIdDoc { get; set; }
+
+        // Health & Medical
+        [Display(Name = "Medical Conditions / Allergies / Special Needs")]
+        public string? AA_MedicalConditions { get; set; }
+
+        // Facilities & Transport
+        [Display(Name = "Requires School Transport")]
+        public bool AA_RequiresTransport { get; set; }
+
+        [Display(Name = "Preferred Pickup Stop / Route")]
+        public string? AA_TransportPickupPoint { get; set; }
+
+        [Display(Name = "Requires Hostel Facility")]
+        public bool AA_RequiresHostel { get; set; }
+
+        // Language & Sibling Preferences
+        [Display(Name = "Second Language Preference")]
+        public string? AA_SecondLanguage { get; set; }
+
+        [Display(Name = "Mother Tongue")]
+        public string? AA_MotherTongue { get; set; }
+
+        [Display(Name = "Has Sibling in this Institute?")]
+        public bool AA_HasSibling { get; set; }
+
+        [Display(Name = "Sibling Details (Name, Class, Roll No.)")]
+        public string? AA_SiblingDetails { get; set; }
+
+        // Financial & Fee Structure
+        [Display(Name = "Selected Fee Structure")]
+        public Guid? AA_FeeStructureId { get; set; }
 
         // Workflow & Notes
         [Display(Name = "Status")]
         public string? AA_Status { get; set; } = "Submitted";
 
-        [Display(Name = "Internal Notes")]
+        [Display(Name = "Internal Notes / Remarks")]
         public string? AA_Notes { get; set; }
 
         // Dropdown options
@@ -202,9 +265,11 @@ namespace IMS.Models.ViewModels
         public List<SelectListItem> ClassOptions { get; set; } = new();
         public List<SelectListItem> CourseOptions { get; set; } = new();
         public List<SelectListItem> AcademicYearOptions { get; set; } = new();
+        public List<SelectListItem> FeeStructureOptions { get; set; } = new();
         public List<SelectListItem> GenderOptions { get; set; } = new();
         public List<SelectListItem> BloodGroupOptions { get; set; } = new();
         public List<SelectListItem> CategoryOptions { get; set; } = new();
+        public List<SelectListItem> GuardianRelationOptions { get; set; } = new();
         public List<SelectListItem> StatusOptions { get; set; } = new();
     }
 
@@ -274,6 +339,35 @@ namespace IMS.Models.ViewModels
         public string CourseName { get; set; }
         public string AcademicYearName { get; set; }
 
+        // Document & Media URLs
+        public string? AA_StudentPhotoUrl { get; set; }
+        public string? AA_BirthCertificateUrl { get; set; }
+        public string? AA_TransferCertificateUrl { get; set; }
+        public string? AA_MarksheetUrl { get; set; }
+        public string? AA_NationalIdDocUrl { get; set; }
+
+        // Health & Medical
+        public string? AA_MedicalConditions { get; set; }
+
+        // Facilities & Transport
+        public bool AA_RequiresTransport { get; set; }
+        public string? AA_TransportPickupPoint { get; set; }
+        public bool AA_RequiresHostel { get; set; }
+
+        // Language & Sibling
+        public string? AA_SecondLanguage { get; set; }
+        public string? AA_MotherTongue { get; set; }
+        public bool AA_HasSibling { get; set; }
+        public string? AA_SiblingDetails { get; set; }
+
+        // Financial & Conversion Bridge
+        public Guid? AA_FeeStructureId { get; set; }
+        public string? FeeStructureName { get; set; }
+        public Guid? AA_AdmittedStudentId { get; set; }
+        public string? AdmittedStudentCode { get; set; }
+        public string? AdmittedStudentAdmissionNumber { get; set; }
+        public Guid? AA_EnrollmentId { get; set; }
+
         // Application Workflow & Status
         public string AA_Status { get; set; }
         public DateTime? AA_SubmittedAt { get; set; }
@@ -282,6 +376,12 @@ namespace IMS.Models.ViewModels
         public string AA_Notes { get; set; }
         public DateTime AA_CreatedAt { get; set; }
         public DateTime AA_UpdatedAt { get; set; }
+
+        // Modal options for Quick Enroll
+        public List<SelectListItem> ClassOptions { get; set; } = new();
+        public List<SelectListItem> SectionOptions { get; set; } = new();
+        public List<SelectListItem> BatchOptions { get; set; } = new();
+        public List<SelectListItem> FeeStructureOptions { get; set; } = new();
     }
 
     public class AdmissionReviewViewModel
@@ -294,9 +394,15 @@ namespace IMS.Models.ViewModels
     public class AdmissionEnrollViewModel
     {
         public Guid AA_Id { get; set; }
+        public Guid? BranchId { get; set; }
+        public Guid? AcademicYearId { get; set; }
+        public Guid? CourseId { get; set; }
         public Guid? ClassId { get; set; }
         public Guid? SectionId { get; set; }
         public Guid? BatchId { get; set; }
-        public string AdmissionNumber { get; set; }
+        public string? AdmissionNumber { get; set; }
+        public string? RollNumber { get; set; }
+        public DateTime? AdmissionDate { get; set; } = DateTime.Today;
+        public Guid? FeeStructureId { get; set; }
     }
 }

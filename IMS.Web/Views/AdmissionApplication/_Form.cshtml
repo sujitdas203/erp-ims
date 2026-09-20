@@ -2,7 +2,7 @@
 
 @if (Model.AA_Id.HasValue) { @Html.HiddenFor(m => m.AA_Id) }
 
-<!-- Section 1: Academic & Branch Details -->
+<!-- Section 1: Academic & Campus Preferences -->
 <div class="card border-0 shadow-sm rounded-3 mb-4">
     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
         <i class="fa-solid fa-graduation-cap text-primary me-2"></i>
@@ -23,20 +23,27 @@
             <div class="col-md-3">
                 <label class="form-label small fw-bold">Applying For Class / Grade</label>
                 <select id="AA_ClassId" name="AA_ClassId" class="form-select" data-selected-value="@(Model.AA_ClassId?.ToString())"></select>
+                <small class="text-muted d-block" style="font-size: 0.75rem;">Standard / Cohort (e.g. Class 1-12)</small>
                 <span asp-validation-for="AA_ClassId" class="text-danger small d-block"></span>
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold">Course / Stream</label>
                 <select id="AA_CourseId" name="AA_CourseId" class="form-select" data-selected-value="@(Model.AA_CourseId?.ToString())"></select>
+                <small class="text-muted d-block" style="font-size: 0.75rem;">Specialization (e.g. Science / Commerce)</small>
                 <span asp-validation-for="AA_CourseId" class="text-danger small d-block"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Fee Structure / Plan</label>
+                <select id="AA_FeeStructureId" name="AA_FeeStructureId" class="form-select" data-selected-value="@(Model.AA_FeeStructureId?.ToString())"></select>
+                <span asp-validation-for="AA_FeeStructureId" class="text-danger small d-block"></span>
+            </div>
+            <div class="col-md-4">
                 <label class="form-label small fw-bold">Application Number</label>
                 @Html.TextBoxFor(m => m.AA_ApplicationNumber, new { @class = "form-control", placeholder = "Auto-generated (e.g. APP-26-0001) if blank" })
                 <small class="text-muted">Leave blank for automatic numbering sequence.</small>
                 <span asp-validation-for="AA_ApplicationNumber" class="text-danger small d-block"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label small fw-bold">Application Status</label>
                 <select id="AA_Status" name="AA_Status" class="form-select" data-selected-value="@(Model.AA_Status)"></select>
                 <span asp-validation-for="AA_Status" class="text-danger small d-block"></span>
@@ -45,73 +52,94 @@
     </div>
 </div>
 
-<!-- Section 2: Student Personal Information -->
+<!-- Section 2: Student Personal Information & Photo -->
 <div class="card border-0 shadow-sm rounded-3 mb-4">
     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
         <i class="fa-solid fa-user text-primary me-2"></i>
-        <h6 class="mb-0 fw-semibold">2. Student Personal Information</h6>
+        <h6 class="mb-0 fw-semibold">2. Student Personal Information &amp; Photo</h6>
     </div>
     <div class="card-body p-3">
         <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label small fw-bold">First Name <span class="text-danger">*</span></label>
-                @Html.TextBoxFor(m => m.AA_FirstName, new { @class = "form-control", placeholder = "First Name", required = "required" })
-                <span asp-validation-for="AA_FirstName" class="text-danger small d-block"></span>
+            <!-- Student Photo Upload Column -->
+            <div class="col-md-3 text-center border-end pe-md-4">
+                <label class="form-label small fw-bold d-block text-start mb-2">Student Photograph</label>
+                <div class="position-relative d-inline-block mb-2">
+                    <img id="studentPhotoPreview" 
+                         src="@(!string.IsNullOrWhiteSpace(Model.AA_StudentPhotoUrl) ? Model.AA_StudentPhotoUrl : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='160' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>")" 
+                         alt="Student Photo" 
+                         class="rounded-3 shadow-sm border img-thumbnail" 
+                         style="width: 140px; height: 160px; object-fit: cover; background: #f8fafc;"
+                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'160\' viewBox=\'0 0 24 24\' fill=\'%2394a3b8\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'" />
+                </div>
+                <input type="file" name="StudentPhoto" id="StudentPhoto" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this, '#studentPhotoPreview')" />
+                <small class="text-muted d-block mt-1">JPEG/PNG max 2MB (Passport size)</small>
+                @Html.HiddenFor(m => m.AA_StudentPhotoUrl)
             </div>
-            <div class="col-md-4">
-                <label class="form-label small fw-bold">Middle Name</label>
-                @Html.TextBoxFor(m => m.AA_MiddleName, new { @class = "form-control", placeholder = "Middle Name" })
-                <span asp-validation-for="AA_MiddleName" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label small fw-bold">Last Name <span class="text-danger">*</span></label>
-                @Html.TextBoxFor(m => m.AA_LastName, new { @class = "form-control", placeholder = "Last Name", required = "required" })
-                <span asp-validation-for="AA_LastName" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Date of Birth</label>
-                @Html.TextBoxFor(m => m.AA_DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "AA_DateOfBirth" })
-                <span asp-validation-for="AA_DateOfBirth" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Gender</label>
-                <select id="AA_Gender" name="AA_Gender" class="form-select" data-selected-value="@(Model.AA_Gender)"></select>
-                <span asp-validation-for="AA_Gender" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Blood Group</label>
-                <select id="AA_BloodGroup" name="AA_BloodGroup" class="form-select" data-selected-value="@(Model.AA_BloodGroup)"></select>
-                <span asp-validation-for="AA_BloodGroup" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Category / Quota</label>
-                <select id="AA_Category" name="AA_Category" class="form-select" data-selected-value="@(Model.AA_Category)"></select>
-                <span asp-validation-for="AA_Category" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Nationality</label>
-                @Html.TextBoxFor(m => m.AA_Nationality, new { @class = "form-control", placeholder = "e.g. Indian" })
-                <span asp-validation-for="AA_Nationality" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Religion</label>
-                @Html.TextBoxFor(m => m.AA_Religion, new { @class = "form-control", placeholder = "e.g. Hindu / Muslim / Christian" })
-                <span asp-validation-for="AA_Religion" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Aadhaar / National ID</label>
-                @Html.TextBoxFor(m => m.AA_AadhaarNumber, new { @class = "form-control", placeholder = "12-digit Aadhaar / ID #" })
-                <span asp-validation-for="AA_AadhaarNumber" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold">Student Phone <span class="text-danger">*</span></label>
-                @Html.TextBoxFor(m => m.AA_Phone, new { @class = "form-control", placeholder = "Mobile Number", required = "required" })
-                <span asp-validation-for="AA_Phone" class="text-danger small d-block"></span>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label small fw-bold">Student Email</label>
-                @Html.TextBoxFor(m => m.AA_Email, new { @class = "form-control", type = "email", placeholder = "student@example.com" })
-                <span asp-validation-for="AA_Email" class="text-danger small d-block"></span>
+
+            <!-- Personal Fields Column -->
+            <div class="col-md-9">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">First Name <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.AA_FirstName, new { @class = "form-control", placeholder = "First Name", required = "required" })
+                        <span asp-validation-for="AA_FirstName" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Middle Name</label>
+                        @Html.TextBoxFor(m => m.AA_MiddleName, new { @class = "form-control", placeholder = "Middle Name" })
+                        <span asp-validation-for="AA_MiddleName" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Last Name <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.AA_LastName, new { @class = "form-control", placeholder = "Last Name", required = "required" })
+                        <span asp-validation-for="AA_LastName" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Date of Birth</label>
+                        @Html.TextBoxFor(m => m.AA_DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "AA_DateOfBirth" })
+                        <span asp-validation-for="AA_DateOfBirth" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Gender</label>
+                        <select id="AA_Gender" name="AA_Gender" class="form-select" data-selected-value="@(Model.AA_Gender)"></select>
+                        <span asp-validation-for="AA_Gender" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Blood Group</label>
+                        <select id="AA_BloodGroup" name="AA_BloodGroup" class="form-select" data-selected-value="@(Model.AA_BloodGroup)"></select>
+                        <span asp-validation-for="AA_BloodGroup" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Category / Quota</label>
+                        <select id="AA_Category" name="AA_Category" class="form-select" data-selected-value="@(Model.AA_Category)"></select>
+                        <span asp-validation-for="AA_Category" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Nationality</label>
+                        @Html.TextBoxFor(m => m.AA_Nationality, new { @class = "form-control", placeholder = "e.g. Indian" })
+                        <span asp-validation-for="AA_Nationality" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Religion</label>
+                        <select id="AA_Religion" name="AA_Religion" class="form-select" data-selected-value="@(Model.AA_Religion)"></select>
+                        <span asp-validation-for="AA_Religion" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Aadhaar / National ID</label>
+                        @Html.TextBoxFor(m => m.AA_AadhaarNumber, new { @class = "form-control", placeholder = "12-digit Aadhaar / ID #" })
+                        <span asp-validation-for="AA_AadhaarNumber" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Student Mobile <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.AA_Phone, new { @class = "form-control", placeholder = "Mobile Number", required = "required" })
+                        <span asp-validation-for="AA_Phone" class="text-danger small d-block"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Student Email</label>
+                        @Html.TextBoxFor(m => m.AA_Email, new { @class = "form-control", type = "email", placeholder = "student@example.com" })
+                        <span asp-validation-for="AA_Email" class="text-danger small d-block"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -182,7 +210,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label small fw-bold">Relation</label>
-                @Html.TextBoxFor(m => m.AA_GuardianRelation, new { @class = "form-control", placeholder = "e.g. Uncle / Aunt" })
+                <select id="AA_GuardianRelation" name="AA_GuardianRelation" class="form-select" data-selected-value="@(Model.AA_GuardianRelation)"></select>
             </div>
             <div class="col-md-2">
                 <label class="form-label small fw-bold">Guardian Mobile</label>
@@ -254,14 +282,14 @@
     </div>
 </div>
 
-<!-- Section 5: Previous Academic Background -->
+<!-- Section 5: Previous Academic Background & Documents -->
 <div class="card border-0 shadow-sm rounded-3 mb-4">
     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
         <i class="fa-solid fa-school text-primary me-2"></i>
-        <h6 class="mb-0 fw-semibold">5. Previous Academic History</h6>
+        <h6 class="mb-0 fw-semibold">5. Previous Academic History &amp; Document Uploads</h6>
     </div>
     <div class="card-body p-3">
-        <div class="row g-3">
+        <div class="row g-3 mb-3">
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Previous School / Institute</label>
                 @Html.TextBoxFor(m => m.AA_PreviousSchool, new { @class = "form-control", placeholder = "Previous School Name" })
@@ -283,20 +311,99 @@
                 @Html.TextBoxFor(m => m.AA_TransferCertificateNumber, new { @class = "form-control", placeholder = "TC Certificate #" })
             </div>
         </div>
+
+        <!-- Document Attachments -->
+        <h6 class="text-primary fw-bold mb-2 pb-1 border-bottom small"><i class="fa-solid fa-paperclip me-1"></i> Document Attachments (PDF / JPG / PNG)</h6>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Birth Certificate</label>
+                <input type="file" name="BirthCertificateDoc" class="form-control form-control-sm" accept=".pdf,image/*" />
+                @if (!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl))
+                {
+                    <a href="@Model.AA_BirthCertificateUrl" target="_blank" class="small text-primary mt-1 d-inline-block"><i class="fa-solid fa-file-arrow-down me-1"></i>View Uploaded</a>
+                }
+                @Html.HiddenFor(m => m.AA_BirthCertificateUrl)
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Previous Marksheet</label>
+                <input type="file" name="MarksheetDoc" class="form-control form-control-sm" accept=".pdf,image/*" />
+                @if (!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl))
+                {
+                    <a href="@Model.AA_MarksheetUrl" target="_blank" class="small text-primary mt-1 d-inline-block"><i class="fa-solid fa-file-arrow-down me-1"></i>View Uploaded</a>
+                }
+                @Html.HiddenFor(m => m.AA_MarksheetUrl)
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Transfer Certificate (TC)</label>
+                <input type="file" name="TransferCertificateDoc" class="form-control form-control-sm" accept=".pdf,image/*" />
+                @if (!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl))
+                {
+                    <a href="@Model.AA_TransferCertificateUrl" target="_blank" class="small text-primary mt-1 d-inline-block"><i class="fa-solid fa-file-arrow-down me-1"></i>View Uploaded</a>
+                }
+                @Html.HiddenFor(m => m.AA_TransferCertificateUrl)
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Aadhaar / ID Proof</label>
+                <input type="file" name="NationalIdDoc" class="form-control form-control-sm" accept=".pdf,image/*" />
+                @if (!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl))
+                {
+                    <a href="@Model.AA_NationalIdDocUrl" target="_blank" class="small text-primary mt-1 d-inline-block"><i class="fa-solid fa-file-arrow-down me-1"></i>View Uploaded</a>
+                }
+                @Html.HiddenFor(m => m.AA_NationalIdDocUrl)
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Section 6: Additional Information & Notes -->
+<!-- Section 6: Facilities, Medical & Special Preferences -->
 <div class="card border-0 shadow-sm rounded-3 mb-4">
     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
-        <i class="fa-solid fa-note-sticky text-primary me-2"></i>
-        <h6 class="mb-0 fw-semibold">6. Administrative Notes &amp; Special Remarks</h6>
+        <i class="fa-solid fa-shield-heart text-primary me-2"></i>
+        <h6 class="mb-0 fw-semibold">6. Facilities, Medical Information &amp; Preferences</h6>
     </div>
     <div class="card-body p-3">
         <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Second Language Preference</label>
+                @Html.TextBoxFor(m => m.AA_SecondLanguage, new { @class = "form-control", placeholder = "e.g. Hindi / Sanskrit / French" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Mother Tongue</label>
+                @Html.TextBoxFor(m => m.AA_MotherTongue, new { @class = "form-control", placeholder = "e.g. English / Hindi / Bengali" })
+            </div>
+            <div class="col-md-3">
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="AA_RequiresTransport" name="AA_RequiresTransport" value="true" @(Model.AA_RequiresTransport ? "checked" : "") onchange="toggleTransportPoint(this.checked)" />
+                    <label class="form-check-label small fw-bold" for="AA_RequiresTransport">School Transport Required</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="AA_RequiresHostel" name="AA_RequiresHostel" value="true" @(Model.AA_RequiresHostel ? "checked" : "") />
+                    <label class="form-check-label small fw-bold" for="AA_RequiresHostel">Hostel Facility Required</label>
+                </div>
+            </div>
+            <div class="col-md-6" id="transportPointDiv" style="@(Model.AA_RequiresTransport ? "" : "display:none;")">
+                <label class="form-label small fw-bold">Preferred Bus Pickup / Stop Point</label>
+                @Html.TextBoxFor(m => m.AA_TransportPickupPoint, new { @class = "form-control", placeholder = "Enter preferred pickup stop or route location" })
+            </div>
+            <div class="col-md-3">
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="AA_HasSibling" name="AA_HasSibling" value="true" @(Model.AA_HasSibling ? "checked" : "") onchange="toggleSiblingDiv(this.checked)" />
+                    <label class="form-check-label small fw-bold" for="AA_HasSibling">Has Sibling in Institute?</label>
+                </div>
+            </div>
+            <div class="col-md-9" id="siblingDiv" style="@(Model.AA_HasSibling ? "" : "display:none;")">
+                <label class="form-label small fw-bold">Sibling Details (Name, Class, Admission No.)</label>
+                @Html.TextBoxFor(m => m.AA_SiblingDetails, new { @class = "form-control", placeholder = "e.g. Rahul Sharma - Class 8A (Adm #2024-012)" })
+            </div>
             <div class="col-12">
-                <label class="form-label small fw-bold">Remarks / Internal Notes</label>
-                @Html.TextAreaFor(m => m.AA_Notes, new { @class = "form-control", rows = "3", placeholder = "Enter any applicant remarks, medical flags, fee concessions, or administrative comments..." })
+                <label class="form-label small fw-bold">Medical Conditions / Allergies / Special Needs</label>
+                @Html.TextBoxFor(m => m.AA_MedicalConditions, new { @class = "form-control", placeholder = "e.g. Asthma, Peanut Allergy, Requires spectacles, None" })
+            </div>
+            <div class="col-12">
+                <label class="form-label small fw-bold">Administrative Notes / Internal Remarks</label>
+                @Html.TextAreaFor(m => m.AA_Notes, new { @class = "form-control", rows = "2", placeholder = "Enter applicant remarks, fee concessions, or review notes..." })
             </div>
         </div>
     </div>
@@ -310,3 +417,23 @@
         <i class="fa-solid fa-check me-1"></i> Save Application
     </button>
 </div>
+
+<script>
+    function previewImage(input, targetImgSelector) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $(targetImgSelector).attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function toggleTransportPoint(checked) {
+        $('#transportPointDiv').toggle(checked);
+    }
+
+    function toggleSiblingDiv(checked) {
+        $('#siblingDiv').toggle(checked);
+    }
+</script>

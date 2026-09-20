@@ -2,8 +2,11 @@
 @{ ViewData["Title"] = "Payments"; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-money-bill me-2"></i>Payments</h3>
-    <a asp-controller="Fees" asp-action="CreatePayment" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Record Payment</a>
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-money-bill-wave me-2 text-primary"></i>Fee Payments</h4>
+        <p class="text-muted small mb-0">Record incoming student fee payments, receipts, and payment modes.</p>
+    </div>
+    <a asp-controller="Fees" asp-action="CreatePayment" class="btn btn-primary shadow-sm"><i class="fa-solid fa-plus me-1"></i> Record Payment</a>
 </div>
 
 <div class="card shadow-sm mb-3">

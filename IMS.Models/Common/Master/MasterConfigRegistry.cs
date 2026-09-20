@@ -623,6 +623,36 @@ namespace IMS.Models.Common.Master
                 }
             },
 
+            // Fee Structure Master
+            new MasterConfig
+            {
+                EntityType = "FeeStructure",
+                SpName = "USP_FeeStructures_FS",
+                TableName = "dbo.FeeStructures_FS",
+                KeyColumn = "FS_Id",
+                DisplayName = "Fee Structure",
+                SoftDelete = false,
+                HasAuditColumns = true,
+                MenuOrder = 15,
+                GroupName = "Fee & Finance",
+                Icon = "fa-file-invoice-dollar",
+
+                ViewPermission = "Fee.FeeStructure.View",
+                CreatePermission = "Fee.FeeStructure.Create",
+                EditPermission = "Fee.FeeStructure.Edit",
+                DeletePermission = "Fee.FeeStructure.Delete",
+
+                Fields = new List<MasterFieldConfig>
+                {
+                    new MasterFieldConfig { ColumnName = "FS_Name", PropertyName = "Name", DisplayName = "Fee Structure Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
+                    new MasterFieldConfig { ColumnName = "FS_Code", PropertyName = "Code", DisplayName = "Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
+                    new MasterFieldConfig { ColumnName = "FS_CourseId", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name" },
+                    new MasterFieldConfig { ColumnName = "FS_BatchId", PropertyName = "BatchId", DisplayName = "Batch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Batch", LookupValueField = "BT_Id", LookupTextField = "BT_Name" },
+                    new MasterFieldConfig { ColumnName = "FS_AcademicYearId", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name" },
+                    new MasterFieldConfig { ColumnName = "FS_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
+                }
+            },
+
             // =========================================================================
             // GROUP 4: EXAMINATIONS & GRADING
             // =========================================================================

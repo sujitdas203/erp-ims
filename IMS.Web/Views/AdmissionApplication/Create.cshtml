@@ -20,7 +20,7 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
-        <form id="aaCreateForm" asp-controller="AdmissionApplication" asp-action="AddApplication" method="post" novalidate>
+        <form id="aaCreateForm" asp-controller="AdmissionApplication" asp-action="AddApplication" method="post" enctype="multipart/form-data" novalidate>
             @Html.AntiForgeryToken()
             <partial name="_Form" model="Model" />
         </form>
@@ -37,9 +37,12 @@ $(function () {
     Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: '-- Select Year --', includeDefault: true, selectedValue: $('#AA_AcademicYearId').data('selected-value') });
     Dropdown.load({ element: '#AA_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true, selectedValue: $('#AA_ClassId').data('selected-value') });
     Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: '-- Select Course --', includeDefault: true, selectedValue: $('#AA_CourseId').data('selected-value') });
+    Dropdown.load({ element: '#AA_FeeStructureId', entityType: 'FeeStructure', defaultText: '-- Select Fee Plan --', includeDefault: true, selectedValue: $('#AA_FeeStructureId').data('selected-value') });
     Dropdown.load({ element: '#AA_Gender', entityType: 'Gender', defaultText: '-- Select Gender --', includeDefault: true, selectedValue: $('#AA_Gender').data('selected-value') });
     Dropdown.load({ element: '#AA_BloodGroup', entityType: 'BloodGroup', defaultText: 'Not Known', includeDefault: true, selectedValue: $('#AA_BloodGroup').data('selected-value') });
     Dropdown.load({ element: '#AA_Category', entityType: 'Category', defaultText: '-- Select Category --', includeDefault: true, selectedValue: $('#AA_Category').data('selected-value') });
+    Dropdown.load({ element: '#AA_Religion', entityType: 'Religion', defaultText: '-- Select Religion --', includeDefault: true, selectedValue: $('#AA_Religion').data('selected-value') });
+    Dropdown.load({ element: '#AA_GuardianRelation', entityType: 'Relation', defaultText: '-- Select Relation --', includeDefault: true, selectedValue: $('#AA_GuardianRelation').data('selected-value') });
     Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionStatus', defaultText: '-- Select Status --', includeDefault: false, selectedValue: $('#AA_Status').data('selected-value') || 'Submitted' });
 
     function clearValidationErrors($form) {
@@ -89,12 +92,15 @@ $(function () {
             return;
         }
 
+        var formData = new FormData(form);
         var $btn = $form.find("button[type='submit']");
         $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         $.ajax({ 
             url: $form.attr("action"), 
             type: "POST", 
-            data: $form.serialize(),
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (r) { 
                 if (r.success) { 
                     if (window.toastr) toastr.success(r.message || "Application saved successfully!"); 

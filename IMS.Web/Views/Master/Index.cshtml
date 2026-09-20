@@ -6,15 +6,16 @@
     var gridFields = Model.Fields.Where(f => f.ShowInGrid).ToList();
     var hasActiveColumn = !string.IsNullOrEmpty(Model.IsActiveColumn);
 }
-<link href="~/css/master.css" rel="stylesheet" />
+<link href="~/css/master.css" rel="stylesheet" asp-append-version="true" />
 <div class="master-page">
     <div class="master-header">
         <div>
-            <h2>@Model.DisplayName</h2>
+            <h4 class="mb-0 fw-bold"><i class="fa-solid @(string.IsNullOrEmpty(Model.Icon) ? "fa-database" : Model.Icon) text-primary me-2"></i>@Model.DisplayName</h4>
+            <p class="text-muted small mb-0">Manage and configure master entries for @Model.DisplayName.</p>
         </div>
 
-        <button type="button" class="btn btn-master-add" id="btnAddNew">
-            <i class="fa fa-plus"></i>
+        <button type="button" class="btn btn-primary btn-master-add shadow-sm" id="btnAddNew">
+            <i class="fa fa-plus me-1"></i>
             <span>Add @Model.EntityType</span>
         </button>
     </div>
