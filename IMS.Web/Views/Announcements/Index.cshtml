@@ -4,9 +4,12 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-megaphone me-2"></i>Announcements</h3>
-    <a asp-controller="Announcements" asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> New Announcement
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn text-primary me-2"></i>Announcements</h4>
+        <p class="text-muted small mb-0">Publish notices, circulars, and broadcast news across branches and roles.</p>
+    </div>
+    <a asp-controller="Announcements" asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> New Announcement
     </a>
 </div>
 

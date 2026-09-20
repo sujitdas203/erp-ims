@@ -132,7 +132,7 @@ $(function () {
     Dropdown.load({ element: '#filterYear', entityType: 'AcademicYear', defaultText: 'All Years', includeDefault: true, selectedValue: $('#filterYear').data('selected-value') });
     Dropdown.load({ element: '#filterStatus', entityType: 'AdmissionStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
 
-    $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'desc']] });
+    $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [] });
 
     $(document).on("click", ".aa-delete-btn", function () {
         var id = $(this).data("id");

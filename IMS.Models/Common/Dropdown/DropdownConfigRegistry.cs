@@ -520,6 +520,23 @@ namespace IMS.Models.Common.Dropdown
         #endregion
 
 
+        #region FeeStructure
+
+        new DropdownConfig
+        {
+            EntityType = "FeeStructure",
+            TableName = "dbo.FeeStructures_FS",
+            KeyColumn = "FS_Id",
+            ValueColumn = "FS_Id",
+            TextColumn = "FS_Name",
+            CodeColumn = "FS_Code",
+            ActiveColumn = "FS_IsActive",
+            OrderByColumn = "FS_Name"
+        },
+
+        #endregion
+
+
         #region Static Dropdowns (DropdownValues_DV table)
 
         new DropdownConfig
@@ -543,6 +560,30 @@ namespace IMS.Models.Common.Dropdown
             TextColumn = "DV_Text",
             ActiveColumn = "DV_IsActive",
             AdditionalWhereClause = "DV_EntityType = 'BloodGroup'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "Category",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'Category'",
+            OrderByColumn = "DV_SortOrder"
+        },
+
+        new DropdownConfig
+        {
+            EntityType = "Religion",
+            TableName = "dbo.DropdownValues_DV",
+            KeyColumn = "DV_Id",
+            ValueColumn = "DV_Value",
+            TextColumn = "DV_Text",
+            ActiveColumn = "DV_IsActive",
+            AdditionalWhereClause = "DV_EntityType = 'Religion'",
             OrderByColumn = "DV_SortOrder"
         },
 

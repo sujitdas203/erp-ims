@@ -68,6 +68,33 @@ namespace IMS.Models.Entities
         public DateTime? AA_ReviewedAt { get; set; }
         public Guid? AA_ReviewedBy { get; set; }
         public string? AA_Notes { get; set; }
+
+        // Document & Media Attachments
+        public string? AA_StudentPhotoUrl { get; set; }
+        public string? AA_BirthCertificateUrl { get; set; }
+        public string? AA_TransferCertificateUrl { get; set; }
+        public string? AA_MarksheetUrl { get; set; }
+        public string? AA_NationalIdDocUrl { get; set; }
+
+        // Health & Medical
+        public string? AA_MedicalConditions { get; set; }
+
+        // Transport & Facility Preferences
+        public bool AA_RequiresTransport { get; set; }
+        public string? AA_TransportPickupPoint { get; set; }
+        public bool AA_RequiresHostel { get; set; }
+
+        // Language & Sibling Preferences
+        public string? AA_SecondLanguage { get; set; }
+        public string? AA_MotherTongue { get; set; }
+        public bool AA_HasSibling { get; set; }
+        public string? AA_SiblingDetails { get; set; }
+
+        // Financial & Conversion Bridge
+        public Guid? AA_FeeStructureId { get; set; }
+        public Guid? AA_AdmittedStudentId { get; set; }
+        public Guid? AA_EnrollmentId { get; set; }
+
         public DateTime AA_CreatedAt { get; set; }
         public DateTime AA_UpdatedAt { get; set; }
 
@@ -76,6 +103,7 @@ namespace IMS.Models.Entities
         public string? AcademicYearName { get; set; }
         public string? ClassName { get; set; }
         public string? BranchName { get; set; }
+        public string? AdmittedStudentCode { get; set; }
+        public string? AdmittedStudentAdmissionNumber { get; set; }
     }
 }
-

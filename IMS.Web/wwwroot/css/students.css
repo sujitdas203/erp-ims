@@ -4,14 +4,14 @@
    soft shadows, quiet borders) rather than default Bootstrap.
    ========================================================================== */
 :root {
-    --ims-accent: #4f46e5;
-    --ims-accent-hover: #4338ca;
-    --ims-accent-soft: #eef2ff;
-    --ims-border: #e5e7eb;
-    --ims-muted: #6b7280;
-    --ims-surface: #ffffff;
-    --ims-success: #16a34a;
-    --ims-success-soft: #f0fdf4;
+    --ims-accent: var(--IMS-primary, #4361ee);
+    --ims-accent-hover: var(--IMS-primary-hover, #3751d6);
+    --ims-accent-soft: var(--IMS-primary-soft, rgba(67, 97, 238, 0.12));
+    --ims-border: var(--IMS-border, #e2e8f0);
+    --ims-muted: var(--IMS-text-muted, #64748b);
+    --ims-surface: var(--IMS-surface, #ffffff);
+    --ims-success: var(--IMS-success, #10b981);
+    --ims-success-soft: var(--IMS-success-soft, rgba(16, 185, 129, 0.12));
 }
 
 /* ---- Cards ---- */

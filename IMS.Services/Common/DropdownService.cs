@@ -90,6 +90,94 @@ namespace IMS.Services
                     .Select(s => new DropdownItemModel { Value = s, Text = s, Code = s, IsActive = true }).ToList();
             }
 
+            if (string.Equals(request.EntityType, "Category", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var catConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (catConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(catConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<DropdownItemModel>
+                {
+                    new() { Value = "General", Text = "General", IsActive = true },
+                    new() { Value = "OBC", Text = "OBC (Other Backward Class)", IsActive = true },
+                    new() { Value = "SC", Text = "SC (Scheduled Caste)", IsActive = true },
+                    new() { Value = "ST", Text = "ST (Scheduled Tribe)", IsActive = true },
+                    new() { Value = "EWS", Text = "EWS (Economically Weaker Section)", IsActive = true },
+                    new() { Value = "Management", Text = "Management / NRI Quota", IsActive = true },
+                    new() { Value = "Sports", Text = "Sports Quota", IsActive = true },
+                    new() { Value = "PwD", Text = "Physically Challenged (PwD)", IsActive = true },
+                    new() { Value = "Other", Text = "Other", IsActive = true }
+                };
+            }
+
+            if (string.Equals(request.EntityType, "Religion", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var relConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (relConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(relConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<DropdownItemModel>
+                {
+                    new() { Value = "Hindu", Text = "Hinduism", IsActive = true },
+                    new() { Value = "Islam", Text = "Islam", IsActive = true },
+                    new() { Value = "Christian", Text = "Christianity", IsActive = true },
+                    new() { Value = "Sikh", Text = "Sikhism", IsActive = true },
+                    new() { Value = "Buddhist", Text = "Buddhism", IsActive = true },
+                    new() { Value = "Jain", Text = "Jainism", IsActive = true },
+                    new() { Value = "Parsi", Text = "Zoroastrian (Parsi)", IsActive = true },
+                    new() { Value = "Jewish", Text = "Judaism", IsActive = true },
+                    new() { Value = "Other", Text = "Other", IsActive = true }
+                };
+            }
+
+            if (string.Equals(request.EntityType, "AdmissionStatus", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var statusConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (statusConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(statusConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<string> { "Draft", "Submitted", "UnderReview", "Approved", "Waitlisted", "Rejected", "Enrolled", "Cancelled" }
+                    .Select(s => new DropdownItemModel { Value = s, Text = s, Code = s, IsActive = true }).ToList();
+            }
+
+            if (string.Equals(request.EntityType, "AdmissionReviewDecision", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var revConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (revConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(revConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<string> { "UnderReview", "Approved", "Waitlisted", "Rejected" }
+                    .Select(s => new DropdownItemModel { Value = s, Text = s, Code = s, IsActive = true }).ToList();
+            }
+
             if (string.Equals(request.EntityType, "DayOfWeek", StringComparison.OrdinalIgnoreCase))
             {
                 return new List<DropdownItemModel>

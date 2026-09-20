@@ -4,8 +4,11 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-chalkboard-user me-2"></i>Staff</h3>
-    <a asp-controller="Staff" asp-action="Create" class="btn btn-primary">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-user-tie text-primary me-2"></i>Staff Directory</h4>
+        <p class="text-muted small mb-0">Manage administrative, operations, and support staff records.</p>
+    </div>
+    <a asp-controller="Staff" asp-action="Create" class="btn btn-primary shadow-sm">
         <i class="fa-solid fa-plus me-1"></i> Add Staff
     </a>
 </div>
