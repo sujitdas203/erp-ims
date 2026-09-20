@@ -20,11 +20,12 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("branchId", "Branch", new { @class = "form-label" })
-                @Html.DropDownList("branchId", Model.BranchOptions, "All Branches", new { @class = "form-select" })
+                <select name="branchId" id="filterBranchId" class="form-select" data-selected-value="@(Model.BranchFilter?.ToString())">
+                </select>
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -51,49 +52,42 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.StaffList.Any())
+                @foreach (var s in Model.StaffList)
                 {
-                    <tr><td colspan="8" class="text-center text-muted py-4">No staff members found.</td></tr>
-                }
-                else
-                {
-                    foreach (var s in Model.StaffList)
-                    {
-                        <tr id="staff-row-@s.ST_Id">
-                            <td>@s.ST_EmployeeCode</td>
-                            <td>@s.ST_FirstName @s.ST_LastName</td>
-                            <td>@(s.ST_Email ?? "-")</td>
-                            <td>@s.BranchName</td>
-                            <td>@s.DepartmentName</td>
-                            <td>@s.DesignationName</td>
-                            <td><span class="badge @StatusBadgeClass(s.ST_Status)">@s.ST_Status</span></td>
-                            <td class="text-end">
-                                <a asp-controller="Staff" asp-action="Details" asp-route-id="@s.ST_Id"
-                                   class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-controller="Staff" asp-action="Edit" asp-route-id="@s.ST_Id"
-                                   class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
-                                        data-id="@s.ST_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@s.ST_Id" title="Delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                                <div class="modal fade" id="deleteModal-@s.ST_Id" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Delete Staff</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">Are you sure you want to delete <strong>@s.ST_FirstName @s.ST_LastName</strong>?</div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
-                                            </div>
+                    <tr id="staff-row-@s.ST_Id">
+                        <td>@s.ST_EmployeeCode</td>
+                        <td>@s.ST_FirstName @s.ST_LastName</td>
+                        <td>@(s.ST_Email ?? "-")</td>
+                        <td>@s.BranchName</td>
+                        <td>@s.DepartmentName</td>
+                        <td>@s.DesignationName</td>
+                        <td><span class="badge @StatusBadgeClass(s.ST_Status)">@s.ST_Status</span></td>
+                        <td class="text-end">
+                            <a asp-controller="Staff" asp-action="Details" asp-route-id="@s.ST_Id"
+                               class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-controller="Staff" asp-action="Edit" asp-route-id="@s.ST_Id"
+                               class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
+                                    data-id="@s.ST_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@s.ST_Id" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <div class="modal fade" id="deleteModal-@s.ST_Id" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Staff</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">Are you sure you want to delete <strong>@s.ST_FirstName @s.ST_LastName</strong>?</div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
                                         </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                    }
+                            </div>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -115,5 +109,9 @@
 
 @section Scripts {
     <script src="~/js/staff.js"></script>
-    <script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[1, 'asc']] }); });</script>
+    <script>$(function () {
+        $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[1, 'asc']] });
+        Dropdown.load({ element: '#filterBranchId', entityType: 'Branch', defaultText: 'All Branches', includeDefault: true, selectedValue: $('#filterBranchId').data('selected-value') });
+        Dropdown.load({ element: '#filterStatus', entityType: 'StaffStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+    });</script>
 }

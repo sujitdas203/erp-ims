@@ -1,13 +1,21 @@
 @model IMS.Models.ViewModels.CourseSubjectFormViewModel
-@{ ViewData["Title"] = "Add Course Subject"; }
+@{
+    ViewData["Title"] = "Add Course Subject Mapping";
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-book me-2"></i>Add Course Subject</h3>
+    <div>
+        <h3 class="mb-0 text-primary fw-bold"><i class="fa-solid fa-book-bookmark me-2"></i>Add Course Subject</h3>
+        <p class="text-muted mb-0 small">Map academic subjects to courses/classes with sequence and marks configuration.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-list me-1"></i> Back to List
+    </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="csCreateForm" asp-controller="CourseSubject" asp-action="AddCourseSubject" method="post">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="csCreateForm" asp-controller="CourseSubject" asp-action="AddCourseSubject" method="post" novalidate>
             @Html.AntiForgeryToken()
             <partial name="_Form" model="Model" />
         </form>
@@ -15,21 +23,145 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/common/datepicker.js"></script>
     <script>
         $(function () {
-            $("form").on("submit", function (e) {
+            var selectedCourse = $('#CS_CourseId').data('selected-value');
+            var selectedSubject = $('#CS_SubjectId').data('selected-value');
+
+            if (typeof Dropdown !== 'undefined' && Dropdown.load) {
+                if ($('#CS_CourseId option').length <= 1) {
+                    Dropdown.load({ element: '#CS_CourseId', entityType: 'Course', defaultText: '-- Select Course --', includeDefault: true, selectedValue: selectedCourse });
+                }
+                if ($('#CS_SubjectId option').length <= 1) {
+                    Dropdown.load({ element: '#CS_SubjectId', entityType: 'Subject', defaultText: '-- Select Subject --', includeDefault: true, selectedValue: selectedSubject });
+                }
+            }
+
+            // Function to fetch next sequence for selected course
+            function fetchNextSequence(courseId) {
+                if (!courseId || courseId === "00000000-0000-0000-0000-000000000000") return;
+                $.ajax({
+                    url: "/CourseSubject/GetNextSequence",
+                    type: "GET",
+                    data: { courseId: courseId },
+                    success: function (res) {
+                        if (res && res.success && res.nextSequence) {
+                            $("#CS_SequenceNo").val(res.nextSequence);
+                        }
+                    }
+                });
+            }
+
+            // Auto-fetch sequence when course changes
+            $("#CS_CourseId").on("change", function () {
+                var cId = $(this).val();
+                if (cId) {
+                    fetchNextSequence(cId);
+                }
+            });
+
+            // Initial fetch if course is pre-selected and sequence is empty or 0
+            if (selectedCourse && (!$("#CS_SequenceNo").val() || $("#CS_SequenceNo").val() === "0")) {
+                fetchNextSequence(selectedCourse);
+            }
+
+            // Form Submit with red-border validation
+            $("#csCreateForm").on("submit", function (e) {
                 e.preventDefault();
                 var $form = $(this);
-                var $btn = $form.find("button[type='submit']");
+                var $btn = $("#btnSaveCourseSubject");
+
+                // Clear previous errors
+                $form.find(".is-invalid").removeClass("is-invalid");
+                $form.find(".field-error").empty();
+                $form.find(".invalid-feedback").remove();
+
+                var courseId = $("#CS_CourseId").val();
+                var subjectId = $("#CS_SubjectId").val();
+                var hasError = false;
+
+                if (!courseId || courseId === "00000000-0000-0000-0000-000000000000") {
+                    $("#CS_CourseId").addClass("is-invalid");
+                    $(".field-error[data-for='CS_CourseId']").text("Please select a Course.");
+                    hasError = true;
+                }
+                if (!subjectId || subjectId === "00000000-0000-0000-0000-000000000000") {
+                    $("#CS_SubjectId").addClass("is-invalid");
+                    $(".field-error[data-for='CS_SubjectId']").text("Please select a Subject.");
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    var $first = $form.find(".is-invalid").first();
+                    $first.focus();
+                    return false;
+                }
+
                 $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-                $.ajax({ url: $form.attr("action"), type: "POST", data: $form.serialize(),
+
+                $.ajax({
+                    url: $form.attr("action"),
+                    type: "POST",
+                    data: $form.serialize(),
                     success: function (r) {
-                        if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function () { window.location.href = "/CourseSubject/Index"; }, 700); }
-                        else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save'); }
+                        if (r.success) {
+                            if (window.toastr) {
+                                toastr.success(r.message || "Course subject mapping saved successfully.");
+                            } else {
+                                alert(r.message || "Course subject mapping saved successfully.");
+                            }
+                            setTimeout(function () {
+                                window.location.href = "/CourseSubject/Index";
+                            }, 700);
+                        } else {
+                            if (window.toastr) {
+                                toastr.error(r.message || "Failed to save subject mapping.");
+                            }
+
+                            if (r.errors) {
+                                var firstInvalid = null;
+                                $.each(r.errors, function (field, msg) {
+                                    var cleanField = field.replace(/^model\./i, '');
+                                    var $input = $form.find("[name='" + cleanField + "'], #" + cleanField);
+                                    if ($input.length) {
+                                        $input.addClass("is-invalid");
+                                        var $errDiv = $form.find(".field-error[data-for='" + cleanField + "']");
+                                        if ($errDiv.length) {
+                                            $errDiv.html(msg);
+                                        } else {
+                                            $input.after('<div class="invalid-feedback d-block">' + msg + '</div>');
+                                        }
+                                        if (!firstInvalid) firstInvalid = $input;
+                                    }
+                                });
+
+                                if (firstInvalid) {
+                                    firstInvalid.focus();
+                                }
+                            }
+
+                            $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Subject Mapping');
+                        }
                     },
-                    error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save'); }
+                    error: function (xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "An unexpected server error occurred.";
+                        if (window.toastr) {
+                            toastr.error(msg);
+                        } else {
+                            alert(msg);
+                        }
+                        $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Subject Mapping');
+                    }
                 });
+            });
+
+            // Clear errors on input
+            $("input, select").on("change input", function () {
+                $(this).removeClass("is-invalid");
+                var fieldName = $(this).attr("id") || $(this).attr("name");
+                if (fieldName) {
+                    $(".field-error[data-for='" + fieldName + "']").empty();
+                }
             });
         });
     </script>

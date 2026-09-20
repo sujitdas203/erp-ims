@@ -8,21 +8,21 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label for="AS_BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.AS_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="AS_BranchId" name="AS_BranchId" class="form-select" data-selected-value="@(Model.AS_BranchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="AS_BranchId"></div>
     </div>
     <div class="col-md-6">
         <label for="AS_BatchId" class="form-label">Batch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.AS_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <select id="AS_BatchId" name="AS_BatchId" class="form-select" data-selected-value="@(Model.AS_BatchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="AS_BatchId"></div>
     </div>
     <div class="col-md-4">
         <label for="AS_SubjectId" class="form-label">Subject</label>
-        @Html.DropDownListFor(m => m.AS_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select" })
+        <select id="AS_SubjectId" name="AS_SubjectId" class="form-select" data-selected-value="@(Model.AS_SubjectId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label for="AS_StaffId" class="form-label">Staff</label>
-        @Html.DropDownListFor(m => m.AS_StaffId, Model.StaffOptions, "Select Staff", new { @class = "form-select" })
+        <select id="AS_StaffId" name="AS_StaffId" class="form-select" data-selected-value="@(Model.AS_StaffId?.ToString())"></select>
     </div>
     <div class="col-md-4">
         <label for="AS_AttendanceDate" class="form-label">Date <span class="text-danger">*</span></label>

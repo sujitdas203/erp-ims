@@ -1,4 +1,3 @@
-using System;
 
 namespace IMS.Models.ViewModels
 {
@@ -18,6 +17,12 @@ namespace IMS.Models.ViewModels
         public string Occupation { get; set; }
         public string Relation { get; set; }
         public bool IsPrimary { get; set; }
+        public string G_FirstName { get; set; }
+        public string SG_Relation { get; set; }
+        public string G_Occupation { get; set; }
+        public string G_Phone { get; set; }
+        public string G_Email { get; set; }
+        public bool SG_IsPrimary { get; set; }
     }
 
     public class GuardianSearchResultViewModel

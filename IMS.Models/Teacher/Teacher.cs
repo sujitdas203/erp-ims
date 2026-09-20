@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,5 +22,8 @@ namespace IMS.Models.Teacher
         public bool T_IsActive { get; set; }        
         public DateTime T_CreatedAt { get; set; }
         public DateTime T_UpdatedAt { get; set; }
+
+        public string? DesignationName { get; set; }
+        public string? DepartmentName { get; set; }
     }
 }

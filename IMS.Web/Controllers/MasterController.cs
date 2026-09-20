@@ -42,23 +42,24 @@ namespace IMS.Web.Controllers
             }
         }
 
-        // Add this action to MasterController.cs
+        // GET: /Master
         [HttpGet("")]
         public IActionResult Menu()
         {
-            var allConfigs = MasterConfigRegistry.GetAll();
-            return View("Menu", allConfigs);
+            var menuConfigs = MasterConfigRegistry.GetMenuConfigs();
+            return View("Menu", menuConfigs);
         }
 
         // GET: /Master/{entityType}
         [HttpGet("{entityType}")]
         public IActionResult Index(string entityType)
         {
-            var config = MasterConfigRegistry.GetByEntityType(entityType);
-            if (config == null)
-                return NotFound();
+            if (string.Equals(entityType, "Batch", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Index", "Batch");
 
-            // TODO: permission check using config.ViewPermission against your Authorization policy
+            var config = MasterConfigRegistry.GetByEntityType(entityType);
+            if (config == null || !config.IsVisibleInMenu)
+                return NotFound();
 
             ViewBag.Config = config;
             return View(config);

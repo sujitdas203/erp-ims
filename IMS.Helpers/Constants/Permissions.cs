@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http.Features;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,11 @@ namespace IMS.Helpers.Constants
         public const string UpdateStudent = "UpdateStudent";
         public const string DeleteStudent = "DeleteStudent";
 
+        public const string ViewStudentLeave = "ViewStudentLeave";
+        public const string ApproveStudentLeave = "ApproveStudentLeave";
+        public const string ViewTransferCertificate = "ViewTransferCertificate";
+
+
         public const string ViewTeacher = "ViewTeacher";     
         public const string AddTeacher = "AddTeacher";
         public const string UpdateTeacher = "UpdateTeacher";
@@ -31,6 +37,23 @@ namespace IMS.Helpers.Constants
         public const string AddStaff = "AddStaff";
         public const string UpdateStaff = "UpdateStaff";
         public const string DeleteStaff = "DeleteStaff";
+
+        public const string ApplyTeacherLeave = "ApplyTeacherLeave";      
+        public const string ApproveTeacherLeave = "ApproveTeacherLeave";  
+
+        public const string ViewOwnTeacherAttendance = "ViewOwnTeacherAttendance";
+        public const string ManageTeacherAttendance = "ManageTeacherAttendance";
+        public const string MarkOwnTeacherAttendance = "MarkOwnTeacherAttendance";
+
+        public const string ViewAnnouncement = "ViewAnnouncement";
+        public const string AddAnnouncement = "AddAnnouncement";
+        public const string EditAnnouncement = "EditAnnouncement";
+        public const string DeleteAnnouncement = "DeleteAnnouncement";
+
+        public const string ViewSyllabus = "ViewSyllabus";
+        public const string AddSyllabus = "AddSyllabus";
+        public const string EditSyllabus = "EditSyllabus";
+        public const string DeleteSyllabus = "DeleteSyllabus";
 
         private const string StudentFeature = "STUDENT_MANAGEMENT";
         private const string StudentFeatureDisplay = "Student Management";
@@ -49,7 +72,12 @@ namespace IMS.Helpers.Constants
             new() { Id = AddStudent,    FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "Add a student",  ServiceName = ServiceName },
             new() { Id = UpdateStudent, FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "Update a student", ServiceName = ServiceName },
             new() { Id = DeleteStudent, FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "Delete a student", ServiceName = ServiceName },
-            
+
+            new() { Id = ViewStudentLeave,        FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "View student leave applications", ServiceName = ServiceName },
+            new() { Id = ApproveStudentLeave,     FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "Approve or reject student leave", ServiceName = ServiceName },
+            new() { Id = ViewTransferCertificate, FeatureKey = StudentFeature, FeatureDisplayName = StudentFeatureDisplay, Description = "View transfer certificate applications", ServiceName = ServiceName },
+
+
             new() { Id = ViewTeacher,   FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "View teachers",  ServiceName = ServiceName },
             new() { Id = AddTeacher,    FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Add a teacher",  ServiceName = ServiceName },
             new() { Id = UpdateTeacher, FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Update a teacher", ServiceName = ServiceName },
@@ -59,6 +87,25 @@ namespace IMS.Helpers.Constants
             new() { Id = AddStaff,      FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Add a staff member",  ServiceName = ServiceName },
             new() { Id = UpdateStaff,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Update a staff member", ServiceName = ServiceName },
             new() { Id = DeleteStaff,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Delete a staff member", ServiceName = ServiceName },
+
+
+            new() { Id = ApplyTeacherLeave,        FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Apply for own leave", ServiceName = ServiceName },
+            new() { Id = ApproveTeacherLeave,      FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Approve or reject teacher leave", ServiceName = ServiceName },
+            new() { Id = ViewOwnTeacherAttendance, FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "View own attendance", ServiceName = ServiceName },
+            new() { Id = ManageTeacherAttendance,  FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Mark and manage teacher attendance", ServiceName = ServiceName },
+            new() { Id = MarkOwnTeacherAttendance, FeatureKey = TeacherFeature, FeatureDisplayName = TeacherFeatureDisplay, Description = "Self-mark today's attendance", ServiceName = ServiceName },
+
+            new() { Id = ViewAnnouncement,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "View announcements", ServiceName = ServiceName },
+            new() { Id = AddAnnouncement,    FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Add an announcement", ServiceName = ServiceName },
+            new() { Id = EditAnnouncement,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Edit an announcement", ServiceName = ServiceName },
+            new() { Id = DeleteAnnouncement, FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Delete an announcement", ServiceName = ServiceName },
+
+            new() { Id = ViewSyllabus,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "View subject syllabus", ServiceName = ServiceName },
+            new() { Id = AddSyllabus,    FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Add a syllabus unit", ServiceName = ServiceName },
+            new() { Id = EditSyllabus,   FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Edit a syllabus unit", ServiceName = ServiceName },
+            new() { Id = DeleteSyllabus, FeatureKey = StaffFeature, FeatureDisplayName = StaffFeatureDisplay, Description = "Delete a syllabus unit", ServiceName = ServiceName },
+
+
         };
 
     }

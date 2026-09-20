@@ -16,7 +16,7 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -64,4 +64,10 @@
 
 @functions { string PaymentStatusBadge(string s) => s switch { "Completed" => "bg-success", "Pending" => "bg-warning text-dark", "Failed" => "bg-danger", "Refunded" => "bg-info text-dark", _ => "bg-secondary" }; }
 
-@section Scripts { <script src="~/js/fees.js"></script> }
+@section Scripts { <script src="~/js/fees.js"></script>
+<script>
+$(function(){
+    Dropdown.load({ element: '#filterStatus', entityType: 'PaymentStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+});
+</script>
+}

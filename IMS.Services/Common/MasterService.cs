@@ -22,7 +22,8 @@ namespace IMS.Services
 
         public List<Dictionary<string, object>> GetAll(string entityType)
         {
-            var config = GetConfigOrThrow(entityType);
+            var config = MasterConfigRegistry.GetByEntityType(entityType);
+            if (config == null) return new List<Dictionary<string, object>>();
             return _masterDAL.GetAll(config);
         }
 

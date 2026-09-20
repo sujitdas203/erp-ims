@@ -41,7 +41,7 @@ namespace IMS.Web.Controllers
         private string CurrentUserType => User.FindFirst("roles")?.Value;
         private bool IsAdmin => string.Equals(CurrentUserType, AppRoles.TenantAdmin, StringComparison.OrdinalIgnoreCase);
 
-        [Permission(Permissions.ViewStudent)]
+        //[Permission(Permissions.ViewStudent)]
         public async Task<IActionResult> Index(string searchTerm, string status, Guid? branchId, Guid? classId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -51,7 +51,7 @@ namespace IMS.Web.Controllers
 
             return View(vm);
         }
-        [Permission(Permissions.ViewStudent)]
+        //[Permission(Permissions.ViewStudent)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -60,14 +60,14 @@ namespace IMS.Web.Controllers
             if (vm == null) return NotFound();
             return View(vm);
         }
-        [Permission(Permissions.AddStudent)]
+        //[Permission(Permissions.AddStudent)]
         public IActionResult Create()
         {
             var vm = new StudentFormViewModel();
-            StudentService.PopulateDropdowns(vm);
+            _studentService.PopulateDropdowns(vm);
             return View(vm);
         }
-        [Permission(Permissions.UpdateStudent)]
+        //[Permission(Permissions.UpdateStudent)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -80,7 +80,7 @@ namespace IMS.Web.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.AddStudent)]
+        //[Permission(Permissions.AddStudent)]
         public async Task<IActionResult> AddStudent(StudentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -100,7 +100,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.UpdateStudent)]
+        //[Permission(Permissions.UpdateStudent)]
         public async Task<IActionResult> EditStudent(StudentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -120,7 +120,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Permission(Permissions.DeleteStudent)]
+        //[Permission(Permissions.DeleteStudent)]
         public async Task<IActionResult> DeleteStudent(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

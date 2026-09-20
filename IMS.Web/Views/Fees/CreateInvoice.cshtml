@@ -12,7 +12,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">Student <span class="text-danger">*</span></label>
-                    @Html.DropDownListFor(m => m.FI_StudentId, Model.StudentOptions, "Select Student", new { @class = "form-select" })
+                    <select id="FI_StudentId" name="FI_StudentId" class="form-select"></select>
                     <div class="text-danger small field-error" data-for="FI_StudentId"></div>
                 </div>
                 <div class="col-md-3">
@@ -42,6 +42,9 @@
 $(function(){
     IMSDatePicker.init({ input: '#FI_InvoiceDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
     IMSDatePicker.init({ input: '#FI_DueDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+    Dropdown.load({ element: '#FI_StudentId', entityType: 'Student', defaultText: 'Select Student', includeDefault: true });
+
     $("form").on("submit", function(e){
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");

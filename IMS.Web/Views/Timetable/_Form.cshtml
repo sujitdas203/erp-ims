@@ -1,51 +1,131 @@
 @model IMS.Models.ViewModels.TimetableFormViewModel
 
-@if (Model.TT_Id.HasValue) { @Html.HiddenFor(m => m.TT_Id) }
+@if (Model.TT_Id.HasValue && Model.TT_Id.Value != Guid.Empty)
+{
+    @Html.HiddenFor(m => m.TT_Id)
+}
 
 <div class="row g-3">
     <div class="col-md-4">
-        <label class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <label for="TT_BranchId" class="form-label fw-semibold">Branch <span class="text-danger">*</span></label>
+        <select id="TT_BranchId" name="TT_BranchId" class="form-select" data-selected-value="@(Model.TT_BranchId != Guid.Empty ? Model.TT_BranchId.ToString() : "")">
+            <option value="">-- Select Branch --</option>
+            @if (Model.BranchOptions != null)
+            {
+                foreach (var opt in Model.BranchOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_BranchId"></div>
     </div>
+
     <div class="col-md-4">
-        <label class="form-label">Batch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_BatchId, Model.BatchOptions, "Select Batch", new { @class = "form-select" })
+        <label for="TT_BatchId" class="form-label fw-semibold">Batch <span class="text-danger">*</span></label>
+        <select id="TT_BatchId" name="TT_BatchId" class="form-select" data-selected-value="@(Model.TT_BatchId != Guid.Empty ? Model.TT_BatchId.ToString() : "")">
+            <option value="">-- Select Batch --</option>
+            @if (Model.BatchOptions != null)
+            {
+                foreach (var opt in Model.BatchOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_BatchId"></div>
     </div>
+
     <div class="col-md-4">
-        <label class="form-label">Subject <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select" })
+        <label for="TT_SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+        <select id="TT_SubjectId" name="TT_SubjectId" class="form-select" data-selected-value="@(Model.TT_SubjectId != Guid.Empty ? Model.TT_SubjectId.ToString() : "")">
+            <option value="">-- Select Subject --</option>
+            @if (Model.SubjectOptions != null)
+            {
+                foreach (var opt in Model.SubjectOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_SubjectId"></div>
     </div>
+
     <div class="col-md-4">
-        <label class="form-label">Staff <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_StaffId, Model.StaffOptions, "Select Staff", new { @class = "form-select select2-staff" })
+        <label for="TT_StaffId" class="form-label fw-semibold">Staff / Teacher <span class="text-danger">*</span></label>
+        <select id="TT_StaffId" name="TT_StaffId" class="form-select select2-staff" data-selected-value="@(Model.TT_StaffId != Guid.Empty ? Model.TT_StaffId.ToString() : "")">
+            <option value="">-- Select Staff --</option>
+            @if (Model.StaffOptions != null)
+            {
+                foreach (var opt in Model.StaffOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_StaffId"></div>
     </div>
+
     <div class="col-md-4">
-        <label class="form-label">Classroom</label>
-        @Html.DropDownListFor(m => m.TT_ClassroomId, Model.ClassroomOptions, "Select Classroom", new { @class = "form-select" })
+        <label for="TT_ClassroomId" class="form-label fw-semibold">Classroom <span class="text-muted fw-normal">(optional)</span></label>
+        <select id="TT_ClassroomId" name="TT_ClassroomId" class="form-select" data-selected-value="@(Model.TT_ClassroomId?.ToString() ?? "")">
+            <option value="">-- Select Classroom (Optional) --</option>
+            @if (Model.ClassroomOptions != null)
+            {
+                foreach (var opt in Model.ClassroomOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_ClassroomId"></div>
     </div>
+
     <div class="col-md-4">
-        <label class="form-label">Day <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.TT_DayOfWeek, Model.DayOfWeekOptions, "Select Day", new { @class = "form-select" })
+        <label for="TT_DayOfWeek" class="form-label fw-semibold">Day of Week <span class="text-danger">*</span></label>
+        <select id="TT_DayOfWeek" name="TT_DayOfWeek" class="form-select" data-selected-value="@(Model.TT_DayOfWeek)">
+            <option value="">-- Select Day --</option>
+            @if (Model.DayOfWeekOptions != null)
+            {
+                foreach (var opt in Model.DayOfWeekOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
+        <div class="text-danger small mt-1 field-error" data-for="TT_DayOfWeek"></div>
     </div>
+
     <div class="col-md-3">
-        <label class="form-label">Start Time <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.TT_StartTime, new { @class = "form-control", type = "time" })
+        <label for="TT_StartTime" class="form-label fw-semibold">Start Time <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.TT_StartTime, new { @class = "form-control", id = "TT_StartTime", type = "time" })
+        <div class="text-danger small mt-1 field-error" data-for="TT_StartTime"></div>
     </div>
+
     <div class="col-md-3">
-        <label class="form-label">End Time <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.TT_EndTime, new { @class = "form-control", type = "time" })
+        <label for="TT_EndTime" class="form-label fw-semibold">End Time <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.TT_EndTime, new { @class = "form-control", id = "TT_EndTime", type = "time" })
+        <div class="text-danger small mt-1 field-error" data-for="TT_EndTime"></div>
     </div>
+
     <div class="col-md-3">
-        <label class="form-label">Effective From</label>
+        <label for="TT_EffectiveFrom" class="form-label fw-semibold">Effective From <span class="text-muted fw-normal">(optional)</span></label>
         @Html.TextBoxFor(m => m.TT_EffectiveFrom, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "TT_EffectiveFrom" })
+        <div class="text-danger small mt-1 field-error" data-for="TT_EffectiveFrom"></div>
     </div>
+
     <div class="col-md-3">
-        <label class="form-label">Effective To</label>
+        <label for="TT_EffectiveTo" class="form-label fw-semibold">Effective To <span class="text-muted fw-normal">(optional)</span></label>
         @Html.TextBoxFor(m => m.TT_EffectiveTo, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "TT_EffectiveTo" })
+        <div class="text-danger small mt-1 field-error" data-for="TT_EffectiveTo"></div>
     </div>
 </div>
 
-<div class="d-flex justify-content-end gap-2 mt-4">
-    <a asp-controller="Timetable" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i> Save Entry</button>
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+    <a asp-controller="Timetable" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-xmark me-1"></i> Cancel
+    </a>
+    <button type="submit" class="btn btn-primary px-4">
+        <i class="fa-solid fa-check me-1"></i> Save Timetable Entry
+    </button>
 </div>

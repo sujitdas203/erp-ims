@@ -14,6 +14,7 @@ namespace IMS.Models.ViewModels
         public string BranchName { get; set; }
         public string ClassName { get; set; }
         public string SectionName { get; set; }
+        public string BatchName { get; set; }
         public DateTime? S_AdmissionDate { get; set; }
         public string S_Status { get; set; }
     }
@@ -26,6 +27,7 @@ namespace IMS.Models.ViewModels
         public string StatusFilter { get; set; }
         public Guid? BranchFilter { get; set; }
         public Guid? ClassFilter { get; set; }
+        public Guid? BatchFilter { get; set; }
 
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -35,6 +37,7 @@ namespace IMS.Models.ViewModels
         public List<SelectListItem> BranchOptions { get; set; } = new();
         public List<SelectListItem> StatusOptions { get; set; } = new();
         public List<SelectListItem> ClassOptions { get; set; } = new();
+        public List<SelectListItem> BatchOptions { get; set; } = new();
     }
 
     /// <summary>
@@ -62,6 +65,7 @@ namespace IMS.Models.ViewModels
 
         public Guid? S_ClassId { get; set; }
         public Guid? S_SectionId { get; set; }
+        public Guid? S_BatchId { get; set; }
         public string S_BloodGroup { get; set; }
         public string S_AddressLine1 { get; set; }
         public string S_AddressLine2 { get; set; }
@@ -78,6 +82,7 @@ namespace IMS.Models.ViewModels
         public List<SelectListItem> StatusOptions { get; set; } = new();
         public List<SelectListItem> ClassOptions { get; set; } = new();
         public List<SelectListItem> SectionOptions { get; set; } = new();
+        public List<SelectListItem> BatchOptions { get; set; } = new();
         public List<SelectListItem> BloodGroupOptions { get; set; } = new();
         public List<SelectListItem> RelationOptions { get; set; } = new();
     }
@@ -95,6 +100,8 @@ namespace IMS.Models.ViewModels
         public string BranchName { get; set; }
         public string ClassName { get; set; }
         public string SectionName { get; set; }
+        public Guid? S_BatchId { get; set; }
+        public string BatchName { get; set; }
         public string S_BloodGroup { get; set; }
         public string FullAddress { get; set; }
         public DateTime? S_AdmissionDate { get; set; }

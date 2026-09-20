@@ -20,7 +20,7 @@
             </div>
             <div class="col-md-2">
                 @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">
@@ -48,52 +48,45 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Exams.Any())
+                @foreach (var e in Model.Exams)
                 {
-                    <tr><td colspan="9" class="text-center text-muted py-4">No exams found.</td></tr>
-                }
-                else
-                {
-                    foreach (var e in Model.Exams)
-                    {
-                        <tr id="exam-row-@e.EX_Id">
-                            <td>@e.EX_Code</td>
-                            <td>@e.EX_Name</td>
-                            <td>@e.ExamTypeName</td>
-                            <td>@e.CourseName</td>
-                            <td>@e.BatchName</td>
-                            <td>@e.EX_StartDate.ToString("dd-MMM-yyyy")</td>
-                            <td>@e.EX_EndDate.ToString("dd-MMM-yyyy")</td>
-                            <td><span class="badge @StatusBadgeClass(e.EX_Status)">@e.EX_Status</span></td>
-                            <td class="text-end">
-                                <a asp-controller="Exam" asp-action="Details" asp-route-id="@e.EX_Id"
-                                   class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-controller="Exam" asp-action="MarksEntry" asp-route-id="@e.EX_Id"
-                                   class="btn btn-sm btn-outline-success" title="Marks Entry"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a asp-controller="Exam" asp-action="Edit" asp-route-id="@e.EX_Id"
-                                   class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
-                                        data-id="@e.EX_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@e.EX_Id" title="Delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                                <div class="modal fade" id="deleteModal-@e.EX_Id" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Delete Exam</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">Are you sure you want to delete <strong>@e.EX_Name</strong>?</div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
-                                            </div>
+                    <tr id="exam-row-@e.EX_Id">
+                        <td>@e.EX_Code</td>
+                        <td>@e.EX_Name</td>
+                        <td>@e.ExamTypeName</td>
+                        <td>@e.CourseName</td>
+                        <td>@e.BatchName</td>
+                        <td>@e.EX_StartDate.ToString("dd-MMM-yyyy")</td>
+                        <td>@e.EX_EndDate.ToString("dd-MMM-yyyy")</td>
+                        <td><span class="badge @StatusBadgeClass(e.EX_Status)">@e.EX_Status</span></td>
+                        <td class="text-end">
+                            <a asp-controller="Exam" asp-action="Details" asp-route-id="@e.EX_Id"
+                               class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a asp-controller="Exam" asp-action="MarksEntry" asp-route-id="@e.EX_Id"
+                               class="btn btn-sm btn-outline-success" title="Marks Entry"><i class="fa-solid fa-pen-to-square"></i></a>
+                            <a asp-controller="Exam" asp-action="Edit" asp-route-id="@e.EX_Id"
+                               class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn"
+                                    data-id="@e.EX_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@e.EX_Id" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <div class="modal fade" id="deleteModal-@e.EX_Id" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Exam</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">Are you sure you want to delete <strong>@e.EX_Name</strong>?</div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
                                         </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                    }
+                            </div>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -116,5 +109,8 @@
 
 @section Scripts {
     <script src="~/js/exams.js"></script>
-    <script>$(function () { $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] }); });</script>
+    <script>$(function () {
+        Dropdown.load({ element: '#filterStatus', entityType: 'ExamStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+        $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] });
+    });</script>
 }

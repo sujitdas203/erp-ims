@@ -12,12 +12,12 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">Student <span class="text-danger">*</span></label>
-                    @Html.DropDownListFor(m => m.PAY_StudentId, Model.StudentOptions, "Select Student", new { @class = "form-select" })
+                    <select id="PAY_StudentId" name="PAY_StudentId" class="form-select"></select>
                     <div class="text-danger small field-error" data-for="PAY_StudentId"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Payment Method <span class="text-danger">*</span></label>
-                    @Html.DropDownListFor(m => m.PAY_PaymentMethodId, Model.PaymentMethodOptions, "Select Method", new { @class = "form-select" })
+                    <select id="PAY_PaymentMethodId" name="PAY_PaymentMethodId" class="form-select"></select>
                     <div class="text-danger small field-error" data-for="PAY_PaymentMethodId"></div>
                 </div>
                 <div class="col-md-4">
@@ -51,6 +51,10 @@
 <script>
 $(function(){
     IMSDatePicker.init({ input: '#PAY_PaymentDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+    Dropdown.load({ element: '#PAY_StudentId', entityType: 'Student', defaultText: 'Select Student', includeDefault: true });
+    Dropdown.load({ element: '#PAY_PaymentMethodId', entityType: 'PaymentMethod', defaultText: 'Select Method', includeDefault: true });
+
     $("form").on("submit", function(e){
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");

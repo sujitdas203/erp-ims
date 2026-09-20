@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Interfaces;
+using IMS.DAL.Interfaces;
 using IMS.Helpers.Constants;
 using IMS.Models.Teacher;
 using IMS.Models.TenantUser;
@@ -17,13 +17,16 @@ namespace IMS.Services
         private readonly ITeacherDAL _repo;
         private readonly IUserApiService _userApi;
         private readonly IRoleApiService _roleApi;
+        private readonly IDropdownService? _dropdownService;
         private const string PendingSetupLabel = "Pending Setup";
         private const string TeacherRoleName = "Teacher";
-        public TeacherService(ITeacherDAL repo, IUserApiService userApi, IRoleApiService roleApi)
+
+        public TeacherService(ITeacherDAL repo, IUserApiService userApi, IRoleApiService roleApi, IDropdownService? dropdownService = null)
         {
             _repo = repo;
             _userApi = userApi;
             _roleApi = roleApi;
+            _dropdownService = dropdownService;
         }
 
         public async Task<TeacherIndexViewModel> GetTeacherListAsync(Guid tenantId, string accessToken, string searchTerm, string status, Guid? branchId, int pageNumber, int pageSize)
@@ -75,8 +78,8 @@ namespace IMS.Services
                     Email = u.Email,
                     Phone = u.Phone,
                     BranchName = isPending ? "-" : HardcodedMasterData.GetBranchName(profile.T_BranchId),
-                    Designation = profile?.T_Designation,
-                    Department = profile?.T_Department,
+                    Designation = isPending ? "-" : (profile?.DesignationName ?? profile?.T_Designation ?? "-"),
+                    Department = isPending ? "-" : (profile?.DepartmentName ?? profile?.T_Department ?? "-"),
                     T_Status = isPending ? PendingSetupLabel : profile.T_Status,
                     IsPendingSetup = isPending
                 });
@@ -104,8 +107,8 @@ namespace IMS.Services
                 FullAddress = JoinAddress(identity.Location),
                 BranchName = HardcodedMasterData.GetBranchName(profile.T_BranchId),
                 RoleName = identity.CustomRoleName,
-                Designation = profile.T_Designation,
-                Department = profile.T_Department,
+                Designation = profile.DesignationName ?? profile.T_Designation ?? "-",
+                Department = profile.DepartmentName ?? profile.T_Department ?? "-",
                 T_JoiningDate = profile.T_JoiningDate,
                 T_Qualification = profile.T_Qualification,
                 T_ExperienceYears = profile.T_ExperienceYears,

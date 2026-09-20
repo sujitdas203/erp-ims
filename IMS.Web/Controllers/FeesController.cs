@@ -22,7 +22,13 @@ namespace IMS.Web.Controllers
 
         private Guid CurrentTenantId
         {
-            get { var raw = User.FindFirst("tenant_id")?.Value; return Guid.TryParse(raw, out var id) ? id : Guid.Empty; }
+            get
+            {
+                var raw = User.FindFirst("tenant_id")?.Value;
+                if (Guid.TryParse(raw, out var id) && id != Guid.Empty)
+                    return id;
+                return IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
+            }
         }
 
         private Guid CurrentUserId

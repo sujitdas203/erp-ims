@@ -1,65 +1,195 @@
 @model IMS.Models.ViewModels.StaffDetailsViewModel
-@{ ViewData["Title"] = "Staff Details"; }
+@{ 
+    ViewData["Title"] = "Staff Details"; 
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-chalkboard-user me-2"></i>Staff Details</h3>
     <div>
-        <a asp-controller="Staff" asp-action="Edit" asp-route-id="@Model.ST_Id" class="btn btn-outline-primary btn-sm">
-            <i class="fa-solid fa-pen me-1"></i> Edit
+        <h3 class="mb-0"><i class="fa-solid fa-id-card me-2 text-primary"></i>Staff Details</h3>
+        <span class="text-muted small">Profile overview for @Model.FullName (@Model.ST_EmployeeCode)</span>
+    </div>
+    <div>
+        <a asp-controller="Staff" asp-action="Edit" asp-route-id="@Model.ST_Id" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-pen me-1"></i> Edit Profile
         </a>
-        <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to List</a>
+        <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label text-muted">Employee Code</label>
-                <div class="fw-semibold">@Model.ST_EmployeeCode</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Status</label>
-                <div class="fw-semibold"><span class="badge @StatusBadgeClass(Model.ST_Status)">@Model.ST_Status</span></div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Full Name</label>
-                <div class="fw-semibold">@Model.ST_FirstName @Model.ST_LastName</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Branch</label>
-                <div class="fw-semibold">@Model.BranchName</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Department</label>
-                <div class="fw-semibold">@(Model.DepartmentName ?? "-")</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Designation</label>
-                <div class="fw-semibold">@(Model.DesignationName ?? "-")</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Email</label>
-                <div class="fw-semibold">@(Model.ST_Email ?? "-")</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Phone</label>
-                <div class="fw-semibold">@(Model.ST_Phone ?? "-")</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Joining Date</label>
-                <div class="fw-semibold">@(Model.ST_JoiningDate?.ToString("dd-MMM-yyyy") ?? "-")</div>
+<div class="row g-4">
+    <!-- Header Summary Card -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 64px; height: 64px;">
+                            @(string.IsNullOrEmpty(Model.ST_FirstName) ? "S" : Model.ST_FirstName.Substring(0, 1).ToUpper())@(string.IsNullOrEmpty(Model.ST_LastName) ? "" : Model.ST_LastName.Substring(0, 1).ToUpper())
+                        </div>
+                        <div>
+                            <h4 class="mb-1 fw-bold">@Model.FullName</h4>
+                            <div class="text-muted d-flex align-items-center gap-2 flex-wrap">
+                                <span><i class="fa-solid fa-id-badge me-1"></i><strong>@Model.ST_EmployeeCode</strong></span>
+                                <span>•</span>
+                                <span><i class="fa-solid fa-building me-1"></i>@(Model.BranchName ?? "Main Branch")</span>
+                                <span>•</span>
+                                <span><i class="fa-solid fa-user-tie me-1"></i>@(Model.DesignationName ?? "Staff Member")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge @StatusBadgeClass(Model.ST_Status) fs-6 px-3 py-2">@Model.ST_Status</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <hr />
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label text-muted">Created At</label>
-                <div>@Model.ST_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</div>
+    </div>
+
+    <!-- Personal Info Card -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-user me-2"></i>Personal Details</h6>
             </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted">Last Updated</label>
-                <div>@Model.ST_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">First Name</label>
+                        <div class="fw-semibold">@Model.ST_FirstName</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Last Name</label>
+                        <div class="fw-semibold">@Model.ST_LastName</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Gender</label>
+                        <div class="fw-semibold">@(Model.ST_Gender ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Date of Birth</label>
+                        <div class="fw-semibold">@(Model.ST_DateOfBirth?.ToString("dd-MMM-yyyy") ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Blood Group</label>
+                        <div class="fw-semibold">
+                            @if (!string.IsNullOrEmpty(Model.ST_BloodGroup))
+                            {
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">@Model.ST_BloodGroup</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employment Details Card -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-briefcase me-2"></i>Employment & Role</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Branch</label>
+                        <div class="fw-semibold">@(Model.BranchName ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Department</label>
+                        <div class="fw-semibold">@(Model.DepartmentName ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Designation</label>
+                        <div class="fw-semibold">@(Model.DesignationName ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Joining Date</label>
+                        <div class="fw-semibold">@(Model.ST_JoiningDate?.ToString("dd-MMM-yyyy") ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Qualification</label>
+                        <div class="fw-semibold">@(Model.ST_Qualification ?? "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Experience</label>
+                        <div class="fw-semibold">@(Model.ST_ExperienceYears.HasValue ? $"{Model.ST_ExperienceYears} Years" : "-")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Basic Salary</label>
+                        <div class="fw-semibold">@(Model.ST_BasicSalary.HasValue ? Model.ST_BasicSalary.Value.ToString("C2") : "-")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact & Address Card -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-address-book me-2"></i>Contact & Address</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Email Address</label>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.ST_Email))
+                            {
+                                <a href="mailto:@Model.ST_Email" class="text-decoration-none fw-semibold">
+                                    <i class="fa-solid fa-envelope me-1 text-muted"></i>@Model.ST_Email
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">-</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Primary Phone</label>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.ST_Phone))
+                            {
+                                <a href="tel:@Model.ST_Phone" class="text-decoration-none fw-semibold">
+                                    <i class="fa-solid fa-phone me-1 text-muted"></i>@Model.ST_Phone
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">-</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Emergency Contact</label>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrEmpty(Model.ST_EmergencyContact) ? "-" : Model.ST_EmergencyContact)
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small mb-1">Residential Address</label>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrEmpty(Model.ST_Address) ? "-" : Model.ST_Address)
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-3" />
+                <div class="row text-muted small">
+                    <div class="col-sm-6">
+                        <span>Created: @Model.ST_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</span>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <span>Last Updated: @Model.ST_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -68,10 +198,10 @@
 @functions {
     string StatusBadgeClass(string status) => status switch
     {
-        "Active" => "bg-success",
-        "Inactive" => "bg-secondary",
+        "Active" => "bg-success text-white",
+        "Inactive" => "bg-secondary text-white",
         "On Leave" => "bg-warning text-dark",
-        "Terminated" => "bg-danger",
+        "Terminated" => "bg-danger text-white",
         _ => "bg-light text-dark"
     };
 }

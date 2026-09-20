@@ -13,6 +13,14 @@ namespace IMS.Models.Entities
         public string ST_EmployeeCode { get; set; }
         public string ST_FirstName { get; set; }
         public string ST_LastName { get; set; }
+        public string? ST_Gender { get; set; }
+        public DateTime? ST_DateOfBirth { get; set; }
+        public string? ST_BloodGroup { get; set; }
+        public string? ST_Qualification { get; set; }
+        public int? ST_ExperienceYears { get; set; }
+        public string? ST_Address { get; set; }
+        public string? ST_EmergencyContact { get; set; }
+        public decimal? ST_BasicSalary { get; set; }
         public string ST_Email { get; set; }
         public string ST_Phone { get; set; }
         public DateTime? ST_JoiningDate { get; set; }

@@ -1,0 +1,361 @@
+@model IMS.Models.ViewModels.AdmissionApplicationFormViewModel
+@{
+    ViewData["Title"] = "Online Admission Application";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div class="admission-page" style="background: var(--parchment-dim, #fbfaf7); min-height: 85vh; padding: 3rem 0;">
+    <div class="container" style="max-width: 960px;">
+        
+        <!-- Header Banner -->
+        <div class="text-center mb-5">
+            <span class="badge rounded-pill px-3 py-2 text-uppercase mb-2" style="background:#2563eb; color:#ffffff; font-size:0.75rem; letter-spacing:1px;">
+                Admissions Open 2026-2027
+            </span>
+            <h1 class="fw-bold text-dark mb-2">Apply for Online Admission</h1>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                Take the first step towards quality education. Fill out the application form below. Our admissions team will review your details and reach out promptly.
+            </p>
+        </div>
+
+        @if (TempData["AdmissionSuccess"] != null)
+        {
+            <div class="alert alert-success border-0 shadow-sm rounded-4 p-4 mb-4 text-center">
+                <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+                <h4 class="fw-bold">Application Submitted Successfully!</h4>
+                <p class="mb-0">@TempData["AdmissionSuccess"]</p>
+                <div class="mt-3">
+                    <a href="/Student/Login" class="btn btn-outline-primary rounded-pill px-4 me-2">Student &amp; Guardian Portal</a>
+                    <a href="/" class="btn btn-primary rounded-pill px-4">Back to Home</a>
+                </div>
+            </div>
+        }
+
+        <!-- Application Form Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background:#ffffff; border:1px solid #e2e8f0;">
+            <div class="card-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #1e293b, #0f172a); color:#ffffff;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="fw-semibold"><i class="bi bi-person-lines-fill me-2"></i>New Student Application Form</span>
+                    <span class="badge bg-light text-dark fw-bold">Online Admission</span>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <form asp-controller="Home" asp-action="ApplyAdmission" method="post" id="admissionForm">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-4"></div>
+
+                    <!-- 1. Academic & Campus Preference -->
+                    <!-- 1. Institution & Campus -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
+                            <i class="bi bi-mortarboard text-primary me-2"></i>1. Academic &amp; Campus Preference
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="AA_BranchId" class="form-label fw-semibold small text-muted">Preferred Campus / Branch <span class="text-danger">*</span></label>
+                                <select asp-for="AA_BranchId" id="AA_BranchId" class="form-select rounded-3 py-2" required>
+                                </select>
+                                <span asp-validation-for="AA_BranchId" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_ClassId" class="form-label fw-semibold small text-muted">Applying For Grade / Class</label>
+                                <select asp-for="AA_ClassId" id="AA_ClassId" class="form-select rounded-3 py-2">
+                                </select>
+                                <span asp-validation-for="AA_ClassId" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_CourseId" class="form-label fw-semibold small text-muted">Stream / Course</label>
+                                <select asp-for="AA_CourseId" id="AA_CourseId" class="form-select rounded-3 py-2">
+                                </select>
+                                <span asp-validation-for="AA_CourseId" class="text-danger small d-block"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Student Personal Details -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
+                            <i class="bi bi-person-badge text-primary me-2"></i>2. Student Information
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="AA_FirstName" class="form-label fw-semibold small text-muted">First Name <span class="text-danger">*</span></label>
+                                <input asp-for="AA_FirstName" class="form-control rounded-3 py-2" placeholder="e.g. John" required />
+                                <span asp-validation-for="AA_FirstName" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_MiddleName" class="form-label fw-semibold small text-muted">Middle Name</label>
+                                <input asp-for="AA_MiddleName" class="form-control rounded-3 py-2" placeholder="e.g. William" />
+                                <span asp-validation-for="AA_MiddleName" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_LastName" class="form-label fw-semibold small text-muted">Last Name <span class="text-danger">*</span></label>
+                                <input asp-for="AA_LastName" class="form-control rounded-3 py-2" placeholder="e.g. Doe" required />
+                                <span asp-validation-for="AA_LastName" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_DateOfBirth" class="form-label fw-semibold small text-muted">Date of Birth</label>
+                                <input asp-for="AA_DateOfBirth" type="date" class="form-control rounded-3 py-2" />
+                                <span asp-validation-for="AA_DateOfBirth" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_Gender" class="form-label fw-semibold small text-muted">Gender</label>
+                                <select asp-for="AA_Gender" id="AA_Gender" class="form-select rounded-3 py-2">
+                                </select>
+                                <span asp-validation-for="AA_Gender" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_BloodGroup" class="form-label fw-semibold small text-muted">Blood Group</label>
+                                <select asp-for="AA_BloodGroup" id="AA_BloodGroup" class="form-select rounded-3 py-2">
+                                </select>
+                                <span asp-validation-for="AA_BloodGroup" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_Category" class="form-label fw-semibold small text-muted">Category / Quota</label>
+                                <select asp-for="AA_Category" id="AA_Category" class="form-select rounded-3 py-2">
+                                </select>
+                                <span asp-validation-for="AA_Category" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="AA_Email" class="form-label fw-semibold small text-muted">Student Email Address</label>
+                                <input asp-for="AA_Email" type="email" class="form-control rounded-3 py-2" placeholder="student@example.com" />
+                                <span asp-validation-for="AA_Email" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="AA_Phone" class="form-label fw-semibold small text-muted">Student Mobile Number <span class="text-danger">*</span></label>
+                                <input asp-for="AA_Phone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" required />
+                                <span asp-validation-for="AA_Phone" class="text-danger small d-block"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Parent & Guardian Information -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
+                            <i class="bi bi-people text-primary me-2"></i>3. Parents &amp; Guardian Information
+                        </h5>
+                        
+                        <!-- Father -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="AA_FatherName" class="form-label fw-semibold small text-muted">Father's Full Name</label>
+                                <input asp-for="AA_FatherName" class="form-control rounded-3 py-2" placeholder="Father's Name" />
+                                <span asp-validation-for="AA_FatherName" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_FatherPhone" class="form-label fw-semibold small text-muted">Father's Mobile</label>
+                                <input asp-for="AA_FatherPhone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" />
+                                <span asp-validation-for="AA_FatherPhone" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_FatherOccupation" class="form-label fw-semibold small text-muted">Father's Occupation</label>
+                                <input asp-for="AA_FatherOccupation" class="form-control rounded-3 py-2" placeholder="Occupation" />
+                            </div>
+                        </div>
+
+                        <!-- Mother -->
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="AA_MotherName" class="form-label fw-semibold small text-muted">Mother's Full Name</label>
+                                <input asp-for="AA_MotherName" class="form-control rounded-3 py-2" placeholder="Mother's Name" />
+                                <span asp-validation-for="AA_MotherName" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_MotherPhone" class="form-label fw-semibold small text-muted">Mother's Mobile</label>
+                                <input asp-for="AA_MotherPhone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" />
+                                <span asp-validation-for="AA_MotherPhone" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_MotherOccupation" class="form-label fw-semibold small text-muted">Mother's Occupation</label>
+                                <input asp-for="AA_MotherOccupation" class="form-control rounded-3 py-2" placeholder="Occupation" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Residential Address -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>4. Residential Address
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="AA_AddressLine1" class="form-label fw-semibold small text-muted">Address Line 1 (House No, Street)</label>
+                                <input asp-for="AA_AddressLine1" class="form-control rounded-3 py-2" placeholder="Flat / House No, Street name" />
+                                <span asp-validation-for="AA_AddressLine1" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="AA_AddressLine2" class="form-label fw-semibold small text-muted">Address Line 2 (Area / Landmark)</label>
+                                <input asp-for="AA_AddressLine2" class="form-control rounded-3 py-2" placeholder="Area, Landmark" />
+                                <span asp-validation-for="AA_AddressLine2" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_City" class="form-label fw-semibold small text-muted">City / District</label>
+                                <input asp-for="AA_City" class="form-control rounded-3 py-2" placeholder="City" />
+                                <span asp-validation-for="AA_City" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_State" class="form-label fw-semibold small text-muted">State</label>
+                                <input asp-for="AA_State" class="form-control rounded-3 py-2" placeholder="State" />
+                                <span asp-validation-for="AA_State" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_PostalCode" class="form-label fw-semibold small text-muted">PIN Code</label>
+                                <input asp-for="AA_PostalCode" class="form-control rounded-3 py-2" placeholder="Postal / PIN Code" />
+                                <span asp-validation-for="AA_PostalCode" class="text-danger small d-block"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Previous Academic History -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
+                            <i class="bi bi-building text-primary me-2"></i>5. Previous Academic History
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousSchool" class="form-label fw-semibold small text-muted">Previous School / Institute</label>
+                                <input asp-for="AA_PreviousSchool" class="form-control rounded-3 py-2" placeholder="School Name" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousBoard" class="form-label fw-semibold small text-muted">Board (CBSE/ICSE/State)</label>
+                                <input asp-for="AA_PreviousBoard" class="form-control rounded-3 py-2" placeholder="e.g. CBSE" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousMarks" class="form-label fw-semibold small text-muted">Previous Grade / Marks (%)</label>
+                                <input asp-for="AA_PreviousMarks" class="form-control rounded-3 py-2" placeholder="e.g. 85%" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="AA_Notes" class="form-label fw-semibold small text-muted">Additional Information / Medical / Special Requirements</label>
+                                <textarea asp-for="AA_Notes" class="form-control rounded-3" rows="3" placeholder="Enter any extra details or comments..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submission Agreement -->
+                    <div class="form-check mb-4 p-3 bg-light rounded-3">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" id="agreeTerms" required>
+                        <label class="form-check-label small text-muted" for="agreeTerms">
+                            I declare that all information provided in this admission application form is accurate and true to the best of my knowledge.
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex align-items-center justify-content-between pt-2">
+                        <a href="/" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow">
+                            <i class="bi bi-send-fill me-2"></i> Submit Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+    </style>
+    <script>
+        $(function () {
+            Dropdown.load({ element: '#AA_Gender', entityType: 'Gender', defaultText: '-- Select Gender --', includeDefault: true });
+            Dropdown.load({ element: '#AA_BloodGroup', entityType: 'BloodGroup', defaultText: '-- Select Blood Group --', includeDefault: true });
+            Dropdown.load({ element: '#AA_Category', entityType: 'Category', defaultText: '-- Select Category --', includeDefault: true });
+            Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: '-- Select Branch --', includeDefault: true });
+            Dropdown.load({ element: '#AA_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true });
+            Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: '-- Select Course --', includeDefault: true });
+
+            function clearValidationErrors($form) {
+                $form.find(".is-invalid").removeClass("is-invalid");
+                $form.find("span[asp-validation-for]").empty();
+            }
+
+            function applyFieldErrors($form, errors, defaultMsg) {
+                clearValidationErrors($form);
+                var firstEl = null;
+                if (errors && typeof errors === "object") {
+                    $.each(errors, function (fieldKey, msgs) {
+                        var msg = Array.isArray(msgs) ? msgs.join(" ") : msgs;
+                        var $el = $form.find("[name='" + fieldKey + "'], #" + fieldKey + ", [name='AA_" + fieldKey + "'], [name$='." + fieldKey + "']").first();
+                        if ($el.length) {
+                            $el.addClass("is-invalid");
+                            var $valSpan = $form.find("span[asp-validation-for='" + fieldKey + "'], span[asp-validation-for='AA_" + fieldKey + "']").first();
+                            if ($valSpan.length) {
+                                $valSpan.text(msg).show();
+                            }
+                            if (!firstEl) firstEl = $el;
+                        }
+                    });
+                }
+                if (firstEl) {
+                    firstEl[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstEl.focus();
+                }
+            }
+
+            $("#admissionForm").on("input change", ".is-invalid", function () {
+                $(this).removeClass("is-invalid");
+                var name = $(this).attr("name") || $(this).attr("id");
+                if (name) {
+                    $("span[asp-validation-for='" + name + "']").empty();
+                }
+            });
+
+            $("#admissionForm").on("submit", function (e) {
+                e.preventDefault();
+                var form = this;
+                var $form = $(form);
+                clearValidationErrors($form);
+
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                var $btn = $form.find("button[type='submit']");
+                $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Submitting...');
+
+                $.ajax({
+                    url: $form.attr("action"),
+                    type: "POST",
+                    data: $form.serialize(),
+                    success: function (r) {
+                        if (r.success) {
+                            $form.html(
+                                '<div class="text-center py-5">' +
+                                '<div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>' +
+                                '<h3 class="fw-bold text-dark mb-2">Application Submitted Successfully!</h3>' +
+                                '<p class="text-muted fs-5 mb-4">Your application has been received and is under review. Our admissions team will contact you soon.</p>' +
+                                '<a href="/" class="btn btn-primary rounded-pill px-4">Back to Home</a>' +
+                                '</div>'
+                            );
+                        } else {
+                            applyFieldErrors($form, r.errors, r.message);
+                            if (window.toastr) toastr.error(r.message || "Please check the highlighted fields.");
+                            else alert(r.message || "Please check the highlighted fields.");
+                            $btn.prop("disabled", false).html('<i class="bi bi-send-fill me-2"></i> Submit Application');
+                        }
+                    },
+                    error: function (xhr) {
+                        var resp = xhr.responseJSON;
+                        if (resp && resp.errors) {
+                            applyFieldErrors($form, resp.errors, resp.message);
+                        }
+                        var msg = (resp && resp.message) ? resp.message : "Submission failed. Please try again.";
+                        if (window.toastr) toastr.error(msg);
+                        else alert(msg);
+                        $btn.prop("disabled", false).html('<i class="bi bi-send-fill me-2"></i> Submit Application');
+                    }
+                });
+            });
+        });
+    </script>
+}

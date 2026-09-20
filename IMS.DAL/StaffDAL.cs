@@ -118,32 +118,62 @@ namespace IMS.DAL.Repositories
             cmd.Parameters.Add("@ST_EmployeeCode", SqlDbType.NVarChar, 50).Value = s.ST_EmployeeCode;
             cmd.Parameters.Add("@ST_FirstName", SqlDbType.NVarChar, 100).Value = s.ST_FirstName;
             cmd.Parameters.Add("@ST_LastName", SqlDbType.NVarChar, 100).Value = s.ST_LastName;
+            cmd.Parameters.Add("@ST_Gender", SqlDbType.NVarChar, 20).Value = (object)s.ST_Gender ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_DateOfBirth", SqlDbType.Date).Value = (object)s.ST_DateOfBirth ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_BloodGroup", SqlDbType.NVarChar, 10).Value = (object)s.ST_BloodGroup ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_Qualification", SqlDbType.NVarChar, 255).Value = (object)s.ST_Qualification ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_ExperienceYears", SqlDbType.Int).Value = (object)s.ST_ExperienceYears ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_Address", SqlDbType.NVarChar, 500).Value = (object)s.ST_Address ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_EmergencyContact", SqlDbType.NVarChar, 50).Value = (object)s.ST_EmergencyContact ?? DBNull.Value;
+            cmd.Parameters.Add("@ST_BasicSalary", SqlDbType.Decimal).Value = (object)s.ST_BasicSalary ?? DBNull.Value;
             cmd.Parameters.Add("@ST_Email", SqlDbType.NVarChar, 255).Value = (object)s.ST_Email ?? DBNull.Value;
             cmd.Parameters.Add("@ST_Phone", SqlDbType.NVarChar, 30).Value = (object)s.ST_Phone ?? DBNull.Value;
             cmd.Parameters.Add("@ST_JoiningDate", SqlDbType.Date).Value = (object)s.ST_JoiningDate ?? DBNull.Value;
             cmd.Parameters.Add("@ST_Status", SqlDbType.NVarChar, 20).Value = s.ST_Status;
         }
 
-        private static Staff MapStaff(SqlDataReader r) => new()
+        private static Staff MapStaff(SqlDataReader r)
         {
-            ST_Id = r.GetGuid(r.GetOrdinal("ST_Id")),
-            ST_TenantId = r.GetGuid(r.GetOrdinal("ST_TenantId")),
-            ST_BranchId = r.GetGuid(r.GetOrdinal("ST_BranchId")),
-            ST_UserId = r["ST_UserId"] as Guid?,
-            ST_DepartmentId = r["ST_DepartmentId"] as Guid?,
-            ST_DesignationId = r["ST_DesignationId"] as Guid?,
-            ST_EmployeeCode = r["ST_EmployeeCode"] as string,
-            ST_FirstName = r["ST_FirstName"] as string,
-            ST_LastName = r["ST_LastName"] as string,
-            ST_Email = r["ST_Email"] as string,
-            ST_Phone = r["ST_Phone"] as string,
-            ST_JoiningDate = r["ST_JoiningDate"] as DateTime?,
-            ST_Status = r["ST_Status"] as string,
-            ST_CreatedAt = r.GetDateTime(r.GetOrdinal("ST_CreatedAt")),
-            ST_UpdatedAt = r.GetDateTime(r.GetOrdinal("ST_UpdatedAt")),
-            BranchName = r["BranchName"] as string,
-            DepartmentName = r["DepartmentName"] as string,
-            DesignationName = r["DesignationName"] as string
-        };
+            var s = new Staff
+            {
+                ST_Id = r.GetGuid(r.GetOrdinal("ST_Id")),
+                ST_TenantId = r.GetGuid(r.GetOrdinal("ST_TenantId")),
+                ST_BranchId = r.GetGuid(r.GetOrdinal("ST_BranchId")),
+                ST_UserId = r["ST_UserId"] as Guid?,
+                ST_DepartmentId = r["ST_DepartmentId"] as Guid?,
+                ST_DesignationId = r["ST_DesignationId"] as Guid?,
+                ST_EmployeeCode = r["ST_EmployeeCode"] as string,
+                ST_FirstName = r["ST_FirstName"] as string,
+                ST_LastName = r["ST_LastName"] as string,
+                ST_Gender = HasColumn(r, "ST_Gender") ? r["ST_Gender"] as string : null,
+                ST_DateOfBirth = HasColumn(r, "ST_DateOfBirth") ? r["ST_DateOfBirth"] as DateTime? : null,
+                ST_BloodGroup = HasColumn(r, "ST_BloodGroup") ? r["ST_BloodGroup"] as string : null,
+                ST_Qualification = HasColumn(r, "ST_Qualification") ? r["ST_Qualification"] as string : null,
+                ST_ExperienceYears = HasColumn(r, "ST_ExperienceYears") ? r["ST_ExperienceYears"] as int? : null,
+                ST_Address = HasColumn(r, "ST_Address") ? r["ST_Address"] as string : null,
+                ST_EmergencyContact = HasColumn(r, "ST_EmergencyContact") ? r["ST_EmergencyContact"] as string : null,
+                ST_BasicSalary = HasColumn(r, "ST_BasicSalary") && r["ST_BasicSalary"] != DBNull.Value ? Convert.ToDecimal(r["ST_BasicSalary"]) : null,
+                ST_Email = r["ST_Email"] as string,
+                ST_Phone = r["ST_Phone"] as string,
+                ST_JoiningDate = r["ST_JoiningDate"] as DateTime?,
+                ST_Status = r["ST_Status"] as string,
+                ST_CreatedAt = r.GetDateTime(r.GetOrdinal("ST_CreatedAt")),
+                ST_UpdatedAt = r.GetDateTime(r.GetOrdinal("ST_UpdatedAt")),
+                BranchName = HasColumn(r, "BranchName") ? r["BranchName"] as string : null,
+                DepartmentName = HasColumn(r, "DepartmentName") ? r["DepartmentName"] as string : null,
+                DesignationName = HasColumn(r, "DesignationName") ? r["DesignationName"] as string : null
+            };
+            return s;
+        }
+
+        private static bool HasColumn(SqlDataReader r, string columnName)
+        {
+            for (int i = 0; i < r.FieldCount; i++)
+            {
+                if (string.Equals(r.GetName(i), columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
     }
 }
