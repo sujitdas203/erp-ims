@@ -7,7 +7,8 @@ namespace IMS.Services.Interfaces
     public interface ICourseSubjectService
     {
         Task<CourseSubjectIndexViewModel> GetListAsync(Guid tenantId, Guid? courseId);
-        Task<CourseSubjectFormViewModel> GetForEditAsync(Guid courseId, Guid subjectId, Guid tenantId);
+        Task<CourseSubjectFormViewModel?> GetForEditAsync(Guid courseId, Guid subjectId, Guid tenantId);
+        Task<int> GetNextSequenceNoAsync(Guid courseId, Guid tenantId);
         Task<ServiceResult> CreateAsync(CourseSubjectFormViewModel model, Guid tenantId);
         Task<ServiceResult> UpdateAsync(CourseSubjectFormViewModel model, Guid tenantId);
         Task<ServiceResult> DeleteAsync(Guid courseId, Guid subjectId, Guid tenantId);

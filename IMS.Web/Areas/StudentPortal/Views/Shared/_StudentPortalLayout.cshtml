@@ -112,83 +112,131 @@
 
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="portal-sidebar no-print">
-            <div class="portal-nav-section">Main</div>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Index" class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Index" ? "active" : "")">
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 1: Dashboard                           -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Index"
+               class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Index" ? "active" : "")">
                 <i class="fa-solid fa-house"></i>
                 <span>Dashboard</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Profile" class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Profile" ? "active" : "")">
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 2: My Profile                          -->
+            <!-- Identity & ID cards                           -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">My Profile</div>
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Profile"
+               class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Profile" ? "active" : "")">
                 <i class="fa-solid fa-user-graduate"></i>
                 <span>Student Info</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="IdCard" class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "IdCard" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="IdCard"
+               class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "IdCard" ? "active" : "")">
                 <i class="fa-solid fa-address-card"></i>
                 <span>Student I-Card</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="GuardianIdCard" class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "GuardianIdCard" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="GuardianIdCard"
+               class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "GuardianIdCard" ? "active" : "")">
                 <i class="fa-solid fa-id-card-clip"></i>
                 <span>Guardian I-Card</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Notices" class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Notices" ? "active" : "")">
-                <i class="fa-solid fa-bullhorn"></i>
-                <span>Notice Board</span>
-            </a>
 
-            <div class="portal-nav-section">Academics</div>
-            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Attendance" class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Attendance" ? "active" : "")">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 3: My Academics                        -->
+            <!-- Day-to-day academic life + learning tasks      -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">My Academics</div>
+            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Attendance"
+               class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Attendance" ? "active" : "")">
                 <i class="fa-solid fa-calendar-check"></i>
                 <span>Attendance</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Timetable" class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Timetable" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Timetable"
+               class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Timetable" ? "active" : "")">
                 <i class="fa-solid fa-clock"></i>
                 <span>Class Schedule</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Syllabus" class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Syllabus" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Syllabus"
+               class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "Syllabus" ? "active" : "")">
                 <i class="fa-solid fa-book-open"></i>
                 <span>Syllabus</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="ClassDetails" class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "ClassDetails" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="ClassDetails"
+               class="portal-nav-link @(currentCtrl == "Academics" && currentAct == "ClassDetails" ? "active" : "")">
                 <i class="fa-solid fa-chalkboard-user"></i>
                 <span>Class Details</span>
             </a>
-
-            <div class="portal-nav-section">Learning &amp; Tests</div>
-            <a asp-area="StudentPortal" asp-controller="Tasks" asp-action="HomeTasks" class="portal-nav-link @(currentCtrl == "Tasks" && currentAct == "HomeTasks" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Tasks" asp-action="HomeTasks"
+               class="portal-nav-link @(currentCtrl == "Tasks" && currentAct == "HomeTasks" ? "active" : "")">
                 <i class="fa-solid fa-list-check"></i>
-                <span>Home Task</span>
+                <span>Home Tasks</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Tasks" asp-action="MockTests" class="portal-nav-link @(currentCtrl == "Tasks" && currentAct == "MockTests" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Tasks" asp-action="MockTests"
+               class="portal-nav-link @(currentCtrl == "Tasks" && currentAct == "MockTests" ? "active" : "")">
                 <i class="fa-solid fa-laptop-file"></i>
-                <span>Mock Test</span>
+                <span>Mock Tests</span>
             </a>
 
-            <div class="portal-nav-section">Examinations</div>
-            <a asp-area="StudentPortal" asp-controller="Exams" asp-action="AdmitCard" class="portal-nav-link @(currentCtrl == "Exams" && currentAct == "AdmitCard" ? "active" : "")">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 4: Examinations & Results              -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">Examinations &amp; Results</div>
+            <a asp-area="StudentPortal" asp-controller="Exams" asp-action="AdmitCard"
+               class="portal-nav-link @(currentCtrl == "Exams" && currentAct == "AdmitCard" ? "active" : "")">
                 <i class="fa-solid fa-ticket"></i>
                 <span>Admit Card</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Exams" asp-action="MarkSheet" class="portal-nav-link @(currentCtrl == "Exams" && currentAct == "MarkSheet" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Exams" asp-action="MarkSheet"
+               class="portal-nav-link @(currentCtrl == "Exams" && currentAct == "MarkSheet" ? "active" : "")">
                 <i class="fa-solid fa-square-poll-vertical"></i>
                 <span>Mark Sheet</span>
             </a>
 
-            <div class="portal-nav-section">Finance &amp; Services</div>
-            <a asp-area="StudentPortal" asp-controller="Finance" asp-action="Transactions" class="portal-nav-link @(currentCtrl == "Finance" && (currentAct == "Transactions" || currentAct == "Receipt") ? "active" : "")">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 5: Fees & Payments                     -->
+            <!-- Financial items only                           -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">Fees &amp; Payments</div>
+            <a asp-area="StudentPortal" asp-controller="Finance" asp-action="Transactions"
+               class="portal-nav-link @(currentCtrl == "Finance" && (currentAct == "Transactions" || currentAct == "Receipt") ? "active" : "")">
                 <i class="fa-solid fa-receipt"></i>
-                <span>Fees &amp; Receipts</span>
+                <span>Fee Statement &amp; Receipts</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="LeaveApply" class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "LeaveApply" ? "active" : "")">
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 6: My Requests                         -->
+            <!-- All student self-service requests + tracking   -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">My Requests</div>
+            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="LeaveApply"
+               class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "LeaveApply" ? "active" : "")">
                 <i class="fa-solid fa-person-walking-arrow-right"></i>
-                <span>Leave Apply</span>
+                <span>Apply Leave</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="Transport" class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "Transport" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="Transport"
+               class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "Transport" ? "active" : "")">
                 <i class="fa-solid fa-bus"></i>
                 <span>Bus Portal</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="TCApply" class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "TCApply" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="TCApply"
+               class="portal-nav-link @(currentCtrl == "Requests" && currentAct == "TCApply" ? "active" : "")">
                 <i class="fa-solid fa-file-signature"></i>
                 <span>TC Apply</span>
             </a>
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- SECTION 7: Notice Board                        -->
+            <!-- Campus announcements — separate from profile   -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="portal-nav-section">Notice Board</div>
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Notices"
+               class="portal-nav-link @(currentCtrl == "Dashboard" && currentAct == "Notices" ? "active" : "")">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>Notices &amp; Announcements</span>
+            </a>
+
         </aside>
 
         <!-- Main Content Area -->
@@ -213,25 +261,31 @@
     </div>
 
     <!-- Mobile Bottom Navigation Bar (<768px) -->
+    <!-- Priority: Home | Attendance | Exams | My Requests | Profile -->
     <nav class="portal-bottom-nav no-print">
         <div class="portal-bottom-nav-inner">
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Index" class="bottom-nav-item @(currentCtrl == "Dashboard" && currentAct == "Index" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Index"
+               class="bottom-nav-item @(currentCtrl == "Dashboard" && currentAct == "Index" ? "active" : "")">
                 <i class="fa-solid fa-house"></i>
                 <span>Home</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Attendance" class="bottom-nav-item @(currentCtrl == "Academics" && currentAct == "Attendance" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Academics" asp-action="Attendance"
+               class="bottom-nav-item @(currentCtrl == "Academics" && currentAct == "Attendance" ? "active" : "")">
                 <i class="fa-solid fa-calendar-check"></i>
                 <span>Attendance</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Tasks" asp-action="HomeTasks" class="bottom-nav-item @(currentCtrl == "Tasks" && currentAct == "HomeTasks" ? "active" : "")">
-                <i class="fa-solid fa-list-check"></i>
-                <span>Tasks</span>
+            <a asp-area="StudentPortal" asp-controller="Exams" asp-action="MarkSheet"
+               class="bottom-nav-item @(currentCtrl == "Exams" ? "active" : "")">
+                <i class="fa-solid fa-square-poll-vertical"></i>
+                <span>Exams</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Finance" asp-action="Transactions" class="bottom-nav-item @(currentCtrl == "Finance" ? "active" : "")">
-                <i class="fa-solid fa-receipt"></i>
-                <span>Fees</span>
+            <a asp-area="StudentPortal" asp-controller="Requests" asp-action="LeaveApply"
+               class="bottom-nav-item @(currentCtrl == "Requests" ? "active" : "")">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Requests</span>
             </a>
-            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Profile" class="bottom-nav-item @(currentCtrl == "Dashboard" && currentAct == "Profile" ? "active" : "")">
+            <a asp-area="StudentPortal" asp-controller="Dashboard" asp-action="Profile"
+               class="bottom-nav-item @(currentCtrl == "Dashboard" && currentAct == "Profile" ? "active" : "")">
                 <i class="fa-solid fa-user"></i>
                 <span>Profile</span>
             </a>

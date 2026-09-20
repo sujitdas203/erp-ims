@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +20,6 @@ namespace IMS.Models.Announcement
         public DateTime ANN_CreatedAt { get; set; }
         public DateTime ANN_UpdatedAt { get; set; }
         public string ComputedStatus { get; set; } = "";
+        public string? BranchName { get; set; }
     }
 }

@@ -1,17 +1,20 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
 
 namespace IMS.Web.Controllers
 {
     [Authorize]
-    public class AdmissionApplicationController : Controller
+    public class AdmissionController : Controller
     {
         private readonly IAdmissionApplicationService _service;
-        private readonly ILogger<AdmissionApplicationController> _logger;
+        private readonly ILogger<AdmissionController> _logger;
 
-        public AdmissionApplicationController(IAdmissionApplicationService service, ILogger<AdmissionApplicationController> logger)
+        public AdmissionController(IAdmissionApplicationService service, ILogger<AdmissionController> logger)
         {
             _service = service;
             _logger = logger;
@@ -32,14 +35,14 @@ namespace IMS.Web.Controllers
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _service.GetListAsync(CurrentTenantId, searchTerm, branchId, classId, courseId, academicYearId, status, page, 10);
-            return View(vm);
+            return View("~/Views/AdmissionApplication/Index.cshtml", vm);
         }
 
         public IActionResult Create()
         {
             var vm = new AdmissionApplicationFormViewModel();
             _service.PopulateDropdowns(vm);
-            return View(vm);
+            return View("~/Views/AdmissionApplication/Create.cshtml", vm);
         }
 
         public async Task<IActionResult> Edit(Guid id)
@@ -47,7 +50,7 @@ namespace IMS.Web.Controllers
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _service.GetForEditAsync(id, CurrentTenantId);
             if (vm == null) return NotFound();
-            return View(vm);
+            return View("~/Views/AdmissionApplication/Edit.cshtml", vm);
         }
 
         public async Task<IActionResult> Details(Guid id)
@@ -55,7 +58,7 @@ namespace IMS.Web.Controllers
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _service.GetDetailsAsync(id, CurrentTenantId);
             if (vm == null) return NotFound();
-            return View(vm);
+            return View("~/Views/AdmissionApplication/Details.cshtml", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -81,7 +84,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "Error creating application"); 
+                _logger.LogError(ex, "Error creating application in AdmissionController"); 
                 return Json(new { success = false, message = "Something went wrong: " + ex.Message }); 
             }
         }
@@ -109,7 +112,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "Error updating application"); 
+                _logger.LogError(ex, "Error updating application in AdmissionController"); 
                 return Json(new { success = false, message = "Something went wrong: " + ex.Message }); 
             }
         }
@@ -125,7 +128,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "Error deleting application"); 
+                _logger.LogError(ex, "Error deleting application in AdmissionController"); 
                 return Json(new { success = false, message = "Something went wrong." }); 
             }
         }
@@ -142,7 +145,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "Error reviewing application"); 
+                _logger.LogError(ex, "Error reviewing application in AdmissionController"); 
                 return Json(new { success = false, message = "Something went wrong: " + ex.Message }); 
             }
         }
@@ -159,7 +162,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "Error enrolling student from application"); 
+                _logger.LogError(ex, "Error enrolling student in AdmissionController"); 
                 return Json(new { success = false, message = "Enrollment failed: " + ex.Message }); 
             }
         }

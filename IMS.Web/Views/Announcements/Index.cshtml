@@ -1,4 +1,4 @@
-﻿@model IMS.Models.Announcement.AnnouncementIndexViewModel
+@model IMS.Models.Announcement.AnnouncementIndexViewModel
 @{
     ViewData["Title"] = "Announcements";
 }
@@ -20,7 +20,9 @@
             </div>
             <div class="col-md-3">
                 @Html.Label("branchId", "Branch", new { @class = "form-label" })
-                @Html.DropDownList("branchId", Model.BranchOptions, "All Branches", new { @class = "form-select" })
+                <select id="branchId" name="branchId" class="form-select" data-selected-value="@(Model.BranchFilter?.ToString() ?? "")">
+                    <option value="">All Branches</option>
+                </select>
             </div>
             <div class="col-md-3">
                 @Html.Label("status", "Status", new { @class = "form-label" })

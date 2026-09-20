@@ -1,4 +1,4 @@
-﻿
+
 namespace IMS.Models.Common.Dropdown
 {
 
@@ -157,6 +157,7 @@ namespace IMS.Models.Common.Dropdown
             TextColumn = "BT_Name",
             CodeColumn = "BT_Code",
             ActiveColumn = "BT_Status",
+            ParentColumn = "BT_CourseId",
             OrderByColumn = "BT_Name"
         },
 

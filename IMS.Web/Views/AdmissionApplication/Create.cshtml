@@ -1,13 +1,26 @@
 @model IMS.Models.ViewModels.AdmissionApplicationFormViewModel
-@{ ViewData["Title"] = "New Application"; }
+@{ ViewData["Title"] = "New Admission Application"; }
+
+<style>
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+</style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-file-lines me-2"></i>New Admission Application</h3>
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-file-signature text-primary me-2"></i>New Admission Application</h4>
+        <p class="text-muted small mb-0">Fill in the comprehensive student and guardian profile to register a new admission application.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Applications
+    </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="aaCreateForm" asp-controller="AdmissionApplication" asp-action="AddApplication" method="post">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="aaCreateForm" asp-controller="AdmissionApplication" asp-action="AddApplication" method="post" novalidate>
             @Html.AntiForgeryToken()
             <partial name="_Form" model="Model" />
         </form>
@@ -20,19 +33,91 @@
 $(function () {
     IMSDatePicker.init({ input: '#AA_DateOfBirth', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY', allowFutureDates: false });
 
-    Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
-    Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true });
-    Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true });
-    Dropdown.load({ element: '#AA_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true });
-    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionStatus', defaultText: '-- Select --', includeDefault: false });
+    Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: '-- Select Branch --', includeDefault: true, selectedValue: $('#AA_BranchId').data('selected-value') });
+    Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: '-- Select Year --', includeDefault: true, selectedValue: $('#AA_AcademicYearId').data('selected-value') });
+    Dropdown.load({ element: '#AA_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true, selectedValue: $('#AA_ClassId').data('selected-value') });
+    Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: '-- Select Course --', includeDefault: true, selectedValue: $('#AA_CourseId').data('selected-value') });
+    Dropdown.load({ element: '#AA_Gender', entityType: 'Gender', defaultText: '-- Select Gender --', includeDefault: true, selectedValue: $('#AA_Gender').data('selected-value') });
+    Dropdown.load({ element: '#AA_BloodGroup', entityType: 'BloodGroup', defaultText: 'Not Known', includeDefault: true, selectedValue: $('#AA_BloodGroup').data('selected-value') });
+    Dropdown.load({ element: '#AA_Category', entityType: 'Category', defaultText: '-- Select Category --', includeDefault: true, selectedValue: $('#AA_Category').data('selected-value') });
+    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionStatus', defaultText: '-- Select Status --', includeDefault: false, selectedValue: $('#AA_Status').data('selected-value') || 'Submitted' });
 
-    $("form").on("submit", function (e) {
+    function clearValidationErrors($form) {
+        $form.find(".is-invalid").removeClass("is-invalid");
+        $form.find("span[asp-validation-for]").empty();
+    }
+
+    function applyFieldErrors($form, errors, defaultMsg) {
+        clearValidationErrors($form);
+        var firstEl = null;
+        if (errors && typeof errors === "object") {
+            $.each(errors, function (fieldKey, msgs) {
+                var msg = Array.isArray(msgs) ? msgs.join(" ") : msgs;
+                var $el = $form.find("[name='" + fieldKey + "'], #" + fieldKey + ", [name='AA_" + fieldKey + "'], [name$='." + fieldKey + "']").first();
+                if ($el.length) {
+                    $el.addClass("is-invalid");
+                    var $valSpan = $form.find("span[asp-validation-for='" + fieldKey + "'], span[asp-validation-for='AA_" + fieldKey + "']").first();
+                    if ($valSpan.length) {
+                        $valSpan.text(msg).show();
+                    }
+                    if (!firstEl) firstEl = $el;
+                }
+            });
+        }
+        if (firstEl) {
+            firstEl[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstEl.focus();
+        }
+    }
+
+    $("#aaCreateForm").on("input change", ".is-invalid", function () {
+        $(this).removeClass("is-invalid");
+        var name = $(this).attr("name") || $(this).attr("id");
+        if (name) {
+            $("span[asp-validation-for='" + name + "']").empty();
+        }
+    });
+
+    $("#aaCreateForm").on("submit", function (e) {
         e.preventDefault();
-        var $form = $(this), $btn = $form.find("button[type='submit']");
+        var form = this;
+        var $form = $(form);
+        clearValidationErrors($form);
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        var $btn = $form.find("button[type='submit']");
         $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-        $.ajax({ url: $form.attr("action"), type: "POST", data: $form.serialize(),
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function(){window.location.href="/AdmissionApplication/Index";},700); } else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Application'); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Application'); }
+        $.ajax({ 
+            url: $form.attr("action"), 
+            type: "POST", 
+            data: $form.serialize(),
+            success: function (r) { 
+                if (r.success) { 
+                    if (window.toastr) toastr.success(r.message || "Application saved successfully!"); 
+                    else alert(r.message || "Application saved successfully!");
+                    var redirectUrl = window.location.pathname.toLowerCase().indexOf("/admissionapplication") !== -1 ? "/AdmissionApplication" : "/Admission";
+                    setTimeout(function(){ window.location.href = redirectUrl; }, 600); 
+                } else { 
+                    applyFieldErrors($form, r.errors, r.message);
+                    if (window.toastr) toastr.error(r.message || "Please correct the highlighted fields."); 
+                    else alert(r.message || "Please correct the highlighted fields.");
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Application'); 
+                } 
+            },
+            error: function (xhr) { 
+                var resp = xhr.responseJSON;
+                if (resp && resp.errors) {
+                    applyFieldErrors($form, resp.errors, resp.message);
+                }
+                var msg = (resp && resp.message) ? resp.message : "Request failed. Please try again.";
+                if (window.toastr) toastr.error(msg); 
+                else alert(msg);
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Application'); 
+            }
         });
     });
 });

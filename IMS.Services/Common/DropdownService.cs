@@ -56,6 +56,54 @@ namespace IMS.Services
                 }).ToList();
             }
 
+            if (string.Equals(request.EntityType, "TCStatus", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var tcConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (tcConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(tcConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<string> { "Submitted", "Pending Clearances", "Under Review", "Approved", "Issued", "Rejected" }
+                    .Select(s => new DropdownItemModel { Value = s, Text = s, Code = s, IsActive = true }).ToList();
+            }
+
+            if (string.Equals(request.EntityType, "ActiveStatus", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var actConfig = DropdownConfigRegistry.GetByEntityType(request.EntityType);
+                    if (actConfig != null)
+                    {
+                        var dbItems = _dropdownDAL.GetDropdown(actConfig, request);
+                        if (dbItems != null && dbItems.Count > 0) return dbItems;
+                    }
+                }
+                catch { }
+
+                return new List<string> { "Pending", "Approved", "Rejected", "Cancelled" }
+                    .Select(s => new DropdownItemModel { Value = s, Text = s, Code = s, IsActive = true }).ToList();
+            }
+
+            if (string.Equals(request.EntityType, "DayOfWeek", StringComparison.OrdinalIgnoreCase))
+            {
+                return new List<DropdownItemModel>
+                {
+                    new() { Value = "1", Text = "Monday", Code = "MON", IsActive = true },
+                    new() { Value = "2", Text = "Tuesday", Code = "TUE", IsActive = true },
+                    new() { Value = "3", Text = "Wednesday", Code = "WED", IsActive = true },
+                    new() { Value = "4", Text = "Thursday", Code = "THU", IsActive = true },
+                    new() { Value = "5", Text = "Friday", Code = "FRI", IsActive = true },
+                    new() { Value = "6", Text = "Saturday", Code = "SAT", IsActive = true },
+                    new() { Value = "7", Text = "Sunday", Code = "SUN", IsActive = true }
+                };
+            }
+
             var config = DropdownConfigRegistry.GetByEntityType(request.EntityType);
 
             if (config == null)

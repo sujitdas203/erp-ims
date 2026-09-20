@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
 
 namespace IMS.Web.Controllers
 {
@@ -25,7 +27,9 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                if (Guid.TryParse(raw, out var id) && id != Guid.Empty)
+                    return id;
+                return HardcodedMasterData.CurrentTenantId;
             }
         }
 
@@ -67,6 +71,17 @@ namespace IMS.Web.Controllers
         {
             if (CurrentTenantId == Guid.Empty)
                 return Json(new { success = false, message = "Your session has expired." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, message = "Please correct the form errors.", errors });
+            }
+
             try
             {
                 var result = await _staffService.CreateStaffAsync(model, CurrentTenantId);
@@ -75,7 +90,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating staff for tenant {TenantId}", CurrentTenantId);
-                return Json(new { success = false, message = "Something went wrong while saving the staff member." });
+                return Json(new { success = false, message = "Something went wrong while saving the staff member: " + ex.Message });
             }
         }
 
@@ -85,6 +100,17 @@ namespace IMS.Web.Controllers
         {
             if (CurrentTenantId == Guid.Empty)
                 return Json(new { success = false, message = "Your session has expired." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, message = "Please correct the form errors.", errors });
+            }
+
             try
             {
                 var result = await _staffService.UpdateStaffAsync(model, CurrentTenantId);
@@ -93,7 +119,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating staff {StaffId} for tenant {TenantId}", model?.ST_Id, CurrentTenantId);
-                return Json(new { success = false, message = "Something went wrong while saving the staff member." });
+                return Json(new { success = false, message = "Something went wrong while saving the staff member: " + ex.Message });
             }
         }
 

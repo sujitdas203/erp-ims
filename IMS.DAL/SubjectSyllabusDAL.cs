@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Common;
+using IMS.DAL.Common;
 using IMS.DAL.Interfaces;
 using IMS.Models.SubjectSyllabus;
 using System;
@@ -123,34 +123,84 @@ namespace IMS.DAL
 
         public async Task<List<(Guid Id, string Name)>> GetCourseOptionsAsync(Guid tenantId)
         {
-            using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_Courses_GetActiveList", conn);
-            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
-
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-
             var list = new List<(Guid, string)>();
-            while (await reader.ReadAsync())
-                list.Add((reader.GetGuid(reader.GetOrdinal("C_Id")), reader["C_Name"] as string ?? ""));
+            try
+            {
+                using var conn = _dbHelper.GetConnection();
+                var sql = @"
+                    SELECT C_Id, C_Name 
+                    FROM dbo.Courses_C 
+                    WHERE C_DeletedAt IS NULL
+                      AND (@TenantId = '00000000-0000-0000-0000-000000000000' OR C_TenantId = @TenantId OR C_TenantId IS NULL)
+                    ORDER BY C_Name";
+                using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    list.Add((reader.GetGuid(0), reader[1] as string ?? ""));
+                }
+
+                if (list.Count == 0 && tenantId != Guid.Empty)
+                {
+                    // Fallback to all non-deleted courses if tenant filter returned none
+                    using var connFallback = _dbHelper.GetConnection();
+                    using var cmdFallback = new SqlCommand("SELECT C_Id, C_Name FROM dbo.Courses_C WHERE C_DeletedAt IS NULL ORDER BY C_Name", connFallback);
+                    await connFallback.OpenAsync();
+                    using var readerFallback = await cmdFallback.ExecuteReaderAsync();
+                    while (await readerFallback.ReadAsync())
+                    {
+                        list.Add((readerFallback.GetGuid(0), readerFallback[1] as string ?? ""));
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback handled in Service layer
+            }
             return list;
         }
 
         public async Task<List<(Guid Id, string Name, string Code)>> GetSubjectOptionsAsync(Guid tenantId)
         {
-            using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_Subjects_GetActiveList", conn);
-            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
-
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-
             var list = new List<(Guid, string, string)>();
-            while (await reader.ReadAsync())
-                list.Add((
-                    reader.GetGuid(reader.GetOrdinal("SB_Id")),
-                    reader["SB_Name"] as string ?? "",
-                    reader["SB_Code"] as string ?? ""));
+            try
+            {
+                using var conn = _dbHelper.GetConnection();
+                var sql = @"
+                    SELECT SB_Id, SB_Name, ISNULL(SB_Code, '') 
+                    FROM dbo.Subjects_SB 
+                    WHERE (@TenantId = '00000000-0000-0000-0000-000000000000' OR SB_TenantId = @TenantId OR SB_TenantId IS NULL)
+                    ORDER BY SB_Name";
+                using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    list.Add((reader.GetGuid(0), reader[1] as string ?? "", reader[2] as string ?? ""));
+                }
+
+                if (list.Count == 0 && tenantId != Guid.Empty)
+                {
+                    // Fallback to all subjects if tenant filter returned none
+                    using var connFallback = _dbHelper.GetConnection();
+                    using var cmdFallback = new SqlCommand("SELECT SB_Id, SB_Name, ISNULL(SB_Code, '') FROM dbo.Subjects_SB ORDER BY SB_Name", connFallback);
+                    await connFallback.OpenAsync();
+                    using var readerFallback = await cmdFallback.ExecuteReaderAsync();
+                    while (await readerFallback.ReadAsync())
+                    {
+                        list.Add((readerFallback.GetGuid(0), readerFallback[1] as string ?? "", readerFallback[2] as string ?? ""));
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback handled in Service layer
+            }
             return list;
         }
 

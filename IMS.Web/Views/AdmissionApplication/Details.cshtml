@@ -1,88 +1,409 @@
 @model IMS.Models.ViewModels.AdmissionApplicationDetailsViewModel
-@{ ViewData["Title"] = "Application Details"; }
+@{ ViewData["Title"] = "Application Details - " + Model.AA_ApplicationNumber; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-file-lines me-2"></i>@Model.AA_ApplicationNumber</h3>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.AA_Id" class="btn btn-outline-primary"><i class="fa-solid fa-pen me-1"></i> Edit</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice text-primary me-2"></i>@Model.AA_ApplicationNumber</h4>
+            <span class="badge @StatusBadge(Model.AA_Status) fs-6 px-3 py-2 rounded-pill">@Model.AA_Status</span>
+        </div>
+        <p class="text-muted small mb-0">Applicant: <strong>@Model.FullName</strong> | Applied for: <strong>@(Model.ClassName ?? Model.CourseName ?? "General")</strong> (@Model.AcademicYearName)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="fa-solid fa-print me-1"></i> Print Form
+        </button>
+        <a asp-action="Edit" asp-route-id="@Model.AA_Id" class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-pen me-1"></i> Edit Application
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
 </div>
 
 <div class="row g-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5 class="mb-0">Applicant Information</h5></div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Application Number</dt><dd class="col-sm-8">@Model.AA_ApplicationNumber</dd>
-                    <dt class="col-sm-4">Name</dt><dd class="col-sm-8">@Model.FullName</dd>
-                    <dt class="col-sm-4">Date of Birth</dt><dd class="col-sm-8">@(Model.AA_DateOfBirth?.ToString("dd-MMM-yyyy") ?? "-")</dd>
-                    <dt class="col-sm-4">Gender</dt><dd class="col-sm-8">@(Model.AA_Gender ?? "-")</dd>
-                    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">@(Model.AA_Email ?? "-")</dd>
-                    <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">@Model.AA_Phone</dd>
-                    <dt class="col-sm-4">Course</dt><dd class="col-sm-8">@Model.CourseName</dd>
-                    <dt class="col-sm-4">Academic Year</dt><dd class="col-sm-8">@Model.AcademicYearName</dd>
+    <!-- Left Column: Comprehensive Application Details -->
+    <div class="col-lg-8">
+        <!-- 1. Student Personal Profile -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-user text-primary me-2"></i>1. Student Personal Profile</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Full Name</span>
+                        <span class="fw-semibold">@Model.FullName</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Date of Birth</span>
+                        <span class="fw-semibold">@(Model.AA_DateOfBirth?.ToString("dd-MMM-yyyy") ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Gender</span>
+                        <span class="fw-semibold">@(Model.AA_Gender ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Blood Group</span>
+                        <span class="fw-semibold badge bg-danger-subtle text-danger border border-danger">@(Model.AA_BloodGroup ?? "Not Specified")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Category / Quota</span>
+                        <span class="fw-semibold">@(Model.AA_Category ?? "General")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Nationality</span>
+                        <span class="fw-semibold">@(Model.AA_Nationality ?? "Indian")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Religion</span>
+                        <span class="fw-semibold">@(Model.AA_Religion ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Aadhaar / National ID</span>
+                        <span class="fw-semibold">@(Model.AA_AadhaarNumber ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Student Mobile</span>
+                        <span class="fw-semibold">@Model.AA_Phone</span>
+                    </div>
+                    <div class="col-12">
+                        <span class="text-muted small d-block">Student Email</span>
+                        <span class="fw-semibold">@(Model.AA_Email ?? "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Academic Preferences -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap text-primary me-2"></i>2. Academic Preferences</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Branch / Campus</span>
+                        <span class="fw-semibold">@(Model.BranchName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Academic Year</span>
+                        <span class="fw-semibold">@(Model.AcademicYearName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Applying For Grade</span>
+                        <span class="fw-semibold">@(Model.ClassName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Course / Stream</span>
+                        <span class="fw-semibold">@(Model.CourseName ?? "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Parent & Guardian Details -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-users text-primary me-2"></i>3. Parents &amp; Guardian Information</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <!-- Father -->
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold text-primary small pb-1 border-bottom"><i class="fa-solid fa-user-tie me-1"></i> Father's Details</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-4 text-muted">Name:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherName ?? "-")</dd>
+                            <dt class="col-4 text-muted">Phone:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherPhone ?? "-")</dd>
+                            <dt class="col-4 text-muted">Occupation:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherOccupation ?? "-")</dd>
+                            <dt class="col-4 text-muted">Email:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherEmail ?? "-")</dd>
+                        </dl>
+                    </div>
+                    <!-- Mother -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-primary small pb-1 border-bottom"><i class="fa-solid fa-person-dress me-1"></i> Mother's Details</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-4 text-muted">Name:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherName ?? "-")</dd>
+                            <dt class="col-4 text-muted">Phone:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherPhone ?? "-")</dd>
+                            <dt class="col-4 text-muted">Occupation:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherOccupation ?? "-")</dd>
+                            <dt class="col-4 text-muted">Email:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherEmail ?? "-")</dd>
+                        </dl>
+                    </div>
+                    <!-- Guardian if provided -->
+                    @if (!string.IsNullOrWhiteSpace(Model.AA_GuardianName))
+                    {
+                        <div class="col-12 border-top pt-2 mt-2">
+                            <h6 class="fw-bold text-secondary small pb-1"><i class="fa-solid fa-shield-heart me-1"></i> Other Guardian Details</h6>
+                            <dl class="row mb-0 small">
+                                <dt class="col-sm-2 text-muted">Name:</dt><dd class="col-sm-4 fw-semibold">@Model.AA_GuardianName (@(Model.AA_GuardianRelation ?? "Guardian"))</dd>
+                                <dt class="col-sm-2 text-muted">Phone:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianPhone ?? "-")</dd>
+                                <dt class="col-sm-2 text-muted">Occupation:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianOccupation ?? "-")</dd>
+                                <dt class="col-sm-2 text-muted">Email:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianEmail ?? "-")</dd>
+                            </dl>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Address & Emergency Contacts -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-location-dot text-primary me-2"></i>4. Address &amp; Emergency Contacts</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <span class="text-muted small d-block">Residential Address</span>
+                        <span class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.FullAddress) ? "Not Provided" : Model.FullAddress)</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4 mt-2">
+                        <span class="text-muted small d-block">City / District</span>
+                        <span class="fw-semibold">@(Model.AA_City ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4 mt-2">
+                        <span class="text-muted small d-block">State</span>
+                        <span class="fw-semibold">@(Model.AA_State ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-4 mt-2">
+                        <span class="text-muted small d-block">Postal PIN Code</span>
+                        <span class="fw-semibold">@(Model.AA_PostalCode ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 mt-2 border-top pt-2">
+                        <span class="text-danger small fw-bold d-block"><i class="fa-solid fa-phone-volume me-1"></i> Emergency Contact Name</span>
+                        <span class="fw-semibold">@(Model.AA_EmergencyContactName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 mt-2 border-top pt-2">
+                        <span class="text-danger small fw-bold d-block"><i class="fa-solid fa-phone me-1"></i> Emergency Contact Phone</span>
+                        <span class="fw-semibold">@(Model.AA_EmergencyContactPhone ?? "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Previous Academic Background -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-school text-primary me-2"></i>5. Previous Academic History</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Previous School / Institute</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousSchool ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Board</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousBoard ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Grade Passed</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousGrade ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Marks / %</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousMarks ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">TC Number</span>
+                        <span class="fw-semibold">@(Model.AA_TransferCertificateNumber ?? "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Review, Enrollment & Audit Status -->
+    <div class="col-lg-4">
+        <!-- Enrollment Quick Action for Approved Applicants -->
+        @if (Model.AA_Status == "Approved")
+        {
+            <div class="card border-0 shadow-sm rounded-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color:#fff;">
+                <div class="card-body p-3 text-center">
+                    <i class="fa-solid fa-user-check fs-2 mb-2"></i>
+                    <h5 class="fw-bold text-white mb-1">Application Approved!</h5>
+                    <p class="small text-white-50 mb-3">Convert this applicant into an active admitted student and create guardian linkages automatically.</p>
+                    <button type="button" class="btn btn-light text-success fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#enrollModal">
+                        <i class="fa-solid fa-id-card me-1"></i> Enroll as Student Now
+                    </button>
+                </div>
+            </div>
+        }
+        else if (Model.AA_Status == "Enrolled")
+        {
+            <div class="card border-0 shadow-sm rounded-3 mb-3 bg-success-subtle border border-success">
+                <div class="card-body p-3 text-center text-success">
+                    <i class="fa-solid fa-circle-check fs-3 mb-1"></i>
+                    <h6 class="fw-bold mb-0">Student Successfully Enrolled</h6>
+                    <small class="text-muted">Student &amp; Guardian records are active in the registry.</small>
+                </div>
+            </div>
+        }
+
+        <!-- Status & Review Decision Card -->
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-header bg-light py-2 px-3 border-bottom">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-stamp text-primary me-2"></i>Review &amp; Decision</span>
+            </div>
+            <div class="card-body p-3">
+                <form id="reviewForm">
+                    <input type="hidden" name="AA_Id" value="@Model.AA_Id" />
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Update Decision Status <span class="text-danger">*</span></label>
+                        <select id="review_AA_Status" name="AA_Status" class="form-select" data-selected-value="@Model.AA_Status" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Reviewer Remarks / Notes</label>
+                        <textarea name="AA_Notes" class="form-control" rows="3" placeholder="Enter decision rationale or admission notes...">@Model.AA_Notes</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Save Review Decision
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Submission Audit Details -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-light py-2 px-3 border-bottom">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Audit Information</span>
+            </div>
+            <div class="card-body p-3">
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-muted">Submitted:</dt>
+                    <dd class="col-7 fw-semibold">@(Model.AA_SubmittedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "-")</dd>
+                    
+                    <dt class="col-5 text-muted">Reviewed:</dt>
+                    <dd class="col-7 fw-semibold">@(Model.AA_ReviewedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "Pending")</dd>
+                    
+                    <dt class="col-5 text-muted">Created At:</dt>
+                    <dd class="col-7">@Model.AA_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
+                    
+                    <dt class="col-5 text-muted">Last Updated:</dt>
+                    <dd class="col-7">@Model.AA_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
                 </dl>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5 class="mb-0">Status</h5></div>
-            <div class="card-body text-center">
-                <h4><span class="badge @StatusBadge(Model.AA_Status) fs-6">@Model.AA_Status</span></h4>
-                <p class="text-muted small mb-0">Submitted: @(Model.AA_SubmittedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "-")</p>
-                @if (Model.AA_ReviewedAt.HasValue)
-                {
-                    <p class="text-muted small">Reviewed: @Model.AA_ReviewedAt.Value.ToString("dd-MMM-yyyy HH:mm")</p>
-                }
+</div>
+
+<!-- Enroll as Student Modal -->
+<div class="modal fade" id="enrollModal" tabindex="-1" aria-labelledby="enrollModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="enrollModalLabel"><i class="fa-solid fa-user-plus me-2"></i>Enroll Applicant as Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-        <div class="card shadow-sm mt-3">
-            <div class="card-header"><h5 class="mb-0">Review</h5></div>
-            <div class="card-body">
-                <form id="reviewForm">
+            <form id="enrollForm">
+                <div class="modal-body p-4">
                     <input type="hidden" name="AA_Id" value="@Model.AA_Id" />
-                    <div class="mb-3">
-                        <label class="form-label">Decision</label>
-                        <select id="AA_Status" name="AA_Status" class="form-select"></select>
+                    
+                    <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
+                        <i class="fa-solid fa-info-circle me-1"></i> Applicant <strong>@Model.FullName</strong> will be registered with admission number <strong>@Model.AA_ApplicationNumber</strong>.
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Notes</label>
-                        <textarea name="AA_Notes" class="form-control" rows="3">@Model.AA_Notes</textarea>
+                        <label class="form-label small fw-bold">Admission Number</label>
+                        <input type="text" name="AdmissionNumber" class="form-control" value="@Model.AA_ApplicationNumber" required />
                     </div>
-                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-check me-1"></i> Submit Review</button>
-                </form>
-            </div>
-        </div>
-        <div class="card shadow-sm mt-3">
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Created</dt><dd class="col-sm-7">@Model.AA_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-                    <dt class="col-sm-5">Updated</dt><dd class="col-sm-7">@Model.AA_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-                </dl>
-            </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Assigned Class / Grade</label>
+                        <select id="enroll_ClassId" name="ClassId" class="form-select" data-selected-value="@(Model.AA_ClassId?.ToString())"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Assigned Section</label>
+                        <select id="enroll_SectionId" name="SectionId" class="form-select"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Assigned Batch</label>
+                        <select id="enroll_BatchId" name="BatchId" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4" id="btnConfirmEnroll">
+                        <i class="fa-solid fa-check me-1"></i> Confirm &amp; Enroll
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @Html.AntiForgeryToken()
 
-@functions { string StatusBadge(string s) => s switch { "Submitted" => "bg-info text-dark", "UnderReview" => "bg-warning text-dark", "Approved" => "bg-success", "Rejected" => "bg-danger", "Waitlisted" => "bg-secondary", _ => "bg-light text-dark" }; }
+@functions { 
+    string StatusBadge(string s) => s switch { 
+        "Submitted" => "bg-info text-dark", 
+        "UnderReview" => "bg-warning text-dark", 
+        "Approved" => "bg-success text-white", 
+        "Enrolled" => "bg-primary text-white",
+        "Rejected" => "bg-danger text-white", 
+        "Waitlisted" => "bg-secondary text-white", 
+        _ => "bg-light text-dark" 
+    }; 
+}
 
 @section Scripts {
 <script>
 $(function () {
-    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionReviewDecision', defaultText: '-- Select --', includeDefault: false });
+    Dropdown.load({ element: '#review_AA_Status', entityType: 'AdmissionReviewDecision', defaultText: '-- Select Decision --', includeDefault: false, selectedValue: $('#review_AA_Status').data('selected-value') });
+    
+    // Enroll Modal Dropdowns
+    Dropdown.load({ element: '#enroll_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true, selectedValue: $('#enroll_ClassId').data('selected-value') });
+    Dropdown.load({ element: '#enroll_SectionId', entityType: 'Section', defaultText: '-- Select Section --', includeDefault: true });
+    Dropdown.load({ element: '#enroll_BatchId', entityType: 'Batch', defaultText: '-- Select Batch --', includeDefault: true });
 
     $("#reviewForm").on("submit", function (e) {
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");
-        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
-        $.ajax({ url: "/AdmissionApplication/Review", type: "POST", data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function(){location.reload();},1000); } else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Submit Review'); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Submit Review'); }
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Updating...');
+        $.ajax({ 
+            url: "/AdmissionApplication/Review", 
+            type: "POST", 
+            data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
+            success: function (r) { 
+                if (r.success) { 
+                    if (window.toastr) toastr.success(r.message); 
+                    setTimeout(function(){ location.reload(); }, 800); 
+                } else { 
+                    if (window.toastr) toastr.error(r.message); 
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Review Decision'); 
+                } 
+            },
+            error: function () { 
+                if (window.toastr) toastr.error("Review update failed."); 
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Review Decision'); 
+            }
+        });
+    });
+
+    $("#enrollForm").on("submit", function (e) {
+        e.preventDefault();
+        var $form = $(this), $btn = $("#btnConfirmEnroll");
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Enrolling...');
+        $.ajax({
+            url: "/AdmissionApplication/Enroll",
+            type: "POST",
+            data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
+            success: function (r) {
+                if (r.success) {
+                    if (window.toastr) toastr.success(r.message);
+                    setTimeout(function () { location.reload(); }, 900);
+                } else {
+                    if (window.toastr) toastr.error(r.message);
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Confirm & Enroll');
+                }
+            },
+            error: function () {
+                if (window.toastr) toastr.error("Enrollment failed. Please try again.");
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Confirm & Enroll');
+            }
         });
     });
 });

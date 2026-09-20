@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <select name="status" id="filterStatus" class="form-select" onchange="this.form.submit()" data-selected-value="@(currentStatus)"></select>
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(currentStatus)"></select>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100 rounded-3">Filter</button>
@@ -199,6 +199,22 @@
 @section Scripts {
     <script src="~/js/studentLeave.js"></script>
     <script>
-        Dropdown.load({ element: '#filterStatus', entityType: 'ActiveStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+        $(function () {
+            Dropdown.load({
+                element: '#filterStatus',
+                entityType: 'ActiveStatus',
+                defaultText: 'All Statuses',
+                includeDefault: true,
+                selectedValue: $('#filterStatus').data('selected-value'),
+                success: function () {
+                    $('#filterStatus').data('loaded', true);
+                }
+            });
+
+            $('#filterStatus').on('change', function (e) {
+                if (e.isTrigger || !$(this).data('loaded')) return;
+                $(this).closest('form').submit();
+            });
+        });
     </script>
 }

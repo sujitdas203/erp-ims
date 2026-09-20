@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,11 +31,11 @@ namespace IMS.Web.Controllers
             }
         }
 
-        public async Task<IActionResult> Index(string searchTerm, Guid? academicYearId, Guid? courseId,
-            Guid? batchId, string status, int page = 1)
+        public async Task<IActionResult> Index(string? searchTerm, Guid? academicYearId, Guid? courseId,
+            Guid? batchId, string? status, Guid? branchId, Guid? classId, Guid? sectionId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
-            var vm = await _service.GetListAsync(CurrentTenantId, searchTerm, academicYearId, courseId, batchId, status, page, 10);
+            var vm = await _service.GetListAsync(CurrentTenantId, searchTerm, academicYearId, courseId, batchId, status, page, 10, branchId, classId, sectionId);
             return View(vm);
         }
 
@@ -63,37 +65,73 @@ namespace IMS.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEnrollment(EnrollmentFormViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        k => k.Key,
+                        v => v.Value!.Errors.First().ErrorMessage
+                    );
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
+
             try
             {
                 var result = await _service.CreateAsync(model, CurrentTenantId);
                 return Json(new { success = result.Success, message = result.Message, id = result.Id });
             }
-            catch (Exception ex) { _logger.LogError(ex, "Error creating enrollment"); return Json(new { success = false, message = "Something went wrong." }); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating enrollment");
+                return Json(new { success = false, message = "An error occurred while saving the enrollment: " + ex.Message });
+            }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> EditEnrollment(EnrollmentFormViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        k => k.Key,
+                        v => v.Value!.Errors.First().ErrorMessage
+                    );
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
+
             try
             {
                 var result = await _service.UpdateAsync(model, CurrentTenantId);
                 return Json(new { success = result.Success, message = result.Message, id = result.Id });
             }
-            catch (Exception ex) { _logger.LogError(ex, "Error updating enrollment"); return Json(new { success = false, message = "Something went wrong." }); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating enrollment");
+                return Json(new { success = false, message = "An error occurred while updating the enrollment: " + ex.Message });
+            }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteEnrollment(Guid id)
         {
-            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });
             try
             {
                 var result = await _service.DeleteAsync(id, CurrentTenantId);
                 return Json(new { success = result.Success, message = result.Message });
             }
-            catch (Exception ex) { _logger.LogError(ex, "Error deleting enrollment"); return Json(new { success = false, message = "Something went wrong." }); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting enrollment");
+                return Json(new { success = false, message = "An error occurred while deleting the enrollment." });
+            }
         }
     }
 }

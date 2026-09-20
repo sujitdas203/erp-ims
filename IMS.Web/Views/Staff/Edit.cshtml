@@ -1,18 +1,27 @@
 @model IMS.Models.ViewModels.StaffFormViewModel
-@{ ViewData["Title"] = "Edit Staff"; }
+@{ 
+    ViewData["Title"] = "Edit Staff"; 
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-chalkboard-user me-2"></i>Edit Staff</h3>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="staffEditForm" asp-controller="Staff" asp-action="EditStaff" method="post">
-            @Html.AntiForgeryToken()
-            <partial name="_Form" model="Model" />
-        </form>
+    <div>
+        <h3 class="mb-0"><i class="fa-solid fa-user-pen me-2 text-primary"></i>Edit Staff</h3>
+        <span class="text-muted small">Update staff profile (@Model.ST_FirstName @Model.ST_LastName - @Model.ST_EmployeeCode)</span>
+    </div>
+    <div>
+        <a asp-controller="Staff" asp-action="Details" asp-route-id="@Model.ST_Id" class="btn btn-outline-info btn-sm me-1">
+            <i class="fa-solid fa-eye me-1"></i> View Details
+        </a>
+        <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-list me-1"></i> Staff List
+        </a>
     </div>
 </div>
+
+<form id="staffEditForm" asp-controller="Staff" asp-action="EditStaff" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_Form" model="Model" />
+</form>
 
 @section Scripts {
     <script src="~/js/common/datepicker.js"></script>
@@ -20,12 +29,16 @@
     <script>
         $(function () {
             IMSStaffForm.init('/Staff/EditStaff');
+
             IMSDatePicker.init({ input: '#ST_JoiningDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+            IMSDatePicker.init({ input: '#ST_DateOfBirth', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
 
             Dropdown.load({ element: '#ST_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true, selectedValue: $('#ST_BranchId').data('selected-value') });
             Dropdown.load({ element: '#ST_DepartmentId', entityType: 'Department', defaultText: 'Select Department', includeDefault: true, selectedValue: $('#ST_DepartmentId').data('selected-value') });
             Dropdown.load({ element: '#ST_DesignationId', entityType: 'Designation', defaultText: 'Select Designation', includeDefault: true, selectedValue: $('#ST_DesignationId').data('selected-value') });
-            Dropdown.load({ element: '#ST_Status', entityType: 'StaffStatus', defaultText: '-- Select --', includeDefault: false, selectedValue: $('#ST_Status').data('selected-value') });
+            Dropdown.load({ element: '#ST_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true, selectedValue: $('#ST_Gender').data('selected-value') });
+            Dropdown.load({ element: '#ST_BloodGroup', entityType: 'BloodGroup', defaultText: 'Select Blood Group', includeDefault: true, selectedValue: $('#ST_BloodGroup').data('selected-value') });
+            Dropdown.load({ element: '#ST_Status', entityType: 'StaffStatus', defaultText: '-- Select Status --', includeDefault: false, selectedValue: $('#ST_Status').data('selected-value') });
         });
     </script>
 }

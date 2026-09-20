@@ -1,106 +1,76 @@
 @model IMS.Models.ViewModels.FeeStructureFormViewModel
-@{ ViewData["Title"] = Model.FS_Id.HasValue ? "Edit Fee Structure" : "Create Fee Structure"; }
+@{ 
+    ViewData["Title"] = "Create Fee Structure"; 
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-indian-rupee-sign me-2"></i>@(Model.FS_Id.HasValue ? "Edit" : "Create") Fee Structure</h3>
+    <div>
+        <h3 class="mb-0"><i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i>Create Fee Structure</h3>
+        <span class="text-muted small">Configure tuition and fee components for an academic year, course, or batch</span>
+    </div>
+    <a asp-controller="Fees" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-list me-1"></i> Fee Structures List
+    </a>
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-body">
-        <form id="feeStructureForm" asp-controller="Fees" asp-action="@(Model.FS_Id.HasValue ? "EditFeeStructure" : "AddFeeStructure")" method="post">
+    <div class="card-body p-4">
+        <form id="feeStructureForm" asp-controller="Fees" asp-action="AddFeeStructure" method="post" novalidate>
             @Html.AntiForgeryToken()
-            @if (Model.FS_Id.HasValue) { @Html.HiddenFor(m => m.FS_Id) }
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Name <span class="text-danger">*</span></label>
-                    @Html.TextBoxFor(m => m.FS_Name, new { @class = "form-control", placeholder = "Fee structure name" })
-                    <div class="text-danger small field-error" data-for="FS_Name"></div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Code <span class="text-danger">*</span></label>
-                    @Html.TextBoxFor(m => m.FS_Code, new { @class = "form-control", placeholder = "e.g. FS-001" })
-                    <div class="text-danger small field-error" data-for="FS_Code"></div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Academic Year <span class="text-danger">*</span></label>
-                    <select id="FS_AcademicYearId" name="FS_AcademicYearId" class="form-select" data-selected-value="@(Model.FS_AcademicYearId.ToString())"></select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Course</label>
-                    <select id="FS_CourseId" name="FS_CourseId" class="form-select" data-selected-value="@(Model.FS_CourseId?.ToString())"></select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Batch</label>
-                    <select id="FS_BatchId" name="FS_BatchId" class="form-select" data-selected-value="@(Model.FS_BatchId?.ToString())"></select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Active</label>
-                    <select id="FS_IsActive" name="FS_IsActive" class="form-select"></select>
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Description</label>
-                    @Html.TextAreaFor(m => m.FS_Description, new { @class = "form-control", rows = "2" })
-                </div>
-            </div>
-
-            <h5 class="mt-4 mb-3">Fee Items</h5>
-            <div id="feeItemsContainer">
-                @for (int i = 0; i < Model.Items.Count; i++)
-                {
-                    <div class="row g-2 mb-2 fee-item-row">
-                        <div class="col-md-4">
-                            <select name="Items[@i].FSI_FeeCategoryId" class="form-select form-select-sm fee-category-select" data-selected-value="@(Model.Items[i].FSI_FeeCategoryId.ToString())">
-                                <option value="">Select Category</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2"><input type="number" name="Items[@i].FSI_Amount" class="form-control form-control-sm" min="0" step="0.01" value="@Model.Items[i].FSI_Amount" placeholder="Amount" /></div>
-                        <div class="col-md-2"><input type="number" name="Items[@i].FSI_DueDays" class="form-control form-control-sm" min="0" value="@Model.Items[i].FSI_DueDays" placeholder="Due Days" /></div>
-                        <div class="col-md-2">
-                            <select name="Items[@i].FSI_IsMandatory" class="form-select form-select-sm mandatory-select" data-selected-value="@(Model.Items[i].FSI_IsMandatory)"></select>
-                        </div>
-                        <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger remove-fee-item"><i class="fa-solid fa-times"></i></button></div>
-                    </div>
-                }
-            </div>
-            <button type="button" id="addFeeItemBtn" class="btn btn-sm btn-outline-primary mt-2"><i class="fa-solid fa-plus me-1"></i> Add Item</button>
-
-            <div class="d-flex justify-content-end gap-2 mt-4">
-                <a asp-controller="Fees" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i> Save</button>
-            </div>
+            <partial name="_Form" model="Model" />
         </form>
     </div>
 </div>
 
 @section Scripts {
-<script>
-$(function(){
-    Dropdown.load({ element: '#FS_AcademicYearId', entityType: 'AcademicYear', defaultText: 'Select Year', includeDefault: true, selectedValue: $('#FS_AcademicYearId').data('selected-value') });
-    Dropdown.load({ element: '#FS_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true, selectedValue: $('#FS_CourseId').data('selected-value') });
-    Dropdown.load({ element: '#FS_BatchId', entityType: 'Batch', defaultText: 'Select Batch', includeDefault: true, selectedValue: $('#FS_BatchId').data('selected-value') });
-    Dropdown.load({ element: '#FS_IsActive', entityType: 'YesNo', defaultText: '-- Select --', includeDefault: false });
+    <script src="~/js/fees.js"></script>
+    <script>
+        $(function () {
+            // Initialize generic dropdowns
+            var selectedAY = $('#FS_AcademicYearId').data('selected-value');
+            var selectedCourse = $('#FS_CourseId').data('selected-value');
+            var selectedBatch = $('#FS_BatchId').data('selected-value');
 
-    $('.fee-category-select').each(function() {
-        Dropdown.load({ element: this, entityType: 'FeeCategory', defaultText: 'Select Category', includeDefault: true, selectedValue: $(this).data('selected-value') });
-    });
+            if (typeof Dropdown !== 'undefined' && Dropdown.load) {
+                Dropdown.load({
+                    element: '#FS_AcademicYearId',
+                    entityType: 'AcademicYear',
+                    defaultText: '-- Select Academic Year --',
+                    includeDefault: true,
+                    selectedValue: selectedAY
+                });
 
-    $('.mandatory-select').each(function() {
-        Dropdown.load({ element: this, entityType: 'MandatoryOptional', defaultText: '-- Select --', includeDefault: false, selectedValue: $(this).data('selected-value') });
-    });
+                Dropdown.load({
+                    element: '#FS_CourseId',
+                    entityType: 'Course',
+                    defaultText: '-- Select Course (Optional) --',
+                    includeDefault: true,
+                    selectedValue: selectedCourse
+                });
 
-    var idx = @Model.Items.Count;
-    $("#addFeeItemBtn").on("click", function(){
-        var html = '<div class="row g-2 mb-2 fee-item-row">'
-            + '<div class="col-md-4"><select name="Items['+idx+'].FSI_FeeCategoryId" class="form-select form-select-sm fee-category-select"><option value="">Select Category</option></select></div>'
-            + '<div class="col-md-2"><input type="number" name="Items['+idx+'].FSI_Amount" class="form-control form-control-sm" min="0" step="0.01" placeholder="Amount" /></div>'
-            + '<div class="col-md-2"><input type="number" name="Items['+idx+'].FSI_DueDays" class="form-control form-control-sm" min="0" placeholder="Due Days" /></div>'
-            + '<div class="col-md-2"><select name="Items['+idx+'].FSI_IsMandatory" class="form-select form-select-sm mandatory-select"><option value="">Select</option></select></div>'
-            + '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger remove-fee-item"><i class="fa-solid fa-times"></i></button></div></div>';
-        $("#feeItemsContainer").append(html); idx++;
-        Dropdown.load({ element: '#feeItemsContainer .fee-item-row:last .fee-category-select', entityType: 'FeeCategory', defaultText: 'Select Category', includeDefault: true });
-        Dropdown.load({ element: '#feeItemsContainer .fee-item-row:last .mandatory-select', entityType: 'MandatoryOptional', defaultText: '-- Select --', includeDefault: false });
-    });
-    $(document).on("click", ".remove-fee-item", function(){ $(this).closest(".fee-item-row").remove(); });
-});
-</script>
+                Dropdown.load({
+                    element: '#FS_BatchId',
+                    entityType: 'Batch',
+                    defaultText: '-- Select Batch (Optional) --',
+                    includeDefault: true,
+                    selectedValue: selectedBatch
+                });
+
+                $('.fee-category-select').each(function () {
+                    Dropdown.load({
+                        element: this,
+                        entityType: 'FeeCategory',
+                        defaultText: '-- Select Category --',
+                        includeDefault: true,
+                        selectedValue: $(this).data('selected-value')
+                    });
+                });
+            }
+
+            // Initialize form handlers, repeater and calculations
+            if (typeof IMSFeesForm !== 'undefined') {
+                IMSFeesForm.init('/Fees/AddFeeStructure');
+            }
+        });
+    </script>
 }

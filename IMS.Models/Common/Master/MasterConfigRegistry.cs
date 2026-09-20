@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace IMS.Models.Common.Master
 {
     /// <summary>
     /// Single source of truth for all master entity configs.
     /// Arranged in logical School Management hierarchy and cascading dependency order:
-    /// 1. Academic Structure (AcademicYear -> Branch -> Department -> Classroom -> Program -> Course -> Subject -> Batch)
+    /// 1. Academic Structure (AcademicYear -> Branch -> Department -> Classroom -> Program -> Course -> Subject)
+    ///    NOTE: Batch is a transactional entity managed by BatchController (/Batch) — NOT in Master.
     /// 2. Staff & Administration (Designation -> DocumentType)
     /// 3. Fee & Finance (FeeCategory -> Discount -> PaymentMethod -> ExpenseCategory)
     /// 4. Examinations & Grading (ExamType -> GradeScale)
@@ -305,6 +303,7 @@ namespace IMS.Models.Common.Master
             },
 
             // 8. Batch Master (Cohorts linking Academic Year + Branch + Course)
+            // Managed in Academic Delivery (/Batch); kept in registry for lookup engine
             new MasterConfig
             {
                 EntityType = "Batch",
@@ -314,31 +313,34 @@ namespace IMS.Models.Common.Master
                 DisplayName = "Batch Master",
                 SoftDelete = false,
                 HasAuditColumns = true,
+                IsVisibleInMenu = false,
                 MenuOrder = 8,
                 GroupName = "Academic Structure",
-                Icon = "fa-users-rectangle",
+                Icon = "fa-layer-group",
 
-                ViewPermission = "Batch.View",
-                CreatePermission = "Batch.Create",
-                EditPermission = "Batch.Edit",
-                DeletePermission = "Batch.Delete",
+                ViewPermission = "Master.Batch.View",
+                CreatePermission = "Master.Batch.Create",
+                EditPermission = "Master.Batch.Edit",
+                DeletePermission = "Master.Batch.Delete",
 
                 Fields = new List<MasterFieldConfig>
                 {
-                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
+                    new MasterFieldConfig { ColumnName = "BT_Name", PropertyName = "Name", DisplayName = "Batch Name", IsRequired = true, IsUnique = true, MaxLength = 100 },
                     new MasterFieldConfig { ColumnName = "BT_Code", PropertyName = "Code", DisplayName = "Batch Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "BT_BranchId", GridColumnName = "BranchName", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_CourseId", GridColumnName = "CourseName", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_AcademicYearId", GridColumnName = "AcademicYearName", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
-                    new MasterFieldConfig { ColumnName = "BT_StartDate", PropertyName = "StartDate", DisplayName = "Start Date", FieldType = MasterFieldType.Date, IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_AcademicYearId", GridColumnName = "AY_Name", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_BranchId", GridColumnName = "B_Name", PropertyName = "BranchId", DisplayName = "Branch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Branch", LookupValueField = "B_Id", LookupTextField = "B_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_CourseId", GridColumnName = "C_Name", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "BT_StartDate", PropertyName = "StartDate", DisplayName = "Start Date", FieldType = MasterFieldType.Date },
                     new MasterFieldConfig { ColumnName = "BT_EndDate", PropertyName = "EndDate", DisplayName = "End Date", FieldType = MasterFieldType.Date },
-                    new MasterFieldConfig { ColumnName = "BT_Capacity", PropertyName = "Capacity", DisplayName = "Capacity", FieldType = MasterFieldType.Number }
+                    new MasterFieldConfig { ColumnName = "BT_MaxIntake", PropertyName = "MaxIntake", DisplayName = "Max Capacity", FieldType = MasterFieldType.Number },
+                    //new MasterFieldConfig { ColumnName = "BT_Status", PropertyName = "Status", DisplayName = "Status", FieldType = MasterFieldType.Dropdown, StaticOptions = new() { { "Active", "Active" }, { "Completed", "Completed" }, { "Archived", "Archived" } } }
                 }
             },
 
             // =========================================================================
             // GROUP 2: STAFF & INSTITUTIONAL ADMINISTRATION
             // =========================================================================
+
 
             // 9. Designation Master
             new MasterConfig
@@ -819,6 +821,8 @@ namespace IMS.Models.Common.Master
         };
 
         public static List<MasterConfig> GetAll() => _configs.OrderBy(c => c.MenuOrder).ToList();
+
+        public static List<MasterConfig> GetMenuConfigs() => _configs.Where(c => c.IsVisibleInMenu).OrderBy(c => c.MenuOrder).ToList();
 
         public static MasterConfig GetByEntityType(string entityType)
         {

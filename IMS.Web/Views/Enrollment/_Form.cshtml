@@ -2,43 +2,164 @@
 
 @if (Model.E_Id.HasValue) { @Html.HiddenFor(m => m.E_Id) }
 
-<div class="row g-3">
-    <div class="col-md-6">
-        <label class="form-label">Student <span class="text-danger">*</span></label>
-        <select id="E_StudentId" name="E_StudentId" class="form-select select2-student" data-selected-value="@(Model.E_StudentId.ToString())"></select>
-        <div class="text-danger small field-error" data-for="E_StudentId"></div>
+<!-- Section 1: Student & Institute Assignment -->
+<div class="card border mb-3 shadow-none bg-light-subtle">
+    <div class="card-header bg-transparent py-2 border-bottom">
+        <span class="fw-bold text-primary"><i class="fa-solid fa-user-graduate me-2"></i>Student & Enrollment Information</span>
     </div>
-    <div class="col-md-6">
-        <label class="form-label">Enrollment Number</label>
-        @Html.TextBoxFor(m => m.E_EnrollmentNumber, new { @class = "form-control", placeholder = "Auto-generated if blank" })
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="E_StudentId" class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
+                <select id="E_StudentId" name="E_StudentId" class="form-select select2-student" data-selected-value="@(Model.E_StudentId != Guid.Empty ? Model.E_StudentId.ToString() : "")" asp-items="Model.StudentOptions">
+                    <option value="">-- Search & Select Student --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_StudentId"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_BranchId" class="form-label fw-semibold">Branch / Campus</label>
+                <select id="E_BranchId" name="E_BranchId" class="form-select" data-selected-value="@(Model.E_BranchId?.ToString())" asp-items="Model.BranchOptions">
+                    <option value="">-- All / Default Campus --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_BranchId"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_AcademicYearId" class="form-label fw-semibold">Academic Year <span class="text-danger">*</span></label>
+                <select id="E_AcademicYearId" name="E_AcademicYearId" class="form-select" data-selected-value="@(Model.E_AcademicYearId != Guid.Empty ? Model.E_AcademicYearId.ToString() : "")" asp-items="Model.AcademicYearOptions">
+                    <option value="">-- Select Academic Year --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_AcademicYearId"></div>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="E_EnrollmentType" class="form-label fw-semibold">Enrollment Type <span class="text-danger">*</span></label>
+                <select id="E_EnrollmentType" name="E_EnrollmentType" class="form-select" data-selected-value="@Model.E_EnrollmentType" asp-items="Model.EnrollmentTypeOptions">
+                    <option value="New Admission">New Admission</option>
+                    <option value="Promotion">Promotion</option>
+                    <option value="Transfer">Transfer</option>
+                    <option value="Re-admission">Re-admission</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_EnrollmentType"></div>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="E_EnrollmentNumber" class="form-label fw-semibold">Enrollment Number</label>
+                @Html.TextBoxFor(m => m.E_EnrollmentNumber, new { @class = "form-control", @placeholder = "Auto-generated (e.g. ENR-26-0001) if blank", @id = "E_EnrollmentNumber" })
+                <div class="text-danger small field-error" data-for="E_EnrollmentNumber"></div>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="E_RollNumber" class="form-label fw-semibold">Roll Number / Class ID</label>
+                @Html.TextBoxFor(m => m.E_RollNumber, new { @class = "form-control", @placeholder = "e.g. 101, A-14", @id = "E_RollNumber" })
+                <div class="text-danger small field-error" data-for="E_RollNumber"></div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">Academic Year <span class="text-danger">*</span></label>
-        <select id="E_AcademicYearId" name="E_AcademicYearId" class="form-select" data-selected-value="@(Model.E_AcademicYearId.ToString())"></select>
+</div>
+
+<!-- Section 2: Class, Section & Stream/Course Placement -->
+<div class="card border mb-3 shadow-none bg-light-subtle">
+    <div class="card-header bg-transparent py-2 border-bottom">
+        <span class="fw-bold text-primary"><i class="fa-solid fa-chalkboard-user me-2"></i>Academic Placement (Nursery to 12th / Degree Courses)</span>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">Course <span class="text-danger">*</span></label>
-        <select id="E_CourseId" name="E_CourseId" class="form-select" data-selected-value="@(Model.E_CourseId.ToString())"></select>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="E_ClassId" class="form-label fw-semibold">Class / Grade (K-12)</label>
+                <select id="E_ClassId" name="E_ClassId" class="form-select" data-selected-value="@(Model.E_ClassId?.ToString())" asp-items="Model.ClassOptions">
+                    <option value="">-- Select Class (Nursery - 12) --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_ClassId"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_SectionId" class="form-label fw-semibold">Section</label>
+                <select id="E_SectionId" name="E_SectionId" class="form-select" data-selected-value="@(Model.E_SectionId?.ToString())" asp-items="Model.SectionOptions">
+                    <option value="">-- Select Section (A, B, C, D) --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_SectionId"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_CourseId" class="form-label fw-semibold">Stream / Course / Program</label>
+                <select id="E_CourseId" name="E_CourseId" class="form-select" data-selected-value="@(Model.E_CourseId?.ToString())" asp-items="Model.CourseOptions">
+                    <option value="">-- Select Course / Stream (Optional) --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_CourseId"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_BatchId" class="form-label fw-semibold">Batch / Division</label>
+                <select id="E_BatchId" name="E_BatchId" class="form-select" data-selected-value="@(Model.E_BatchId?.ToString())" asp-items="Model.BatchOptions">
+                    <option value="">-- Select Batch (Optional) --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_BatchId"></div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">Batch <span class="text-danger">*</span></label>
-        <select id="E_BatchId" name="E_BatchId" class="form-select" data-selected-value="@(Model.E_BatchId.ToString())"></select>
+</div>
+
+<!-- Section 3: Status, Dates & Fee Assignment -->
+<div class="card border mb-3 shadow-none bg-light-subtle">
+    <div class="card-header bg-transparent py-2 border-bottom">
+        <span class="fw-bold text-primary"><i class="fa-solid fa-calendar-check me-2"></i>Dates, Status & Financial Details</span>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">Enrollment Date <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.E_EnrollmentDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "E_EnrollmentDate" })
-    </div>
-    <div class="col-md-4">
-        <label class="form-label">Status <span class="text-danger">*</span></label>
-        <select id="E_Status" name="E_Status" class="form-select" data-selected-value="@(Model.E_Status)"></select>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label">Completion Date</label>
-        @Html.TextBoxFor(m => m.E_CompletionDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "E_CompletionDate" })
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="E_EnrollmentDate" class="form-label fw-semibold">Enrollment Date <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa-regular fa-calendar"></i></span>
+                    @Html.TextBoxFor(m => m.E_EnrollmentDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", @placeholder = "DD/MM/YYYY", @id = "E_EnrollmentDate" })
+                </div>
+                <div class="text-danger small field-error" data-for="E_EnrollmentDate"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_Status" class="form-label fw-semibold">Enrollment Status <span class="text-danger">*</span></label>
+                <select id="E_Status" name="E_Status" class="form-select" data-selected-value="@Model.E_Status" asp-items="Model.StatusOptions">
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Withdrawn">Withdrawn</option>
+                    <option value="Transferred">Transferred</option>
+                    <option value="Suspended">Suspended</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_Status"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_CompletionDate" class="form-label fw-semibold">Completion / Exit Date</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa-regular fa-calendar-xmark"></i></span>
+                    @Html.TextBoxFor(m => m.E_CompletionDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", @placeholder = "DD/MM/YYYY", @id = "E_CompletionDate" })
+                </div>
+                <div class="text-danger small field-error" data-for="E_CompletionDate"></div>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="E_FeeStructureId" class="form-label fw-semibold">Fee Structure</label>
+                <select id="E_FeeStructureId" name="E_FeeStructureId" class="form-select" data-selected-value="@(Model.E_FeeStructureId?.ToString())" asp-items="Model.FeeStructureOptions">
+                    <option value="">-- Default / Standard Fee --</option>
+                </select>
+                <div class="text-danger small field-error" data-for="E_FeeStructureId"></div>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="E_Remarks" class="form-label fw-semibold">Remarks / Admission Notes</label>
+                @Html.TextAreaFor(m => m.E_Remarks, new { @class = "form-control", @rows = "2", @placeholder = "Special notes, scholarship details, medical alerts or transfer history...", @id = "E_Remarks" })
+                <div class="text-danger small field-error" data-for="E_Remarks"></div>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="d-flex justify-content-end gap-2 mt-4">
-    <a asp-controller="Enrollment" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i> Save Enrollment</button>
+    <a asp-controller="Enrollment" asp-action="Index" class="btn btn-outline-secondary px-4">
+        <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+    </a>
+    <button type="submit" id="btnSubmitEnrollment" class="btn btn-primary px-4">
+        <i class="fa-solid fa-check me-1"></i> Save Enrollment
+    </button>
 </div>

@@ -41,24 +41,27 @@ var IMSDatePicker = (function () {
         if (!str) return null;
         if (str instanceof Date) return isNaN(str.getTime()) ? null : str;
 
-        // Try native Date parser first (handles ISO formats like "2026-08-29T00:00:00",
-        // "2026-08-29", "2026-08-29T00:00:00Z", etc.)
+        // Try native Date parser first (handles ISO formats like "2026-08-29T10:30:00", "2026-08-29", etc.)
         if (typeof str === 'string') {
-            var native = new Date(str);
+            var trimmed = str.trim();
+            var native = new Date(trimmed);
             if (!isNaN(native.getTime())) {
-                // Return a date-only copy (no time component) to avoid timezone shifts
-                return new Date(native.getFullYear(), native.getMonth(), native.getDate());
+                return native;
             }
         }
 
-        // Manual parsing for dd/MM/yyyy format
-        var parts = str.split('/');
-        if (parts.length === 3) {
-            var d = parseInt(parts[0], 10);
-            var m = parseInt(parts[1], 10) - 1;
-            var y = parseInt(parts[2], 10);
+        // Manual parsing for dd/MM/yyyy HH:mm or dd/MM/yyyy format
+        var parts = str.trim().split(' ');
+        var dateParts = parts[0].split('/');
+        var timeParts = parts.length > 1 ? parts[1].split(':') : null;
+        if (dateParts.length === 3) {
+            var d = parseInt(dateParts[0], 10);
+            var m = parseInt(dateParts[1], 10) - 1;
+            var y = parseInt(dateParts[2], 10);
+            var hh = timeParts && timeParts.length >= 1 ? parseInt(timeParts[0], 10) : 0;
+            var mm = timeParts && timeParts.length >= 2 ? parseInt(timeParts[1], 10) : 0;
             if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
-                return new Date(y, m, d);
+                return new Date(y, m, d, isNaN(hh) ? 0 : hh, isNaN(mm) ? 0 : mm, 0);
             }
         }
 
@@ -70,7 +73,13 @@ var IMSDatePicker = (function () {
         var dd = String(date.getDate()).padStart(2, '0');
         var mm = String(date.getMonth() + 1).padStart(2, '0');
         var yyyy = date.getFullYear();
+        var hh = String(date.getHours()).padStart(2, '0');
+        var min = String(date.getMinutes()).padStart(2, '0');
+
+        if (fmt === 'yyyy-MM-ddTHH:mm') return yyyy + '-' + mm + '-' + dd + 'T' + hh + ':' + min;
+        if (fmt === 'yyyy-MM-dd HH:mm' || fmt === 'yyyy-MM-dd HH:mm:ss') return yyyy + '-' + mm + '-' + dd + ' ' + hh + ':' + min;
         if (fmt === 'yyyy-MM-dd') return yyyy + '-' + mm + '-' + dd;
+        if (fmt === 'dd/MM/yyyy HH:mm') return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
         return dd + '/' + mm + '/' + yyyy;
     }
 
@@ -168,9 +177,34 @@ var IMSDatePicker = (function () {
 
         html += '</div>';
 
-        // Footer: Today + Clear
+        if (inst.showTime) {
+            var curHour = inst.selectedDate ? inst.selectedDate.getHours() : 0;
+            var curMin = inst.selectedDate ? inst.selectedDate.getMinutes() : 0;
+
+            html += '<div class="ims-dp-time">';
+            html += '<label class="ims-dp-time-label"><i class="fa fa-clock-o me-1"></i>Time:</label>';
+            html += '<select class="ims-dp-time-hour" aria-label="Hour">';
+            for (var h = 0; h < 24; h++) {
+                var hStr = String(h).padStart(2, '0');
+                html += '<option value="' + h + '"' + (h === curHour ? ' selected' : '') + '>' + hStr + '</option>';
+            }
+            html += '</select>';
+            html += '<span class="ims-dp-time-sep">:</span>';
+            html += '<select class="ims-dp-time-min" aria-label="Minute">';
+            for (var min = 0; min < 60; min += 5) {
+                var minStr = String(min).padStart(2, '0');
+                html += '<option value="' + min + '"' + (min === Math.floor(curMin / 5) * 5 ? ' selected' : '') + '>' + minStr + '</option>';
+            }
+            html += '</select>';
+            html += '</div>';
+        }
+
+        // Footer: Today/Now + Apply + Clear
         html += '<div class="ims-dp-footer">';
-        html += '<button type="button" class="ims-dp-btn ims-dp-today-btn">Today</button>';
+        html += '<button type="button" class="ims-dp-btn ims-dp-today-btn">' + (inst.showTime ? 'Now' : 'Today') + '</button>';
+        if (inst.showTime) {
+            html += '<button type="button" class="ims-dp-btn ims-dp-apply-btn">Apply</button>';
+        }
         html += '<button type="button" class="ims-dp-btn ims-dp-clear-btn">Clear</button>';
         html += '</div>';
 
@@ -179,7 +213,8 @@ var IMSDatePicker = (function () {
         // Bind calendar events
         cal.find('.ims-dp-day:not(.ims-dp-disabled):not(.ims-dp-empty)').on('click', function () {
             var day = parseInt($(this).data('day'));
-            selectDate(inst, new Date(year, month, day));
+            selectDate(inst, new Date(year, month, day), !inst.showTime);
+            if (inst.showTime) renderCalendar(inst);
         });
 
         cal.find('.ims-dp-prev-month').on('click', function () {
@@ -200,8 +235,29 @@ var IMSDatePicker = (function () {
             renderCalendar(inst);
         });
 
+        cal.find('.ims-dp-time-hour, .ims-dp-time-min').on('change', function () {
+            var hour = parseInt(cal.find('.ims-dp-time-hour').val(), 10) || 0;
+            var minute = parseInt(cal.find('.ims-dp-time-min').val(), 10) || 0;
+            var baseDate = inst.selectedDate || today();
+            var updated = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), hour, minute, 0);
+            updateSelection(inst, updated, false);
+        });
+
+        cal.find('.ims-dp-apply-btn').on('click', function () {
+            if (!inst.selectedDate) {
+                var hour = parseInt(cal.find('.ims-dp-time-hour').val(), 10) || 0;
+                var minute = parseInt(cal.find('.ims-dp-time-min').val(), 10) || 0;
+                var t = today();
+                selectDate(inst, new Date(t.getFullYear(), t.getMonth(), t.getDate(), hour, minute, 0), true);
+            } else {
+                hideCalendar(inst);
+            }
+        });
+
         cal.find('.ims-dp-today-btn').on('click', function () {
-            selectDate(inst, today());
+            var now = new Date();
+            selectDate(inst, now, !inst.showTime);
+            if (inst.showTime) renderCalendar(inst);
         });
 
         cal.find('.ims-dp-clear-btn').on('click', function () {
@@ -221,12 +277,28 @@ var IMSDatePicker = (function () {
         renderCalendar(inst);
     }
 
-    function selectDate(inst, date) {
+    function selectDate(inst, date, shouldHide) {
+        if (shouldHide === undefined) shouldHide = !inst.showTime;
+        if (inst.showTime) {
+            var hour = inst.calendarEl.find('.ims-dp-time-hour').length
+                ? (parseInt(inst.calendarEl.find('.ims-dp-time-hour').val(), 10) || 0)
+                : (inst.selectedDate ? inst.selectedDate.getHours() : date.getHours());
+            var minute = inst.calendarEl.find('.ims-dp-time-min').length
+                ? (parseInt(inst.calendarEl.find('.ims-dp-time-min').val(), 10) || 0)
+                : (inst.selectedDate ? inst.selectedDate.getMinutes() : date.getMinutes());
+            date = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, minute, 0);
+        }
+        updateSelection(inst, date, shouldHide);
+    }
+
+    function updateSelection(inst, date, shouldHide) {
         inst.selectedDate = date;
         inst.inputEl.val(formatDate(date, inst.valueFormat));
         inst.displayEl.text(formatDate(date, inst.format));
         inst.displayEl.removeClass('ims-dp-placeholder');
-        hideCalendar(inst);
+        if (shouldHide) {
+            hideCalendar(inst);
+        }
         inst.inputEl.trigger('change');
         if (typeof inst.onChange === 'function') {
             inst.onChange(formatDate(date, inst.valueFormat), date);
@@ -328,6 +400,7 @@ var IMSDatePicker = (function () {
             minDate: null,
             maxDate: null,
             required: false,
+            showTime: false,
             onChange: null
         }, options);
 
@@ -379,6 +452,7 @@ var IMSDatePicker = (function () {
             minDate: minDate,
             maxDate: maxDate,
             required: settings.required,
+            showTime: settings.showTime,
             onChange: settings.onChange,
             selectedDate: initialDate,
             viewYear: initialDate ? initialDate.getFullYear() : today().getFullYear(),
@@ -519,15 +593,18 @@ var IMSDatePicker = (function () {
             var $el = $(this);
             if (_instances[$el.attr('id') || $el.data('column')]) return;
 
+            var isTime = $el.data('show-time') === true || $el.data('show-time') === 'true';
+
             init({
                 input: '#' + ($el.attr('id') || $el.data('column')),
-                format: $el.data('format') || 'dd/MM/yyyy',
-                valueFormat: $el.data('value-format') || 'yyyy-MM-dd',
-                placeholder: $el.data('placeholder') || 'DD/MM/YYYY',
+                format: $el.data('format') || (isTime ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'),
+                valueFormat: $el.data('value-format') || (isTime ? 'yyyy-MM-ddTHH:mm' : 'yyyy-MM-dd'),
+                placeholder: $el.data('placeholder') || (isTime ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY'),
                 allowFutureDates: $el.data('allow-future') !== false,
                 allowPastDates: $el.data('allow-past') !== false,
                 minDate: $el.data('min-date') || null,
                 maxDate: $el.data('max-date') || null,
+                showTime: isTime,
                 required: $el.data('required') === true || $el.data('required') === 'true'
             });
         });

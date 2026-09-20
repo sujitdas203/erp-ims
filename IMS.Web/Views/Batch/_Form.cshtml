@@ -39,6 +39,7 @@
     <div class="col-md-4">
         <label for="BT_EndDate" class="form-label">End Date</label>
         @Html.TextBoxFor(m => m.BT_EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "BT_EndDate" })
+        <div class="text-danger small field-error" data-for="BT_EndDate"></div>
     </div>
     <div class="col-md-4">
         <label for="BT_Capacity" class="form-label">Capacity</label>
@@ -47,6 +48,7 @@
     <div class="col-md-4">
         <label for="BT_Status" class="form-label">Status <span class="text-danger">*</span></label>
         <select id="BT_Status" name="BT_Status" class="form-select" data-selected-value="@(Model.BT_Status)"></select>
+        <div class="text-danger small field-error" data-for="BT_Status"></div>
     </div>
 </div>
 

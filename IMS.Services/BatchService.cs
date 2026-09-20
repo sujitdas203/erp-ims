@@ -117,6 +117,9 @@ namespace IMS.Services
 
         public async Task<ServiceResult> CreateBatchAsync(BatchFormViewModel model, Guid tenantId)
         {
+            if (!model.BT_StartDate.HasValue)
+                return ServiceResult.Fail("Start Date is required.");
+
             if (!string.IsNullOrWhiteSpace(model.BT_Code) &&
                 await _repo.IsCodeTakenAsync(tenantId, model.BT_Code, null))
                 return ServiceResult.Fail("This batch code is already in use.");
@@ -130,6 +133,9 @@ namespace IMS.Services
         {
             if (!model.BT_Id.HasValue)
                 return ServiceResult.Fail("Batch Id is required for update.");
+
+            if (!model.BT_StartDate.HasValue)
+                return ServiceResult.Fail("Start Date is required.");
 
             if (await _repo.IsCodeTakenAsync(tenantId, model.BT_Code, model.BT_Id))
                 return ServiceResult.Fail("This batch code is already in use.");
@@ -197,7 +203,7 @@ namespace IMS.Services
             BT_AcademicYearId = m.BT_AcademicYearId,
             BT_Name = m.BT_Name,
             BT_Code = m.BT_Code,
-            BT_StartDate = m.BT_StartDate,
+            BT_StartDate = m.BT_StartDate!.Value,   // null guard is in Create/UpdateBatchAsync
             BT_EndDate = m.BT_EndDate,
             BT_Capacity = m.BT_Capacity,
             BT_Status = m.BT_Status
