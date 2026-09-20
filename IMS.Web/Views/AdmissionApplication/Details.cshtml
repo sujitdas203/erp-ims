@@ -1,88 +1,897 @@
 @model IMS.Models.ViewModels.AdmissionApplicationDetailsViewModel
-@{ ViewData["Title"] = "Application Details"; }
+@{ ViewData["Title"] = "Application Details - " + Model.AA_ApplicationNumber; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-file-lines me-2"></i>@Model.AA_ApplicationNumber</h3>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.AA_Id" class="btn btn-outline-primary"><i class="fa-solid fa-pen me-1"></i> Edit</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice text-primary me-2"></i>@Model.AA_ApplicationNumber</h4>
+            <span class="badge @StatusBadge(Model.AA_Status) fs-6 px-3 py-2 rounded-pill">@Model.AA_Status</span>
+        </div>
+        <p class="text-muted small mb-0">Applicant: <strong>@Model.FullName</strong> | Applied for: <strong>@(Model.ClassName ?? Model.CourseName ?? "General")</strong> (@Model.AcademicYearName)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="fa-solid fa-print me-1"></i> Print Form
+        </button>
+        <a asp-action="Edit" asp-route-id="@Model.AA_Id" class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-pen me-1"></i> Edit Application
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
 </div>
 
 <div class="row g-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5 class="mb-0">Applicant Information</h5></div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Application Number</dt><dd class="col-sm-8">@Model.AA_ApplicationNumber</dd>
-                    <dt class="col-sm-4">Name</dt><dd class="col-sm-8">@Model.FullName</dd>
-                    <dt class="col-sm-4">Date of Birth</dt><dd class="col-sm-8">@(Model.AA_DateOfBirth?.ToString("dd-MMM-yyyy") ?? "-")</dd>
-                    <dt class="col-sm-4">Gender</dt><dd class="col-sm-8">@(Model.AA_Gender ?? "-")</dd>
-                    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">@(Model.AA_Email ?? "-")</dd>
-                    <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">@Model.AA_Phone</dd>
-                    <dt class="col-sm-4">Course</dt><dd class="col-sm-8">@Model.CourseName</dd>
-                    <dt class="col-sm-4">Academic Year</dt><dd class="col-sm-8">@Model.AcademicYearName</dd>
+    <!-- Left Column: Comprehensive Application Details -->
+    <div class="col-lg-8">
+        <!-- 1. Student Personal Profile & Photo -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-user text-primary me-2"></i>1. Student Personal Profile &amp; Photo</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-start">
+                    <!-- Photo Display -->
+                    <div class="col-sm-4 col-md-3 text-center border-end pe-3">
+                        <div class="position-relative d-inline-block mb-2">
+                            <img id="detailStudentPhotoImg"
+                                 src="@(!string.IsNullOrWhiteSpace(Model.AA_StudentPhotoUrl) ? Model.AA_StudentPhotoUrl : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='150' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>")" 
+                                 alt="@Model.FullName" 
+                                 class="rounded-3 shadow-sm border img-thumbnail" 
+                                 style="width: 130px; height: 150px; object-fit: cover; background: #f8fafc; cursor: pointer;"
+                                 onclick="if ('@Model.AA_StudentPhotoUrl') openDocPreview('@Model.AA_StudentPhotoUrl', 'Student Photo - @Model.FullName', 'image')"
+                                 onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'130\' height=\'150\' viewBox=\'0 0 24 24\' fill=\'%2394a3b8\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'" />
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            @if (!string.IsNullOrWhiteSpace(Model.AA_StudentPhotoUrl))
+                            {
+                                <button type="button" class="btn btn-outline-primary btn-sm py-1" style="font-size:0.75rem;" onclick="openDocPreview('@Model.AA_StudentPhotoUrl', 'Student Photo - @Model.FullName', 'image')">
+                                    <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Preview Photo
+                                </button>
+                            }
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-1" style="font-size:0.75rem;" onclick="openUploadModal('photo', 'Student Photograph')">
+                                <i class="fa-solid fa-camera me-1"></i> @(string.IsNullOrWhiteSpace(Model.AA_StudentPhotoUrl) ? "Upload Photo" : "Change Photo")
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information Details -->
+                    <div class="col-sm-8 col-md-9">
+                        <div class="row g-2">
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Full Name</span>
+                                <span class="fw-bold text-dark">@Model.FullName</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Date of Birth</span>
+                                <span class="fw-semibold">@(Model.AA_DateOfBirth?.ToString("dd-MMM-yyyy") ?? "-")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Gender</span>
+                                <span class="fw-semibold">@(Model.AA_Gender ?? "-")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Blood Group</span>
+                                <span class="fw-semibold badge bg-danger-subtle text-danger border border-danger">@(Model.AA_BloodGroup ?? "Not Specified")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Category / Quota</span>
+                                <span class="fw-semibold">@(Model.AA_Category ?? "General")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Nationality</span>
+                                <span class="fw-semibold">@(Model.AA_Nationality ?? "Indian")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Religion</span>
+                                <span class="fw-semibold">@(Model.AA_Religion ?? "-")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Aadhaar / National ID</span>
+                                <span class="fw-semibold">@(Model.AA_AadhaarNumber ?? "-")</span>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                                <span class="text-muted small d-block">Student Mobile</span>
+                                <span class="fw-semibold text-primary">@Model.AA_Phone</span>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Student Email</span>
+                                <span class="fw-semibold">@(Model.AA_Email ?? "-")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Academic & Campus Preferences -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap text-primary me-2"></i>2. Academic Preferences &amp; Fee Structure</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Branch / Campus</span>
+                        <span class="fw-semibold">@(Model.BranchName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Academic Year</span>
+                        <span class="fw-semibold">@(Model.AcademicYearName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Applying For Grade</span>
+                        <span class="fw-semibold">@(Model.ClassName ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Course / Stream</span>
+                        <span class="fw-semibold">@(Model.CourseName ?? "-")</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.FeeStructureName))
+                    {
+                        <div class="col-12 mt-2 pt-2 border-top">
+                            <span class="text-muted small d-block">Assigned Fee Plan:</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 fs-6">@Model.FeeStructureName</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Parent & Guardian Details -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-users text-primary me-2"></i>3. Parents &amp; Guardian Information</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <!-- Father -->
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold text-primary small pb-1 border-bottom"><i class="fa-solid fa-user-tie me-1"></i> Father's Details</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-4 text-muted">Name:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherName ?? "-")</dd>
+                            <dt class="col-4 text-muted">Phone:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherPhone ?? "-")</dd>
+                            <dt class="col-4 text-muted">Occupation:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherOccupation ?? "-")</dd>
+                            <dt class="col-4 text-muted">Email:</dt><dd class="col-8 fw-semibold">@(Model.AA_FatherEmail ?? "-")</dd>
+                        </dl>
+                    </div>
+                    <!-- Mother -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-primary small pb-1 border-bottom"><i class="fa-solid fa-person-dress me-1"></i> Mother's Details</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-4 text-muted">Name:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherName ?? "-")</dd>
+                            <dt class="col-4 text-muted">Phone:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherPhone ?? "-")</dd>
+                            <dt class="col-4 text-muted">Occupation:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherOccupation ?? "-")</dd>
+                            <dt class="col-4 text-muted">Email:</dt><dd class="col-8 fw-semibold">@(Model.AA_MotherEmail ?? "-")</dd>
+                        </dl>
+                    </div>
+                    <!-- Guardian if provided -->
+                    @if (!string.IsNullOrWhiteSpace(Model.AA_GuardianName))
+                    {
+                        <div class="col-12 border-top pt-2 mt-2">
+                            <h6 class="fw-bold text-secondary small pb-1"><i class="fa-solid fa-shield-heart me-1"></i> Other Guardian Details</h6>
+                            <dl class="row mb-0 small">
+                                <dt class="col-sm-2 text-muted">Name:</dt><dd class="col-sm-4 fw-semibold">@Model.AA_GuardianName (@(Model.AA_GuardianRelation ?? "Guardian"))</dd>
+                                <dt class="col-sm-2 text-muted">Phone:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianPhone ?? "-")</dd>
+                                <dt class="col-sm-2 text-muted">Occupation:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianOccupation ?? "-")</dd>
+                                <dt class="col-sm-2 text-muted">Email:</dt><dd class="col-sm-4 fw-semibold">@(Model.AA_GuardianEmail ?? "-")</dd>
+                            </dl>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Address & Emergency Contacts -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-location-dot text-primary me-2"></i>4. Residential Address &amp; Emergency Contact</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-8">
+                        <span class="text-muted small d-block">Complete Address</span>
+                        <span class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.FullAddress) ? "-" : Model.FullAddress)</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small d-block">City / PIN / Country</span>
+                        <span class="fw-semibold">@(Model.AA_City ?? "-"), @(Model.AA_PostalCode ?? "-"), @(Model.AA_Country ?? "-")</span>
+                    </div>
+                </div>
+                <div class="border-top pt-2">
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block"><i class="fa-solid fa-user-shield me-1"></i> Emergency Contact Name</span>
+                            <span class="fw-semibold">@(Model.AA_EmergencyContactName ?? "-")</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block"><i class="fa-solid fa-phone me-1"></i> Emergency Contact Mobile</span>
+                            <span class="fw-semibold text-danger">@(Model.AA_EmergencyContactPhone ?? "-")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Previous Academic History & Documents -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-school text-primary me-2"></i>5. Previous Academic Background &amp; Uploaded Documents</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6 col-md-4">
+                        <span class="text-muted small d-block">Previous School</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousSchool ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Board / Univ</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousBoard ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Grade Passed</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousGrade ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">Marks / %</span>
+                        <span class="fw-semibold">@(Model.AA_PreviousMarks ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <span class="text-muted small d-block">TC Number</span>
+                        <span class="fw-semibold">@(Model.AA_TransferCertificateNumber ?? "-")</span>
+                    </div>
+                </div>
+
+                <!-- Attached Documents Preview -->
+                <div class="d-flex align-items-center justify-content-between border-top pt-3 mb-3">
+                    <h6 class="text-primary fw-bold mb-0"><i class="fa-solid fa-paperclip me-1"></i> Uploaded Documents &amp; Certificates</h6>
+                    <span class="text-muted small">Click document to preview or upload missing certificates</span>
+                </div>
+                
+                <div class="row g-3">
+                    <!-- 1. Birth Certificate -->
+                    <div class="col-sm-6 col-md-3">
+                        <div class="card h-100 border shadow-none bg-light rounded-3 p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-dark text-truncate" title="Birth Certificate">
+                                        <i class="fa-solid fa-certificate text-primary me-1"></i> Birth Certificate
+                                    </span>
+                                    <span class="badge @(!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl) ? "bg-success-subtle text-success border border-success" : "bg-secondary-subtle text-secondary")" style="font-size:0.7rem;">
+                                        @(!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl) ? "Attached" : "Missing")
+                                    </span>
+                                </div>
+
+                                <div class="rounded-2 border bg-white text-center p-2 mb-2 d-flex flex-column align-items-center justify-content-center" style="height: 110px; overflow: hidden; position: relative;">
+                                    @if (!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl))
+                                    {
+                                        if (IsImgUrl(Model.AA_BirthCertificateUrl))
+                                        {
+                                            <img src="@Model.AA_BirthCertificateUrl" alt="Birth Certificate" class="img-fluid rounded" style="max-height: 95px; max-width: 100%; object-fit: contain; cursor: pointer;" onclick="openDocPreview('@Model.AA_BirthCertificateUrl', 'Birth Certificate - @Model.FullName', 'image')" />
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-file-pdf text-danger display-6 mb-1" style="cursor: pointer;" onclick="openDocPreview('@Model.AA_BirthCertificateUrl', 'Birth Certificate - @Model.FullName', 'pdf')"></i>
+                                            <span class="small text-muted text-truncate w-100" style="font-size:0.72rem;">PDF Document</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-file text-muted fs-3 mb-1"></i>
+                                        <span class="text-muted small" style="font-size:0.72rem;">Not Uploaded</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                @if (!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill py-1 px-1" style="font-size:0.72rem;" onclick="openDocPreview('@Model.AA_BirthCertificateUrl', 'Birth Certificate - @Model.FullName', '@(IsPdfUrl(Model.AA_BirthCertificateUrl) ? "pdf" : "image")')">
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </button>
+                                    <a href="@Model.AA_BirthCertificateUrl" download target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.72rem;" title="Download / Open">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-@(!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl) ? "secondary" : "primary") @(!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl) ? "" : "w-100") py-1 px-1" style="font-size:0.72rem;" onclick="openUploadModal('birthcert', 'Birth Certificate')">
+                                    <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> @(!string.IsNullOrWhiteSpace(Model.AA_BirthCertificateUrl) ? "Replace" : "Upload")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Previous Marksheet -->
+                    <div class="col-sm-6 col-md-3">
+                        <div class="card h-100 border shadow-none bg-light rounded-3 p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-dark text-truncate" title="Previous Marksheet">
+                                        <i class="fa-solid fa-file-invoice text-info me-1"></i> Marksheet
+                                    </span>
+                                    <span class="badge @(!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl) ? "bg-success-subtle text-success border border-success" : "bg-secondary-subtle text-secondary")" style="font-size:0.7rem;">
+                                        @(!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl) ? "Attached" : "Missing")
+                                    </span>
+                                </div>
+
+                                <div class="rounded-2 border bg-white text-center p-2 mb-2 d-flex flex-column align-items-center justify-content-center" style="height: 110px; overflow: hidden; position: relative;">
+                                    @if (!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl))
+                                    {
+                                        if (IsImgUrl(Model.AA_MarksheetUrl))
+                                        {
+                                            <img src="@Model.AA_MarksheetUrl" alt="Previous Marksheet" class="img-fluid rounded" style="max-height: 95px; max-width: 100%; object-fit: contain; cursor: pointer;" onclick="openDocPreview('@Model.AA_MarksheetUrl', 'Marksheet - @Model.FullName', 'image')" />
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-file-pdf text-danger display-6 mb-1" style="cursor: pointer;" onclick="openDocPreview('@Model.AA_MarksheetUrl', 'Marksheet - @Model.FullName', 'pdf')"></i>
+                                            <span class="small text-muted text-truncate w-100" style="font-size:0.72rem;">PDF Document</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-file text-muted fs-3 mb-1"></i>
+                                        <span class="text-muted small" style="font-size:0.72rem;">Not Uploaded</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                @if (!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill py-1 px-1" style="font-size:0.72rem;" onclick="openDocPreview('@Model.AA_MarksheetUrl', 'Marksheet - @Model.FullName', '@(IsPdfUrl(Model.AA_MarksheetUrl) ? "pdf" : "image")')">
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </button>
+                                    <a href="@Model.AA_MarksheetUrl" download target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.72rem;" title="Download / Open">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-@(!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl) ? "secondary" : "primary") @(!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl) ? "" : "w-100") py-1 px-1" style="font-size:0.72rem;" onclick="openUploadModal('marksheet', 'Previous Marksheet')">
+                                    <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> @(!string.IsNullOrWhiteSpace(Model.AA_MarksheetUrl) ? "Replace" : "Upload")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Transfer Certificate -->
+                    <div class="col-sm-6 col-md-3">
+                        <div class="card h-100 border shadow-none bg-light rounded-3 p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-dark text-truncate" title="Transfer Certificate">
+                                        <i class="fa-solid fa-right-left text-warning me-1"></i> TC / Migration
+                                    </span>
+                                    <span class="badge @(!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl) ? "bg-success-subtle text-success border border-success" : "bg-secondary-subtle text-secondary")" style="font-size:0.7rem;">
+                                        @(!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl) ? "Attached" : "Missing")
+                                    </span>
+                                </div>
+
+                                <div class="rounded-2 border bg-white text-center p-2 mb-2 d-flex flex-column align-items-center justify-content-center" style="height: 110px; overflow: hidden; position: relative;">
+                                    @if (!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl))
+                                    {
+                                        if (IsImgUrl(Model.AA_TransferCertificateUrl))
+                                        {
+                                            <img src="@Model.AA_TransferCertificateUrl" alt="Transfer Certificate" class="img-fluid rounded" style="max-height: 95px; max-width: 100%; object-fit: contain; cursor: pointer;" onclick="openDocPreview('@Model.AA_TransferCertificateUrl', 'Transfer Certificate - @Model.FullName', 'image')" />
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-file-pdf text-danger display-6 mb-1" style="cursor: pointer;" onclick="openDocPreview('@Model.AA_TransferCertificateUrl', 'Transfer Certificate - @Model.FullName', 'pdf')"></i>
+                                            <span class="small text-muted text-truncate w-100" style="font-size:0.72rem;">PDF Document</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-file text-muted fs-3 mb-1"></i>
+                                        <span class="text-muted small" style="font-size:0.72rem;">Not Uploaded</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                @if (!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill py-1 px-1" style="font-size:0.72rem;" onclick="openDocPreview('@Model.AA_TransferCertificateUrl', 'Transfer Certificate - @Model.FullName', '@(IsPdfUrl(Model.AA_TransferCertificateUrl) ? "pdf" : "image")')">
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </button>
+                                    <a href="@Model.AA_TransferCertificateUrl" download target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.72rem;" title="Download / Open">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-@(!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl) ? "secondary" : "primary") @(!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl) ? "" : "w-100") py-1 px-1" style="font-size:0.72rem;" onclick="openUploadModal('tc', 'Transfer Certificate (TC)')">
+                                    <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> @(!string.IsNullOrWhiteSpace(Model.AA_TransferCertificateUrl) ? "Replace" : "Upload")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Aadhaar / National ID -->
+                    <div class="col-sm-6 col-md-3">
+                        <div class="card h-100 border shadow-none bg-light rounded-3 p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-dark text-truncate" title="National ID / Aadhaar Card">
+                                        <i class="fa-solid fa-id-card text-success me-1"></i> Aadhaar / ID
+                                    </span>
+                                    <span class="badge @(!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl) ? "bg-success-subtle text-success border border-success" : "bg-secondary-subtle text-secondary")" style="font-size:0.7rem;">
+                                        @(!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl) ? "Attached" : "Missing")
+                                    </span>
+                                </div>
+
+                                <div class="rounded-2 border bg-white text-center p-2 mb-2 d-flex flex-column align-items-center justify-content-center" style="height: 110px; overflow: hidden; position: relative;">
+                                    @if (!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl))
+                                    {
+                                        if (IsImgUrl(Model.AA_NationalIdDocUrl))
+                                        {
+                                            <img src="@Model.AA_NationalIdDocUrl" alt="National ID / Aadhaar" class="img-fluid rounded" style="max-height: 95px; max-width: 100%; object-fit: contain; cursor: pointer;" onclick="openDocPreview('@Model.AA_NationalIdDocUrl', 'National ID / Aadhaar - @Model.FullName', 'image')" />
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-file-pdf text-danger display-6 mb-1" style="cursor: pointer;" onclick="openDocPreview('@Model.AA_NationalIdDocUrl', 'National ID / Aadhaar - @Model.FullName', 'pdf')"></i>
+                                            <span class="small text-muted text-truncate w-100" style="font-size:0.72rem;">PDF Document</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-file text-muted fs-3 mb-1"></i>
+                                        <span class="text-muted small" style="font-size:0.72rem;">Not Uploaded</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                @if (!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill py-1 px-1" style="font-size:0.72rem;" onclick="openDocPreview('@Model.AA_NationalIdDocUrl', 'National ID / Aadhaar - @Model.FullName', '@(IsPdfUrl(Model.AA_NationalIdDocUrl) ? "pdf" : "image")')">
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </button>
+                                    <a href="@Model.AA_NationalIdDocUrl" download target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.72rem;" title="Download / Open">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-@(!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl) ? "secondary" : "primary") @(!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl) ? "" : "w-100") py-1 px-1" style="font-size:0.72rem;" onclick="openUploadModal('nationalid', 'Aadhaar / National ID Document')">
+                                    <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> @(!string.IsNullOrWhiteSpace(Model.AA_NationalIdDocUrl) ? "Replace" : "Upload")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Facilities, Medical & Special Preferences -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-shield-heart text-primary me-2"></i>6. Facilities, Medical &amp; Special Preferences</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Second Language</span>
+                        <span class="fw-semibold">@(Model.AA_SecondLanguage ?? "Not Selected")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Mother Tongue</span>
+                        <span class="fw-semibold">@(Model.AA_MotherTongue ?? "-")</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">School Transport</span>
+                        <span class="badge @(Model.AA_RequiresTransport ? "bg-success" : "bg-secondary")">@(Model.AA_RequiresTransport ? "Requested" : "No")</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.AA_TransportPickupPoint))
+                        {
+                            <small class="d-block text-muted">Stop: @Model.AA_TransportPickupPoint</small>
+                        }
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="text-muted small d-block">Hostel Facility</span>
+                        <span class="badge @(Model.AA_RequiresHostel ? "bg-success" : "bg-secondary")">@(Model.AA_RequiresHostel ? "Requested" : "No")</span>
+                    </div>
+                    @if (Model.AA_HasSibling)
+                    {
+                        <div class="col-12 mt-2 pt-2 border-top">
+                            <span class="text-muted small d-block">Sibling Study Reference:</span>
+                            <span class="fw-semibold text-info"><i class="fa-solid fa-people-arrows me-1"></i>@Model.AA_SiblingDetails</span>
+                        </div>
+                    }
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <span class="text-muted small d-block">Medical Conditions / Allergies / Special Needs:</span>
+                        <span class="fw-semibold text-danger">@(string.IsNullOrWhiteSpace(Model.AA_MedicalConditions) ? "None reported." : Model.AA_MedicalConditions)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Review, Enrollment & Audit Status -->
+    <div class="col-lg-4">
+        <!-- Enrollment Quick Action for Approved Applicants -->
+        @if (Model.AA_Status == "Approved")
+        {
+            <div class="card border-0 shadow-sm rounded-3 mb-3" style="background: linear-gradient(135deg, #10b981, #059669); color:#fff;">
+                <div class="card-body p-3 text-center">
+                    <i class="fa-solid fa-user-check fs-2 mb-2"></i>
+                    <h5 class="fw-bold text-white mb-1">Application Approved!</h5>
+                    <p class="small text-white-50 mb-3">Convert this applicant into an active admitted student and create enrollment &amp; guardian linkages automatically.</p>
+                    <button type="button" class="btn btn-light text-success fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#enrollModal">
+                        <i class="fa-solid fa-id-card me-1"></i> Enroll as Student Now
+                    </button>
+                </div>
+            </div>
+        }
+        else if (Model.AA_Status == "Enrolled")
+        {
+            <div class="card border-0 shadow-sm rounded-3 mb-3 bg-success-subtle border border-success">
+                <div class="card-body p-3 text-center text-success">
+                    <i class="fa-solid fa-circle-check fs-3 mb-1"></i>
+                    <h6 class="fw-bold mb-1">Student Successfully Enrolled</h6>
+                    @if (Model.AA_AdmittedStudentId.HasValue)
+                    {
+                        <p class="small text-muted mb-2">Student Code: <strong>@Model.AdmittedStudentCode</strong></p>
+                        <a href="/Students/Details/@Model.AA_AdmittedStudentId" class="btn btn-success btn-sm px-3 rounded-pill">
+                            <i class="fa-solid fa-graduation-cap me-1"></i> View Student Master Profile
+                        </a>
+                    }
+                    else
+                    {
+                        <small class="text-muted">Student &amp; Guardian records are active in the registry.</small>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Status & Review Decision Card -->
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+            <div class="card-header bg-light py-2 px-3 border-bottom">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-stamp text-primary me-2"></i>Review &amp; Decision</span>
+            </div>
+            <div class="card-body p-3">
+                <form id="reviewForm">
+                    <input type="hidden" name="AA_Id" value="@Model.AA_Id" />
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Update Decision Status <span class="text-danger">*</span></label>
+                        <select id="review_AA_Status" name="AA_Status" class="form-select" data-selected-value="@Model.AA_Status" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Reviewer Remarks / Notes</label>
+                        <textarea name="AA_Notes" class="form-control" rows="3" placeholder="Enter decision rationale or admission notes...">@Model.AA_Notes</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Save Review Decision
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Submission Audit Details -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-light py-2 px-3 border-bottom">
+                <span class="fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Audit Information</span>
+            </div>
+            <div class="card-body p-3">
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-muted">Submitted:</dt>
+                    <dd class="col-7 fw-semibold">@(Model.AA_SubmittedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "-")</dd>
+                    
+                    <dt class="col-5 text-muted">Reviewed:</dt>
+                    <dd class="col-7 fw-semibold">@(Model.AA_ReviewedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "Pending")</dd>
+                    
+                    <dt class="col-5 text-muted">Created At:</dt>
+                    <dd class="col-7">@Model.AA_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
+                    
+                    <dt class="col-5 text-muted">Last Updated:</dt>
+                    <dd class="col-7">@Model.AA_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
                 </dl>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header"><h5 class="mb-0">Status</h5></div>
-            <div class="card-body text-center">
-                <h4><span class="badge @StatusBadge(Model.AA_Status) fs-6">@Model.AA_Status</span></h4>
-                <p class="text-muted small mb-0">Submitted: @(Model.AA_SubmittedAt?.ToString("dd-MMM-yyyy HH:mm") ?? "-")</p>
-                @if (Model.AA_ReviewedAt.HasValue)
-                {
-                    <p class="text-muted small">Reviewed: @Model.AA_ReviewedAt.Value.ToString("dd-MMM-yyyy HH:mm")</p>
-                }
+</div>
+
+<!-- Enroll as Student Modal -->
+<div class="modal fade" id="enrollModal" tabindex="-1" aria-labelledby="enrollModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="enrollModalLabel"><i class="fa-solid fa-user-plus me-2"></i>Enroll Applicant as Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-        <div class="card shadow-sm mt-3">
-            <div class="card-header"><h5 class="mb-0">Review</h5></div>
-            <div class="card-body">
-                <form id="reviewForm">
+            <form id="enrollForm">
+                <div class="modal-body p-4">
                     <input type="hidden" name="AA_Id" value="@Model.AA_Id" />
-                    <div class="mb-3">
-                        <label class="form-label">Decision</label>
-                        <select id="AA_Status" name="AA_Status" class="form-select"></select>
+                    <input type="hidden" name="BranchId" value="@Model.AA_BranchId" />
+                    <input type="hidden" name="AcademicYearId" value="@Model.AA_AcademicYearId" />
+                    <input type="hidden" name="CourseId" value="@Model.AA_CourseId" />
+                    
+                    <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
+                        <i class="fa-solid fa-info-circle me-1"></i> Applicant <strong>@Model.FullName</strong> will be admitted and registered with permanent identity and an active annual enrollment.
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes</label>
-                        <textarea name="AA_Notes" class="form-control" rows="3">@Model.AA_Notes</textarea>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Admission Number</label>
+                            <input type="text" name="AdmissionNumber" class="form-control" value="@Model.AA_ApplicationNumber" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Roll Number (Optional)</label>
+                            <input type="text" name="RollNumber" class="form-control" placeholder="e.g. 101" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Assigned Class / Grade</label>
+                            <select id="enroll_ClassId" name="ClassId" class="form-select" data-selected-value="@(Model.AA_ClassId?.ToString())"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Assigned Section</label>
+                            <select id="enroll_SectionId" name="SectionId" class="form-select"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Assigned Batch</label>
+                            <select id="enroll_BatchId" name="BatchId" class="form-select"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fee Structure / Plan</label>
+                            <select id="enroll_FeeStructureId" name="FeeStructureId" class="form-select" data-selected-value="@(Model.AA_FeeStructureId?.ToString())"></select>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-check me-1"></i> Submit Review</button>
-                </form>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4" id="btnConfirmEnroll">
+                        <i class="fa-solid fa-check me-1"></i> Confirm &amp; Enroll
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Document & Photo Preview Modal (Universal Lightbox & Embedded PDF Viewer) -->
+<div class="modal fade" id="docPreviewModal" tabindex="-1" aria-labelledby="docPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-file-lines text-primary fs-5" id="docPreviewIcon"></i>
+                    <h5 class="modal-title fw-bold mb-0 text-white" id="docPreviewModalLabel">Document Preview</h5>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a id="btnDocDownload" href="#" download target="_blank" class="btn btn-outline-light btn-sm">
+                        <i class="fa-solid fa-download me-1"></i> Download / Open Full
+                    </a>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0 text-center bg-dark-subtle" style="min-height: 450px; display: flex; align-items: center; justify-content: center;">
+                <!-- Image Container -->
+                <div id="imgPreviewContainer" class="p-3 w-100" style="display: none;">
+                    <img id="imgPreviewSrc" src="" alt="Document Preview" class="img-fluid rounded shadow" style="max-height: 75vh; object-fit: contain;" />
+                </div>
+                <!-- PDF Container -->
+                <div id="pdfPreviewContainer" class="w-100" style="display: none; height: 75vh;">
+                    <iframe id="pdfPreviewFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
             </div>
         </div>
-        <div class="card shadow-sm mt-3">
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Created</dt><dd class="col-sm-7">@Model.AA_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-                    <dt class="col-sm-5">Updated</dt><dd class="col-sm-7">@Model.AA_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-                </dl>
+    </div>
+</div>
+
+<!-- Upload / Replace Attachment Modal -->
+<div class="modal fade" id="uploadDocModal" tabindex="-1" aria-labelledby="uploadDocModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="uploadDocModalLabel"><i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload Document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form id="uploadDocForm" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id" value="@Model.AA_Id" />
+                    <input type="hidden" name="docType" id="uploadDocType" value="" />
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" id="uploadDocPrompt">Select File to Upload</label>
+                        <input type="file" name="file" id="uploadDocFileInput" class="form-control" accept=".jpg,.jpeg,.png,.webp,.avif,.pdf" required />
+                        <small class="text-muted d-block mt-1">Allowed formats: JPG, PNG, WEBP, AVIF, PDF (Max 5MB)</small>
+                    </div>
+
+                    <!-- Client Preview Area in Modal -->
+                    <div id="uploadModalPreviewArea" class="rounded border p-2 text-center bg-light" style="display: none;">
+                        <img id="uploadModalImgPreview" src="" alt="Preview" class="img-fluid rounded" style="max-height: 160px; object-fit: contain; display: none;" />
+                        <div id="uploadModalFilePreview" class="py-3 text-muted small" style="display: none;">
+                            <i class="fa-solid fa-file-pdf text-danger fs-1 d-block mb-1"></i>
+                            <span id="uploadModalFileName" class="fw-bold text-dark"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4" id="btnConfirmUpload">
+                        <i class="fa-solid fa-upload me-1"></i> Upload File
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @Html.AntiForgeryToken()
 
-@functions { string StatusBadge(string s) => s switch { "Submitted" => "bg-info text-dark", "UnderReview" => "bg-warning text-dark", "Approved" => "bg-success", "Rejected" => "bg-danger", "Waitlisted" => "bg-secondary", _ => "bg-light text-dark" }; }
+@functions { 
+    bool IsImgUrl(string url) {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        var clean = url.Split('?')[0].ToLowerInvariant();
+        return clean.EndsWith(".jpg") || clean.EndsWith(".jpeg") || clean.EndsWith(".png") || clean.EndsWith(".webp") || clean.EndsWith(".avif") || clean.EndsWith(".gif");
+    }
+    bool IsPdfUrl(string url) {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        var clean = url.Split('?')[0].ToLowerInvariant();
+        return clean.EndsWith(".pdf");
+    }
+    string StatusBadge(string s) => s switch { 
+        "Submitted" => "bg-info text-dark", 
+        "UnderReview" => "bg-warning text-dark", 
+        "Approved" => "bg-success text-white", 
+        "Enrolled" => "bg-primary text-white",
+        "Rejected" => "bg-danger text-white", 
+        "Waitlisted" => "bg-secondary text-white", 
+        _ => "bg-light text-dark" 
+    }; 
+}
 
 @section Scripts {
 <script>
+function openDocPreview(url, title, type) {
+    if (!url) return;
+    $("#docPreviewModalLabel").text(title || "Document Preview");
+    $("#btnDocDownload").attr("href", url);
+
+    if (type === "pdf" || url.toLowerCase().indexOf(".pdf") !== -1) {
+        $("#docPreviewIcon").attr("class", "fa-solid fa-file-pdf text-danger fs-5");
+        $("#imgPreviewContainer").hide();
+        $("#pdfPreviewFrame").attr("src", url);
+        $("#pdfPreviewContainer").show();
+    } else {
+        $("#docPreviewIcon").attr("class", "fa-solid fa-image text-primary fs-5");
+        $("#pdfPreviewContainer").hide();
+        $("#pdfPreviewFrame").attr("src", "");
+        $("#imgPreviewSrc").attr("src", url);
+        $("#imgPreviewContainer").show();
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById("docPreviewModal"));
+    modal.show();
+}
+
+function openUploadModal(docType, docTitle) {
+    $("#uploadDocType").val(docType);
+    $("#uploadDocModalLabel").html('<i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload ' + docTitle);
+    $("#uploadDocPrompt").text('Select ' + docTitle + ' to Upload');
+    $("#uploadDocFileInput").val('');
+    $("#uploadModalPreviewArea").hide();
+    $("#uploadModalImgPreview").hide().attr("src", "");
+    $("#uploadModalFilePreview").hide();
+    
+    if (docType === "photo") {
+        $("#uploadDocFileInput").attr("accept", "image/*");
+    } else {
+        $("#uploadDocFileInput").attr("accept", ".jpg,.jpeg,.png,.webp,.avif,.pdf");
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById("uploadDocModal"));
+    modal.show();
+}
+
 $(function () {
-    Dropdown.load({ element: '#AA_Status', entityType: 'AdmissionReviewDecision', defaultText: '-- Select --', includeDefault: false });
+    Dropdown.load({ element: '#review_AA_Status', entityType: 'AdmissionReviewDecision', defaultText: '-- Select Decision --', includeDefault: false, selectedValue: $('#review_AA_Status').data('selected-value') });
+    
+    // Enroll Modal Dropdowns
+    Dropdown.load({ element: '#enroll_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true, selectedValue: $('#enroll_ClassId').data('selected-value') });
+    Dropdown.load({ element: '#enroll_SectionId', entityType: 'Section', defaultText: '-- Select Section --', includeDefault: true });
+    Dropdown.load({ element: '#enroll_BatchId', entityType: 'Batch', defaultText: '-- Select Batch --', includeDefault: true });
+    Dropdown.load({ element: '#enroll_FeeStructureId', entityType: 'FeeStructure', defaultText: '-- Select Fee Plan --', includeDefault: true, selectedValue: $('#enroll_FeeStructureId').data('selected-value') });
+
+    // File input preview inside Upload Modal
+    $("#uploadDocFileInput").on("change", function () {
+        var file = this.files && this.files[0];
+        if (!file) {
+            $("#uploadModalPreviewArea").hide();
+            return;
+        }
+
+        $("#uploadModalPreviewArea").show();
+        if (file.type && file.type.startsWith("image/")) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $("#uploadModalFilePreview").hide();
+                $("#uploadModalImgPreview").attr("src", e.target.result).show();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            $("#uploadModalImgPreview").hide();
+            $("#uploadModalFileName").text(file.name + " (" + (file.size / 1024).toFixed(1) + " KB)");
+            $("#uploadModalFilePreview").show();
+        }
+    });
+
+    // Upload Document Form Submit
+    $("#uploadDocForm").on("submit", function (e) {
+        e.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+        var $btn = $("#btnConfirmUpload");
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Uploading...');
+
+        $.ajax({
+            url: "/AdmissionApplication/UploadAttachment",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                "RequestVerificationToken": $("input[name='__RequestVerificationToken']").val()
+            },
+            success: function (r) {
+                if (r.success) {
+                    if (window.toastr) toastr.success(r.message || "Document uploaded successfully!");
+                    else alert(r.message || "Document uploaded successfully!");
+                    setTimeout(function () { location.reload(); }, 600);
+                } else {
+                    if (window.toastr) toastr.error(r.message || "Upload failed.");
+                    else alert(r.message || "Upload failed.");
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-upload me-1"></i> Upload File');
+                }
+            },
+            error: function (xhr) {
+                var resp = xhr.responseJSON;
+                var msg = (resp && resp.message) ? resp.message : "Upload request failed.";
+                if (window.toastr) toastr.error(msg);
+                else alert(msg);
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-upload me-1"></i> Upload File');
+            }
+        });
+    });
 
     $("#reviewForm").on("submit", function (e) {
         e.preventDefault();
         var $form = $(this), $btn = $form.find("button[type='submit']");
-        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
-        $.ajax({ url: "/AdmissionApplication/Review", type: "POST", data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function(){location.reload();},1000); } else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Submit Review'); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Submit Review'); }
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Updating...');
+        $.ajax({ 
+            url: "/AdmissionApplication/Review", 
+            type: "POST", 
+            data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
+            success: function (r) { 
+                if (r.success) { 
+                    if (window.toastr) toastr.success(r.message); 
+                    setTimeout(function(){ location.reload(); }, 800); 
+                } else { 
+                    if (window.toastr) toastr.error(r.message); 
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Review Decision'); 
+                } 
+            },
+            error: function () { 
+                if (window.toastr) toastr.error("Review update failed."); 
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Review Decision'); 
+            }
+        });
+    });
+
+    $("#enrollForm").on("submit", function (e) {
+        e.preventDefault();
+        var $form = $(this), $btn = $("#btnConfirmEnroll");
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Enrolling...');
+        $.ajax({
+            url: "/AdmissionApplication/Enroll",
+            type: "POST",
+            data: $form.serialize() + "&__RequestVerificationToken=" + $("input[name='__RequestVerificationToken']").val(),
+            success: function (r) {
+                if (r.success) {
+                    if (window.toastr) toastr.success(r.message); 
+                    setTimeout(function () { location.reload(); }, 900);
+                } else {
+                    if (window.toastr) toastr.error(r.message); 
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Confirm & Enroll');
+                }
+            },
+            error: function () {
+                if (window.toastr) toastr.error("Enrollment failed. Please try again.");
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Confirm & Enroll');
+            }
         });
     });
 });

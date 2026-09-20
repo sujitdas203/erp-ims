@@ -1,12 +1,15 @@
-﻿@model IMS.Models.Teacher.TeacherIndexViewModel
+@model IMS.Models.Teacher.TeacherIndexViewModel
 @{
     ViewData["Title"] = "Teachers";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-person-video3 me-2"></i>Teachers</h3>
-    <a asp-controller="Teachers" asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add Teacher
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-chalkboard-user text-primary me-2"></i>Teachers</h4>
+        <p class="text-muted small mb-0">Manage teaching faculty records, departments, and subject assignments.</p>
+    </div>
+    <a asp-controller="Teachers" asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> Add Teacher
     </a>
 </div>
 @if (TempData["ErrorMessage"] != null)

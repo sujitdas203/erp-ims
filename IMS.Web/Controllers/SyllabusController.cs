@@ -1,9 +1,12 @@
-﻿using IMS.Helpers.Constants;
+using IMS.Helpers.Constants;
 using IMS.Models.SubjectSyllabus;
 using IMS.Services.Interfaces;
 using IMS.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace IMS.Web.Controllers
 {
@@ -24,50 +27,68 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
-       // [Permission(Permissions.ViewSyllabus)]
         public async Task<IActionResult> Index(Guid? courseId, Guid? subjectId, string? status, string? search, int page = 1)
         {
-            if (CurrentTenantId == Guid.Empty) return Unauthorized();
-
             var vm = await _syllabusService.GetListAsync(CurrentTenantId, courseId, subjectId, status, search, page, pageSize: 10);
             return View(vm);
         }
 
-        //[Permission(Permissions.AddSyllabus)]
         public async Task<IActionResult> Create()
         {
-            if (CurrentTenantId == Guid.Empty) return Unauthorized();
-
             var vm = await _syllabusService.GetEmptyFormAsync(CurrentTenantId);
             return View(vm);
         }
 
-        //[Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> Edit(Guid id)
         {
-            if (CurrentTenantId == Guid.Empty) return Unauthorized();
-
             var vm = await _syllabusService.GetForEditAsync(id, CurrentTenantId);
             if (vm == null) return NotFound();
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSubjectsByCourse(Guid? courseId)
+        {
+            try
+            {
+                var subjects = await _syllabusService.GetSubjectsByCourseAsync(courseId, CurrentTenantId);
+                return Json(new { success = true, data = subjects });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching subjects for course {CourseId}", courseId);
+                return Json(new { success = false, message = "Unable to load subjects." });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.AddSyllabus)]
         public async Task<IActionResult> CreateAjax(SyllabusFormViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+            var errors = ValidateSyllabus(model);
+            if (errors.Count > 0)
+            {
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
 
             try
             {
                 var result = await _syllabusService.CreateAsync(model, CurrentTenantId);
-                return Json(new { success = result.Success, message = result.Message });
+                if (!result.Success)
+                {
+                    var customErrors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    if (result.Message != null && (result.Message.Contains("Unit", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        customErrors["UnitNumber"] = result.Message;
+                    }
+                    return Json(new { success = false, message = result.Message, errors = customErrors });
+                }
+
+                return Json(new { success = true, message = result.Message });
             }
             catch (Exception ex)
             {
@@ -78,16 +99,33 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> EditAjax(SyllabusFormViewModel model)
         {
-            if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+            var errors = ValidateSyllabus(model);
+            if (!model.SS_Id.HasValue || model.SS_Id.Value == Guid.Empty)
+            {
+                errors["SS_Id"] = "Syllabus ID is required.";
+            }
+
+            if (errors.Count > 0)
+            {
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
 
             try
             {
                 var result = await _syllabusService.UpdateAsync(model, CurrentTenantId);
-                return Json(new { success = result.Success, message = result.Message });
+                if (!result.Success)
+                {
+                    var customErrors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    if (result.Message != null && (result.Message.Contains("Unit", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        customErrors["UnitNumber"] = result.Message;
+                    }
+                    return Json(new { success = false, message = result.Message, errors = customErrors });
+                }
+
+                return Json(new { success = true, message = result.Message });
             }
             catch (Exception ex)
             {
@@ -98,12 +136,8 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> ToggleActiveAjax(Guid id, bool isActive)
         {
-            if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
-
             try
             {
                 var result = await _syllabusService.ToggleActiveAsync(id, CurrentTenantId, isActive);
@@ -118,12 +152,8 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> ToggleCompletedAjax(Guid id, bool isCompleted)
         {
-            if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
-
             try
             {
                 var result = await _syllabusService.ToggleCompletedAsync(id, CurrentTenantId, isCompleted);
@@ -138,12 +168,8 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.DeleteSyllabus)]
         public async Task<IActionResult> DeleteAjax(Guid id)
         {
-            if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
-
             try
             {
                 var result = await _syllabusService.DeleteAsync(id, CurrentTenantId);
@@ -154,6 +180,31 @@ namespace IMS.Web.Controllers
                 _logger.LogError(ex, "Error deleting syllabus unit {Id}", id);
                 return Json(new { success = false, message = "Something went wrong. Please try again." });
             }
+        }
+
+        private static Dictionary<string, string> ValidateSyllabus(SyllabusFormViewModel model)
+        {
+            var errors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (model == null)
+            {
+                errors["General"] = "Form submission is empty.";
+                return errors;
+            }
+
+            if (model.CourseId == Guid.Empty)
+                errors["CourseId"] = "Please select a Course.";
+
+            if (model.SubjectId == Guid.Empty)
+                errors["SubjectId"] = "Please select a Subject.";
+
+            if (model.UnitNumber <= 0)
+                errors["UnitNumber"] = "Unit Number must be greater than 0.";
+
+            if (string.IsNullOrWhiteSpace(model.UnitTitle))
+                errors["UnitTitle"] = "Unit Title is required.";
+
+            return errors;
         }
     }
 }

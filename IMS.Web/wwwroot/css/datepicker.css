@@ -329,6 +329,17 @@
     background: #e6f6ee;
 }
 
+.ims-dp-apply-btn {
+    color: #fff;
+    background: #1c8a5e;
+    border-color: #1c8a5e;
+}
+
+.ims-dp-apply-btn:hover {
+    background: #157347;
+    color: #fff;
+}
+
 .ims-dp-clear-btn {
     color: #6b7280;
 }
@@ -336,6 +347,51 @@
 .ims-dp-clear-btn:hover {
     background: #f3f4f6;
     color: #dc2626;
+}
+
+/* Time Picker Section */
+.ims-dp-time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    margin: 8px -12px 6px -12px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.ims-dp-time-label {
+    font-weight: 500;
+    margin-right: 2px;
+    margin-bottom: 0;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.ims-dp-time-hour,
+.ims-dp-time-min {
+    padding: 3px 6px;
+    font-size: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #111827;
+    cursor: pointer;
+}
+
+.ims-dp-time-hour:focus,
+.ims-dp-time-min:focus {
+    border-color: #1c8a5e;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(28, 138, 94, .12);
+}
+
+.ims-dp-time-sep {
+    font-weight: bold;
+    color: #4b5563;
 }
 
 /* ---- Responsive ---- */

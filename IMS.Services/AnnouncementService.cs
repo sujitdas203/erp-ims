@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Interfaces;
+using IMS.DAL.Interfaces;
 using IMS.Helpers.Constants;
 using IMS.Models.Announcement;
 using IMS.Services.Interfaces;
@@ -49,7 +49,9 @@ namespace IMS.Services
                 {
                     ANN_Id = a.ANN_Id,
                     Title = a.ANN_Title,
-                    BranchName = a.ANN_BranchId.HasValue ? HardcodedMasterData.GetBranchName(a.ANN_BranchId.Value) : "All Branches",
+                    BranchName = !string.IsNullOrWhiteSpace(a.BranchName)
+                        ? a.BranchName
+                        : (a.ANN_BranchId.HasValue ? HardcodedMasterData.GetBranchName(a.ANN_BranchId.Value) : "All Branches"),
                     Status = a.ComputedStatus,
                     PublishedAt = a.ANN_PublishedAt,
                     ExpiresAt = a.ANN_ExpiresAt,

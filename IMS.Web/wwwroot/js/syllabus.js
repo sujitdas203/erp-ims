@@ -1,4 +1,4 @@
-/* Syllabus — client-side logic. Same toastr/fallback-toast pattern as every other module */
+/* Syllabus — client-side logic with cascading dropdowns, live validation & toast feedback */
 (function () {
     "use strict";
 
@@ -24,38 +24,109 @@
         $form.find(".is-invalid").removeClass("is-invalid");
         $form.find(".field-error").text("");
     }
+
     function setFieldError($field, message) {
+        if (!$field || !$field.length) return;
         $field.addClass("is-invalid");
-        $field.closest(".col-md-4, .col-md-8, .col-12").find(".field-error[data-for='" + $field.attr("name") + "']").text(message);
+        const name = $field.attr("name") || $field.attr("id");
+        const $err = $field.closest(".col-md-4, .col-md-8, .col-12, .col-sm-6, .mb-3").find(".field-error[data-for='" + name + "']");
+        if ($err.length) {
+            $err.text(message);
+        }
+    }
+
+    function wireLiveValidation($form) {
+        $form.on("input change", "input, select, textarea", function () {
+            const $field = $(this);
+            if ($field.hasClass("is-invalid")) {
+                $field.removeClass("is-invalid");
+                const name = $field.attr("name") || $field.attr("id");
+                $field.closest(".col-md-4, .col-md-8, .col-12, .col-sm-6, .mb-3").find(".field-error[data-for='" + name + "']").text("");
+            }
+        });
+    }
+
+    function wireCourseCascading() {
+        const $courseSelect = $("#CourseId");
+        const $subjectSelect = $("#SubjectId");
+
+        if (!$courseSelect.length || !$subjectSelect.length) return;
+
+        $courseSelect.on("change", function () {
+            const courseId = $(this).val();
+            const currentSubjectId = $subjectSelect.val();
+
+            if (!courseId || courseId === "00000000-0000-0000-0000-000000000000") {
+                // Fetch all subjects when no course selected
+                loadSubjects(null, currentSubjectId);
+                return;
+            }
+
+            loadSubjects(courseId, currentSubjectId);
+        });
+
+        function loadSubjects(courseId, selectedSubjectId) {
+            const url = "/Syllabus/GetSubjectsByCourse" + (courseId ? ("?courseId=" + encodeURIComponent(courseId)) : "");
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (res) {
+                    if (res && res.success && Array.isArray(res.data)) {
+                        $subjectSelect.empty();
+                        $subjectSelect.append('<option value="">-- Select Subject --</option>');
+                        let matched = false;
+                        res.data.forEach(function (s) {
+                            const isSel = selectedSubjectId && String(s.value).toLowerCase() === String(selectedSubjectId).toLowerCase();
+                            if (isSel) matched = true;
+                            $subjectSelect.append(
+                                $('<option></option>').val(s.value).text(s.text).prop('selected', isSel)
+                            );
+                        });
+                        if (!matched && selectedSubjectId) {
+                            $subjectSelect.val("");
+                        }
+                    }
+                }
+            });
+        }
     }
 
     function validateForm($form) {
         clearFieldErrors($form);
         let isValid = true;
-        const errors = [];
+        let firstInvalid = null;
 
-        function required($field, label) {
+        function checkRequired($field, fieldName, label) {
             const val = ($field.val() || "").toString().trim();
-            if (!val) {
+            if (!val || val === "00000000-0000-0000-0000-000000000000") {
                 setFieldError($field, label + " is required.");
-                errors.push(label + " is required.");
+                if (!firstInvalid) firstInvalid = $field;
                 isValid = false;
             }
         }
 
-        required($form.find("[name='CourseId']"), "Course");
-        required($form.find("[name='SubjectId']"), "Subject");
-        required($form.find("[name='UnitTitle']"), "Unit title");
+        const $course = $form.find("#CourseId, [name='CourseId']");
+        const $subject = $form.find("#SubjectId, [name='SubjectId']");
+        const $unitTitle = $form.find("#UnitTitle, [name='UnitTitle']");
+        const $unitNumber = $form.find("#UnitNumber, [name='UnitNumber']");
 
-        const $unitNumber = $form.find("[name='UnitNumber']");
+        checkRequired($course, "CourseId", "Course");
+        checkRequired($subject, "SubjectId", "Subject");
+        checkRequired($unitTitle, "UnitTitle", "Unit Title");
+
         const unitNumberVal = parseInt($unitNumber.val(), 10);
-        if (!unitNumberVal || unitNumberVal <= 0) {
-            setFieldError($unitNumber, "Unit number must be greater than zero.");
-            errors.push("Unit number must be greater than zero.");
+        if (isNaN(unitNumberVal) || unitNumberVal <= 0) {
+            setFieldError($unitNumber, "Unit Number must be greater than zero.");
+            if (!firstInvalid) firstInvalid = $unitNumber;
             isValid = false;
         }
 
-        if (!isValid) showError(errors[0]);
+        if (!isValid) {
+            showError("Please fill in all required fields correctly.");
+            if (firstInvalid && firstInvalid.length) {
+                firstInvalid.focus();
+            }
+        }
         return isValid;
     }
 
@@ -75,10 +146,21 @@
                 data: $form.serialize(),
                 success: function (res) {
                     if (res.success) {
-                        showSuccess(res.message || "Saved successfully.");
-                        setTimeout(() => window.location.href = "/Syllabus/Index", 700);
+                        showSuccess(res.message || "Syllabus unit saved successfully.");
+                        setTimeout(() => window.location.href = "/Syllabus/Index", 800);
                     } else {
-                        showError(res.message || "Something went wrong.");
+                        showError(res.message || "Failed to save syllabus unit.");
+                        if (res.errors) {
+                            let firstErrField = null;
+                            $.each(res.errors, function (key, val) {
+                                const $f = $form.find("[name='" + key + "'], #" + key);
+                                if ($f.length) {
+                                    setFieldError($f, val);
+                                    if (!firstErrField) firstErrField = $f;
+                                }
+                            });
+                            if (firstErrField) firstErrField.focus();
+                        }
                         $btn.prop("disabled", false).html(original);
                     }
                 },
@@ -144,6 +226,11 @@
     }
 
     $(function () {
+        const $form = $("#syllabusForm");
+        if ($form.length) {
+            wireLiveValidation($form);
+            wireCourseCascading();
+        }
         wireFormSubmit();
         wireToggle(".toggle-active-switch", "/Syllabus/ToggleActiveAjax", "isActive");
         wireToggle(".toggle-completed-switch", "/Syllabus/ToggleCompletedAjax", "isCompleted");

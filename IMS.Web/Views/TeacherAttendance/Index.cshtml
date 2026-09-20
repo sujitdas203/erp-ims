@@ -4,10 +4,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Mark Attendance</h3>
     <div>
-        <label class="form-label me-2 mb-0">Date</label>
-        <input type="text" id="attendanceDatePicker" class="form-control d-inline-block w-auto ims-datepicker-input"
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-user text-primary me-2"></i>Teacher Attendance</h4>
+        <p class="text-muted small mb-0">Record and monitor daily faculty attendance and duty status.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <label class="form-label text-muted small mb-0 fw-semibold">Date</label>
+        <input type="text" id="attendanceDatePicker" class="form-control form-control-sm d-inline-block w-auto ims-datepicker-input"
                value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
     </div>
 </div>

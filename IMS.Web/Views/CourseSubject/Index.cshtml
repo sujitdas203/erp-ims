@@ -4,8 +4,11 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-book me-2"></i>Course Subjects</h3>
-    <a asp-controller="CourseSubject" asp-action="Create" asp-route-courseId="@Model.CourseFilter" class="btn btn-primary">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>Course Subjects</h4>
+        <p class="text-muted small mb-0">Configure curriculum subjects, credits, and course structures.</p>
+    </div>
+    <a asp-controller="CourseSubject" asp-action="Create" asp-route-courseId="@Model.CourseFilter" class="btn btn-primary shadow-sm">
         <i class="fa-solid fa-plus me-1"></i> Add Subject
     </a>
 </div>
@@ -17,6 +20,14 @@
             <div class="col-md-4">
                 <label for="courseId" class="form-label">Course</label>
                 <select name="courseId" id="courseId" class="form-select" data-selected-value="@(Model.CourseFilter?.ToString())">
+                    <option value="">All Courses</option>
+                    @if (Model.CourseOptions != null && Model.CourseOptions.Any())
+                    {
+                        foreach (var opt in Model.CourseOptions)
+                        {
+                            <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                        }
+                    }
                 </select>
             </div>
             <div class="col-md-2 d-grid">

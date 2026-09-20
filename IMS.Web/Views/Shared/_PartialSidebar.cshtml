@@ -10,7 +10,7 @@
         string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
             ? "active" : "";
 
-    var masterConfigs = MasterConfigRegistry.GetAll();
+    var masterConfigs = MasterConfigRegistry.GetMenuConfigs();
     var isMasterController = string.Equals(currentController, "Master", StringComparison.OrdinalIgnoreCase);
 }
 
@@ -31,7 +31,6 @@
                    asp-area=""
                    asp-controller="Home"
                    asp-action="Index">
-
                     <i class="fa-solid fa-gauge-high"></i>
                     <span>Dashboard</span>
                 </a>
@@ -39,12 +38,13 @@
         </ul>
 
 
-        <!-- Academic Management -->
-        <div class="nav-section-label">Academic Management</div>
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 1: Students & Admissions                   -->
+        <!-- Student lifecycle: inquiry → enrol → graduate      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Students & Admissions</div>
 
         <ul class="nav flex-column">
-
-            <!-- 1. Admissions & Student Lifecycle -->
             <li class="nav-item">
                 <a class="nav-link @isActive("", "AdmissionApplication")"
                    asp-controller="AdmissionApplication"
@@ -89,8 +89,16 @@
                     <span>Transfer Certificates (TC)</span>
                 </a>
             </li>
+        </ul>
 
-            <!-- 2. Classes, Curriculum & Schedule -->
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 2: Academic Delivery                       -->
+        <!-- What is taught, when, by whom — daily/weekly ops  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Academic Delivery</div>
+
+        <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link @isActive("", "Batch")"
                    asp-controller="Batch"
@@ -127,7 +135,6 @@
                 </a>
             </li>
 
-            <!-- 3. Learning & Assessments -->
             <li class="nav-item">
                 <a class="nav-link @isActive("", "HomeTasks")"
                    asp-controller="HomeTasks"
@@ -145,10 +152,45 @@
                     <span>Mock Tests</span>
                 </a>
             </li>
+        </ul>
 
-            <!-- 4. Faculty & Staff -->
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 3: Attendance Centre                       -->
+        <!-- Daily mark-taking — student + teacher              -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Attendance Centre</div>
+
+        <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link @isActive("Teacher", "Teacher")"
+                <a class="nav-link @isActive("", "Attendance")"
+                   asp-controller="Attendance"
+                   asp-action="Index">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Student Attendance</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "TeacherAttendance")"
+                   asp-controller="TeacherAttendance"
+                   asp-action="Index">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Teacher Attendance</span>
+                </a>
+            </li>
+        </ul>
+
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 4: HR & Faculty                            -->
+        <!-- People management — teachers and non-teaching staff -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">HR & Faculty</div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Teachers")"
                    asp-controller="Teachers"
                    asp-action="Index">
                     <i class="fa-solid fa-chalkboard-user"></i>
@@ -166,15 +208,6 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link @isActive("", "TeacherAttendance")"
-                   asp-controller="TeacherAttendance"
-                   asp-action="Index">
-                    <i class="fa-solid fa-clipboard-user"></i>
-                    <span>Teacher Attendance</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
                 <a class="nav-link @isActive("", "TeacherLeave")"
                    asp-controller="TeacherLeave"
                    asp-action="Index">
@@ -182,8 +215,61 @@
                     <span>Teacher Leaves</span>
                 </a>
             </li>
+        </ul>
 
-            <!-- 5. Communication -->
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 5: Examinations                            -->
+        <!-- Exam planning → marks entry → results              -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Examinations</div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Exam")"
+                   asp-controller="Exam"
+                   asp-action="Index">
+                    <i class="fa-solid fa-file-pen"></i>
+                    <span>Examinations</span>
+                </a>
+            </li>
+        </ul>
+
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 6: Finance                                 -->
+        <!-- All money matters — fee collection + expenditure  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Finance</div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Fees")"
+                   asp-controller="Fees"
+                   asp-action="Index">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Fees & Payments</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "Expense")"
+                   asp-controller="Expense"
+                   asp-action="Index">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span>Expenses</span>
+                </a>
+            </li>
+        </ul>
+
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 7: Communication                           -->
+        <!-- Information broadcast + notification alerts        -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">Communication</div>
+
+        <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link @isActive("", "Announcements")"
                    asp-controller="Announcements"
@@ -193,70 +279,32 @@
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a class="nav-link @isActive("", "NotificationConfig")"
+                   asp-area=""
+                   asp-controller="NotificationConfig"
+                   asp-action="Index">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Notification Hub</span>
+                </a>
+            </li>
         </ul>
 
 
-        <!-- Institute Operations -->
-        <div class="nav-section-label">Institute Operations</div>
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 8: System Setup                            -->
+        <!-- One-time / rare config — Admin / Principal only   -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="nav-section-label">System Setup</div>
 
         <ul class="nav flex-column">
 
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Attendance")"
-                   asp-controller="Attendance"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <span>Attendance</span>
-                </a>
-            </li>
-
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Fees")"
-                   asp-controller="Fees"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span>Fees & Payments</span>
-                </a>
-            </li>
-
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Exam")"
-                   asp-controller="Exam"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-file-pen"></i>
-                    <span>Examinations</span>
-                </a>
-            </li>
-
-
-            <li class="nav-item">
-                <a class="nav-link @isActive("", "Expense")"
-                   asp-controller="Expense"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-receipt"></i>
-                    <span>Expenses</span>
-                </a>
-            </li>
-
-        </ul>
-
-
-        <!-- Administration & Master Management -->
-        <div class="nav-section-label">Administration</div>
-
-        <ul class="nav flex-column">
-
-            <!-- Master Management Accordion / Sub-menu -->
+            <!-- Master Management Collapsible Sub-menu -->
             <li class="nav-item">
                 <a class="nav-link d-flex align-items-center justify-content-between @(isMasterController ? "active" : "")"
                    data-bs-toggle="collapse"
-                   href="#masterMenuCollapse"
+                   data-bs-target="#masterMenuCollapse"
+                   href="javascript:void(0);"
                    role="button"
                    aria-expanded="@(isMasterController ? "true" : "false")"
                    aria-controls="masterMenuCollapse">
@@ -306,27 +354,13 @@
                    asp-area=""
                    asp-controller="DbTest"
                    asp-action="Index">
-
                     <i class="fa-solid fa-server"></i>
                     <span>Database Diagnostics</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link @isActive("", "NotificationConfig")"
-                   asp-area=""
-                   asp-controller="NotificationConfig"
-                   asp-action="Index">
-
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Notification Hub</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link"
-                   href="#">
-
+                <a class="nav-link" href="javascript:void(0);">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Users & Roles</span>
                     <span class="IMS-soon-badge">Soon</span>
@@ -336,21 +370,20 @@
         </ul>
 
 
-        <!-- Reports -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SECTION 9: Insights                                -->
+        <!-- Decision-support for principals & management       -->
+        <!-- ═══════════════════════════════════════════════════ -->
         <div class="nav-section-label">Insights</div>
 
         <ul class="nav flex-column">
-
             <li class="nav-item">
-                <a class="nav-link"
-                   href="#">
-
+                <a class="nav-link" href="javascript:void(0);">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Reports</span>
                     <span class="IMS-soon-badge">Soon</span>
                 </a>
             </li>
-
         </ul>
 
     </nav>

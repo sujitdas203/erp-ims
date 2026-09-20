@@ -1,13 +1,21 @@
 @model IMS.Models.ViewModels.CourseSubjectFormViewModel
-@{ ViewData["Title"] = "Edit Course Subject"; }
+@{
+    ViewData["Title"] = "Edit Course Subject Mapping";
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-book me-2"></i>Edit Course Subject</h3>
+    <div>
+        <h3 class="mb-0 text-primary fw-bold"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Course Subject</h3>
+        <p class="text-muted mb-0 small">Update sequence, passing marks, or compulsory status for this mapping.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-list me-1"></i> Back to List
+    </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="csEditForm" asp-controller="CourseSubject" asp-action="EditCourseSubject" method="post">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="csEditForm" asp-controller="CourseSubject" asp-action="EditCourseSubject" method="post" novalidate>
             @Html.AntiForgeryToken()
             <partial name="_Form" model="Model" />
         </form>
@@ -17,21 +25,91 @@
 @section Scripts {
     <script>
         $(function () {
-            Dropdown.load({ element: '#CS_CourseId', entityType: 'Course', defaultText: 'Select Course', includeDefault: true, selectedValue: $('#CS_CourseId').data('selected-value') });
-            Dropdown.load({ element: '#CS_SubjectId', entityType: 'Subject', defaultText: 'Select Subject', includeDefault: true, selectedValue: $('#CS_SubjectId').data('selected-value') });
+            // Lock Course and Subject on Edit (composite PK)
+            $("#CS_CourseId").prop("disabled", true).addClass("bg-light");
+            $("#CS_SubjectId").prop("disabled", true).addClass("bg-light");
 
-            $("form").on("submit", function (e) {
+            // Form Submit with validation
+            $("#csEditForm").on("submit", function (e) {
                 e.preventDefault();
                 var $form = $(this);
-                var $btn = $form.find("button[type='submit']");
+                var $btn = $("#btnSaveCourseSubject");
+
+                // Enable disabled selects for serialize
+                $("#CS_CourseId").prop("disabled", false);
+                $("#CS_SubjectId").prop("disabled", false);
+                var formData = $form.serialize();
+                $("#CS_CourseId").prop("disabled", true);
+                $("#CS_SubjectId").prop("disabled", true);
+
+                $form.find(".is-invalid").removeClass("is-invalid");
+                $form.find(".field-error").empty();
+                $form.find(".invalid-feedback").remove();
+
                 $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-                $.ajax({ url: $form.attr("action"), type: "POST", data: $form.serialize(),
+
+                $.ajax({
+                    url: $form.attr("action"),
+                    type: "POST",
+                    data: formData,
                     success: function (r) {
-                        if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function () { window.location.href = "/CourseSubject/Index"; }, 700); }
-                        else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save'); }
+                        if (r.success) {
+                            if (window.toastr) {
+                                toastr.success(r.message || "Updated successfully.");
+                            } else {
+                                alert(r.message || "Updated successfully.");
+                            }
+                            setTimeout(function () {
+                                window.location.href = "/CourseSubject/Index";
+                            }, 700);
+                        } else {
+                            if (window.toastr) {
+                                toastr.error(r.message || "Failed to update.");
+                            }
+
+                            if (r.errors) {
+                                var firstInvalid = null;
+                                $.each(r.errors, function (field, msg) {
+                                    var cleanField = field.replace(/^model\./i, '');
+                                    var $input = $form.find("[name='" + cleanField + "'], #" + cleanField);
+                                    if ($input.length) {
+                                        $input.addClass("is-invalid");
+                                        var $errDiv = $form.find(".field-error[data-for='" + cleanField + "']");
+                                        if ($errDiv.length) {
+                                            $errDiv.html(msg);
+                                        } else {
+                                            $input.after('<div class="invalid-feedback d-block">' + msg + '</div>');
+                                        }
+                                        if (!firstInvalid) firstInvalid = $input;
+                                    }
+                                });
+
+                                if (firstInvalid) {
+                                    firstInvalid.focus();
+                                }
+                            }
+
+                            $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Subject Mapping');
+                        }
                     },
-                    error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save'); }
+                    error: function (xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "Request failed. Please try again.";
+                        if (window.toastr) {
+                            toastr.error(msg);
+                        } else {
+                            alert(msg);
+                        }
+                        $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Subject Mapping');
+                    }
                 });
+            });
+
+            $("input, select").on("change input", function () {
+                $(this).removeClass("is-invalid");
+                var fieldName = $(this).attr("id") || $(this).attr("name");
+                if (fieldName) {
+                    $(".field-error[data-for='" + fieldName + "']").empty();
+                }
             });
         });
     </script>

@@ -1,0 +1,166 @@
+@model IMS.Models.ViewModels.FeeStructureFormViewModel
+
+@if (Model.FS_Id.HasValue)
+{
+    @Html.HiddenFor(m => m.FS_Id)
+}
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label for="FS_Name" class="form-label fw-medium">Name <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.FS_Name, new { @class = "form-control", placeholder = "e.g. Annual Tuition 2026-27", maxlength = "150" })
+        <div class="text-danger small field-error" data-for="FS_Name"></div>
+    </div>
+    <div class="col-md-4">
+        <label for="FS_Code" class="form-label fw-medium">Code <span class="text-danger">*</span></label>
+        @Html.TextBoxFor(m => m.FS_Code, new { @class = "form-control", placeholder = "e.g. FS-2026-A", maxlength = "50" })
+        <div class="text-danger small field-error" data-for="FS_Code"></div>
+    </div>
+    <div class="col-md-4">
+        <label for="FS_AcademicYearId" class="form-label fw-medium">Academic Year <span class="text-danger">*</span></label>
+        <select id="FS_AcademicYearId" name="FS_AcademicYearId" class="form-select" data-selected-value="@(Model.FS_AcademicYearId != Guid.Empty ? Model.FS_AcademicYearId.ToString() : "")">
+            <option value="">-- Select Academic Year --</option>
+        </select>
+        <div class="text-danger small field-error" data-for="FS_AcademicYearId"></div>
+    </div>
+    <div class="col-md-4">
+        <label for="FS_CourseId" class="form-label fw-medium">Course</label>
+        <select id="FS_CourseId" name="FS_CourseId" class="form-select" data-selected-value="@(Model.FS_CourseId?.ToString())">
+            <option value="">-- Select Course (Optional) --</option>
+        </select>
+        <div class="text-danger small field-error" data-for="FS_CourseId"></div>
+    </div>
+    <div class="col-md-4">
+        <label for="FS_BatchId" class="form-label fw-medium">Batch</label>
+        <select id="FS_BatchId" name="FS_BatchId" class="form-select" data-selected-value="@(Model.FS_BatchId?.ToString())">
+            <option value="">-- Select Batch (Optional) --</option>
+        </select>
+        <div class="text-danger small field-error" data-for="FS_BatchId"></div>
+    </div>
+    <div class="col-md-4">
+        <label for="FS_IsActive" class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+        <select id="FS_IsActive" name="FS_IsActive" class="form-select">
+            <!option value="true" @(Model.FS_IsActive ? "selected" : "")>Active</!option>
+            <!option value="false" @(!Model.FS_IsActive ? "selected" : "")>Inactive</!option>
+        </select>
+        <div class="text-danger small field-error" data-for="FS_IsActive"></div>
+    </div>
+    <div class="col-md-12">
+        <label for="FS_Description" class="form-label fw-medium">Description</label>
+        @Html.TextAreaFor(m => m.FS_Description, new { @class = "form-control", rows = "2", placeholder = "Enter fee structure notes or remarks" })
+    </div>
+</div>
+
+<div class="card border-0 bg-light mt-4 shadow-sm">
+    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-list-check me-2"></i>Fee Structure Items / Breakdown</h6>
+        <button type="button" id="addFeeItemBtn" class="btn btn-sm btn-outline-primary">
+            <i class="fa-solid fa-plus me-1"></i> Add Fee Item
+        </button>
+    </div>
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle bg-white mb-0" id="feeItemsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width: 220px;">Fee Category <span class="text-danger">*</span></th>
+                        <th style="width: 160px;">Amount <span class="text-danger">*</span></th>
+                        <th style="width: 140px;">Due Days</th>
+                        <th style="width: 160px;">Requirement</th>
+                        <th style="width: 60px;" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="feeItemsContainer">
+                    @if (Model.Items != null && Model.Items.Count > 0)
+                    {
+                        for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr class="fee-item-row" data-index="@i">
+                                <td>
+                                    @if (Model.Items[i].FSI_Id.HasValue && Model.Items[i].FSI_Id.Value != Guid.Empty)
+                                    {
+                                        <input type="hidden" name="Items[@i].FSI_Id" value="@Model.Items[i].FSI_Id" />
+                                    }
+                                    <select name="Items[@i].FSI_FeeCategoryId" class="form-select form-select-sm fee-category-select" data-selected-value="@(Model.Items[i].FSI_FeeCategoryId != Guid.Empty ? Model.Items[i].FSI_FeeCategoryId.ToString() : "")">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                    <div class="text-danger small field-error" data-for="Items[@i].FSI_FeeCategoryId"></div>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                                        <input type="number" name="Items[@i].FSI_Amount" class="form-control form-control-sm fee-amount-input" min="0" step="0.01" value="@Model.Items[i].FSI_Amount" placeholder="0.00" />
+                                    </div>
+                                    <div class="text-danger small field-error" data-for="Items[@i].FSI_Amount"></div>
+                                </td>
+                                <td>
+                                    <input type="number" name="Items[@i].FSI_DueDays" class="form-control form-control-sm" min="0" value="@Model.Items[i].FSI_DueDays" placeholder="e.g. 15" />
+                                </td>
+                                <td>
+                                    <select name="Items[@i].FSI_IsMandatory" class="form-select form-select-sm mandatory-select">
+                                        <!option value="true" @(Model.Items[i].FSI_IsMandatory ? "selected" : "")>Mandatory</!option>
+                                        <!option value="false" @(!Model.Items[i].FSI_IsMandatory ? "selected" : "")>Optional</!option>
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-fee-item" title="Remove Item">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr class="fee-item-row" data-index="0">
+                            <td>
+                                <select name="Items[0].FSI_FeeCategoryId" class="form-select form-select-sm fee-category-select" data-selected-value="">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                                <div class="text-danger small field-error" data-for="Items[0].FSI_FeeCategoryId"></div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                                    <input type="number" name="Items[0].FSI_Amount" class="form-control form-control-sm fee-amount-input" min="0" step="0.01" value="" placeholder="0.00" />
+                                </div>
+                                <div class="text-danger small field-error" data-for="Items[0].FSI_Amount"></div>
+                            </td>
+                            <td>
+                                <input type="number" name="Items[0].FSI_DueDays" class="form-control form-control-sm" min="0" value="0" placeholder="e.g. 15" />
+                            </td>
+                            <td>
+                                <select name="Items[0].FSI_IsMandatory" class="form-select form-select-sm mandatory-select">
+                                    <option value="true" selected>Mandatory</option>
+                                    <option value="false">Optional</option>
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-fee-item" title="Remove Item">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td class="text-end">Total Amount:</td>
+                        <td colspan="4">
+                            <span class="text-success fs-6 fw-bold" id="totalFeeAmount">0.00</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-4">
+    <a asp-controller="Fees" asp-action="Index" class="btn btn-outline-secondary px-4">
+        <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+    </a>
+    <button type="submit" class="btn btn-primary px-4" id="btnSaveFeeStructure">
+        <i class="fa-solid fa-check me-1"></i> Save Fee Structure
+    </button>
+</div>

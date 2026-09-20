@@ -25,7 +25,9 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                if (Guid.TryParse(raw, out var id) && id != Guid.Empty)
+                    return id;
+                return IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
             }
         }
 

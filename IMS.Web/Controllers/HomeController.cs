@@ -89,43 +89,181 @@ namespace IMS.Web.Controllers
         public async Task<IActionResult> ApplyAdmission(
             IMS.Models.ViewModels.AdmissionApplicationFormViewModel model,
             [FromServices] IAdmissionApplicationService admissionService,
-            [FromServices] INotificationService notificationService)
+            [FromServices] INotificationService notificationService,
+            [FromServices] IMasterService masterService,
+            [FromServices] ILogger<HomeController> logger)
         {
-            if (!ModelState.IsValid)
+            var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                         Request.ContentType?.Contains("application/json") == true ||
+                         Request.Headers["Accept"].ToString().Contains("application/json");
+
+            try
             {
+                if (!model.AA_BranchId.HasValue || model.AA_BranchId == Guid.Empty)
+                {
+                    model.AA_BranchId = HardcodedMasterData.Branches[0].Id;
+                    ModelState.Remove("AA_BranchId");
+                }
+
+                if (!model.AA_AcademicYearId.HasValue || model.AA_AcademicYearId == Guid.Empty)
+                {
+                    model.AA_AcademicYearId = new Guid("33333333-3333-3333-3333-333333333303");
+                    ModelState.Remove("AA_AcademicYearId");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value?.Errors.Count > 0)
+                        .ToDictionary(
+                            k => k.Key,
+                            v => v.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
+                    if (isAjax) return Json(new { success = false, message = firstError ?? "Please fill all required fields correctly.", errors });
+                    return View("Admission", model);
+                }
+
+                if (string.IsNullOrWhiteSpace(model.AA_FirstName) || string.IsNullOrWhiteSpace(model.AA_LastName))
+                {
+                    if (isAjax) return Json(new { success = false, message = "First Name and Last Name are required." });
+                    ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
+                    return View("Admission", model);
+                }
+
+                if (string.IsNullOrWhiteSpace(model.AA_Phone))
+                {
+                    if (isAjax) return Json(new { success = false, message = "Contact Mobile Number is required." });
+                    ModelState.AddModelError(string.Empty, "Contact Mobile Number is required.");
+                    return View("Admission", model);
+                }
+
+                if (string.IsNullOrWhiteSpace(model.AA_ApplicationNumber))
+                {
+                    model.AA_ApplicationNumber = "APP-" + DateTime.UtcNow.ToString("yy") + "-" + new Random().Next(1000, 9999);
+                }
+
+                model.AA_Status = "Submitted";
+                var tenantId = HardcodedMasterData.CurrentTenantId;
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var raw = User.FindFirst("tenant_id")?.Value;
+                    if (Guid.TryParse(raw, out var tId) && tId != Guid.Empty) tenantId = tId;
+                }
+                else if (model.AA_BranchId.HasValue && model.AA_BranchId != Guid.Empty)
+                {
+                    try
+                    {
+                        var branchObj = masterService.GetById("Branch", model.AA_BranchId.Value);
+                        if (branchObj != null && branchObj.TryGetValue("B_TenantId", out var bTenant) && Guid.TryParse(bTenant?.ToString(), out var branchTenant) && branchTenant != Guid.Empty)
+                        {
+                            tenantId = branchTenant;
+                        }
+                    }
+                    catch { }
+                }
+
+                var result = await admissionService.CreateAsync(model, tenantId);
+
+                if (result.Success)
+                {
+                    try
+                    {
+                        // Trigger operational notification safely
+                        await notificationService.RaiseNotificationAsync(
+                            tenantId,
+                            "ADMISSION_SUBMITTED",
+                            $"New Admission Application: {model.AA_FirstName} {model.AA_LastName}",
+                            $"Application #{model.AA_ApplicationNumber} submitted for review.",
+                            "/AdmissionApplication",
+                            "TENANT_ADMIN",
+                            null,
+                            model.AA_Email
+                        );
+                    }
+                    catch (Exception notifEx)
+                    {
+                        logger.LogWarning(notifEx, "Notification delivery skipped for {AppNum}", model.AA_ApplicationNumber);
+                    }
+
+                    if (isAjax)
+                    {
+                        return Json(new { 
+                            success = true, 
+                            message = $"Your application has been received! Reference Number: {model.AA_ApplicationNumber}", 
+                            applicationNumber = model.AA_ApplicationNumber 
+                        });
+                    }
+
+                    TempData["AdmissionSuccess"] = $"Your application has been received! Your application reference number is: {model.AA_ApplicationNumber}. Our admissions office will contact you soon.";
+                    return RedirectToAction(nameof(Admission));
+                }
+
+                if (isAjax) return Json(new { success = false, message = result.Message ?? "Failed to save application." });
+                ModelState.AddModelError(string.Empty, result.Message ?? "Failed to submit application. Please try again.");
                 return View("Admission", model);
             }
-
-            if (string.IsNullOrWhiteSpace(model.AA_ApplicationNumber))
+            catch (Exception ex)
             {
-                model.AA_ApplicationNumber = "APP-" + DateTime.UtcNow.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999);
+                logger.LogError(ex, "Error submitting public admission application");
+                if (isAjax) return Json(new { success = false, message = "An error occurred while saving: " + ex.Message });
+                ModelState.AddModelError(string.Empty, "An error occurred while saving: " + ex.Message);
+                return View("Admission", model);
+            }
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> TrackAdmission(
+            string appNumber, 
+            string phone, 
+            [FromServices] IAdmissionApplicationService admissionService)
+        {
+            if (string.IsNullOrWhiteSpace(appNumber))
+            {
+                return View();
             }
 
-            model.AA_Status = "Submitted";
-            var tenantId = HardcodedMasterData.CurrentTenantId;
-            var result = await admissionService.CreateAsync(model, tenantId);
+            var app = await admissionService.GetDetailsByNumberAsync(appNumber, phone);
+            ViewBag.SearchAttempted = true;
+            ViewBag.AppNumber = appNumber;
+            ViewBag.Phone = phone;
+            return View(app);
+        }
 
-            if (result.Success)
-            {
-                TempData["AdmissionSuccess"] = $"Your application has been received! Your application reference number is: {model.AA_ApplicationNumber}. Our admissions office will contact you soon.";
-                
-                // Trigger operational notification
-                await notificationService.RaiseNotificationAsync(
-                    tenantId,
-                    "ADMISSION_SUBMITTED",
-                    $"New Admission Application: {model.AA_FirstName} {model.AA_LastName}",
-                    $"Application #{model.AA_ApplicationNumber} submitted for review.",
-                    "/AdmissionApplication",
-                    "TENANT_ADMIN",
-                    null,
-                    model.AA_Email
-                );
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> TrackAdmissionStatus(
+            string appNumber, 
+            string phone, 
+            [FromServices] IAdmissionApplicationService admissionService)
+        {
+            if (string.IsNullOrWhiteSpace(appNumber))
+                return Json(new { success = false, message = "Please enter an Application Reference Number." });
 
-                return RedirectToAction(nameof(Admission));
-            }
+            var app = await admissionService.GetDetailsByNumberAsync(appNumber, phone);
+            if (app == null)
+                return Json(new { success = false, message = "No application found matching the provided reference number." });
 
-            ModelState.AddModelError(string.Empty, result.Message ?? "Failed to submit application. Please try again.");
-            return View("Admission", model);
+            return Json(new { 
+                success = true, 
+                data = new {
+                    id = app.AA_Id,
+                    applicationNumber = app.AA_ApplicationNumber,
+                    fullName = app.FullName,
+                    phone = app.AA_Phone,
+                    email = app.AA_Email,
+                    status = app.AA_Status,
+                    branchName = app.BranchName,
+                    className = app.ClassName,
+                    courseName = app.CourseName,
+                    academicYear = app.AcademicYearName,
+                    submittedAt = app.AA_SubmittedAt?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-",
+                    reviewedAt = app.AA_ReviewedAt?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-",
+                    notes = app.AA_Notes,
+                    studentCode = app.AdmittedStudentCode,
+                    photoUrl = app.AA_StudentPhotoUrl
+                }
+            });
         }
 
         [AllowAnonymous]

@@ -9,8 +9,10 @@ namespace IMS.Services.Interfaces
         public bool Success { get; set; }
         public string Message { get; set; }
         public Guid? Id { get; set; }
+        public object Data { get; set; }
 
         public static ServiceResult Ok(string message = null, Guid? id = null) => new() { Success = true, Message = message, Id = id };
+        public static ServiceResult Ok(string message, object data) => new() { Success = true, Message = message, Data = data };
         public static ServiceResult Fail(string message) => new() { Success = false, Message = message };
     }
 

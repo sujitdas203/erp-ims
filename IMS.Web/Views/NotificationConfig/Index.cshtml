@@ -5,13 +5,26 @@
 
 @section Styles {
 <style>
+    .config-card {
+        border-radius: 12px;
+        border: 1px solid var(--IMS-border, #e2e8f0);
+        box-shadow: var(--IMS-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+        background-color: var(--IMS-surface, #ffffff);
+        transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .config-card-header {
+        background-color: var(--IMS-surface-hover, #f8fafc);
+        border-bottom: 1px solid var(--IMS-border, #e2e8f0);
+    }
+
     .config-table th {
         font-size: 0.78rem;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #64748b;
-        background-color: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
+        color: var(--IMS-table-header-text, #64748b);
+        background-color: var(--IMS-table-header-bg, #f8fafc);
+        border-bottom: 1px solid var(--IMS-table-border, #e2e8f0);
         padding-top: 0.85rem;
         padding-bottom: 0.85rem;
     }
@@ -19,39 +32,52 @@
     .config-table td {
         padding-top: 0.95rem;
         padding-bottom: 0.95rem;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--IMS-table-border, #f1f5f9);
         vertical-align: middle;
+        color: var(--IMS-text, #0f172a);
     }
 
     .config-table tbody tr:hover {
-        background-color: #f8fafc;
-    }
-
-    .config-card {
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        background-color: #ffffff;
+        background-color: var(--IMS-table-row-hover, #f8fafc);
     }
 
     .form-switch .form-check-input {
         cursor: pointer;
         width: 2.5rem;
         height: 1.3rem;
+        background-color: var(--IMS-input-border, #cbd5e1);
+        border-color: var(--IMS-input-border, #cbd5e1);
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: var(--IMS-primary, #3b82f6);
+        border-color: var(--IMS-primary, #3b82f6);
+    }
+
+    .nav-tabs {
+        border-bottom: 1px solid var(--IMS-border, #e2e8f0);
     }
 
     .nav-tabs .nav-link {
-        color: #64748b;
+        color: var(--IMS-text-muted, #64748b);
         font-size: 0.9rem;
+        font-weight: 500;
         border: none;
         border-bottom: 2px solid transparent;
         padding: 0.65rem 1.25rem;
+        background: transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: var(--IMS-text, #0f172a);
+        border-bottom-color: var(--IMS-border, #cbd5e1);
     }
 
     .nav-tabs .nav-link.active {
-        color: #2563eb;
+        color: var(--IMS-primary, #3b82f6);
         font-weight: 600;
-        border-bottom: 2px solid #2563eb;
+        border-bottom: 2px solid var(--IMS-primary, #3b82f6);
         background: transparent;
     }
 
@@ -63,6 +89,34 @@
         align-items: center;
         justify-content: center;
         border-radius: 6px;
+        color: var(--IMS-text-muted, #64748b);
+        border: 1px solid var(--IMS-border, #cbd5e1);
+        background-color: var(--IMS-surface, #ffffff);
+        transition: all 0.2s ease;
+    }
+
+    .btn-test-action:hover {
+        color: var(--IMS-primary, #3b82f6);
+        border-color: var(--IMS-primary, #3b82f6);
+        background-color: var(--IMS-primary-soft, rgba(59, 130, 246, 0.1));
+    }
+
+    .config-badge {
+        background-color: var(--IMS-surface-hover, #f1f5f9);
+        color: var(--IMS-text-muted, #64748b);
+        border: 1px solid var(--IMS-border, #e2e8f0);
+        font-weight: 500;
+    }
+
+    .config-divider {
+        border-right: 1px solid var(--IMS-border, #e2e8f0);
+    }
+    @@media (max-width: 767.98px) {
+        .config-divider {
+            border-right: none;
+            border-bottom: 1px solid var(--IMS-border, #e2e8f0);
+            padding-bottom: 1rem;
+        }
     }
 </style>
 }
@@ -72,10 +126,8 @@
     <!-- Page Title & Actions -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
-            <h3 class="mb-1 text-dark fw-bold">
-                <i class="fa-solid fa-sliders me-2 text-primary"></i>Notification Settings
-            </h3>
-            <div class="text-muted small">Manage system-wide event triggers, in-app alerts, and SMTP transactional mail delivery.</div>
+            <h4 class="mb-0 fw-bold"><i class="fa-solid fa-sliders text-primary me-2"></i>Notification Settings</h4>
+            <p class="text-muted small mb-0">Manage system-wide event triggers, in-app alerts, and SMTP transactional mail delivery.</p>
         </div>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="triggerSampleEvent('ADMISSION_SUBMITTED')">
@@ -111,10 +163,10 @@
         <div class="config-card mb-4">
             <div class="p-3 p-md-4">
                 <div class="row g-3 align-items-center">
-                    <div class="col-md-6 border-md-end">
+                    <div class="col-md-6 config-divider">
                         <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 pe-md-4 mb-0">
                             <div>
-                                <label class="form-check-label fw-semibold text-dark mb-0" for="InAppEnabled">
+                                <label class="form-check-label fw-semibold mb-0" for="InAppEnabled">
                                     Enable In-App Notifications
                                 </label>
                                 <div class="text-muted small">Header bell icon unread alerts</div>
@@ -125,7 +177,7 @@
                     <div class="col-md-6">
                         <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 ps-md-4 mb-0">
                             <div>
-                                <label class="form-check-label fw-semibold text-dark mb-0" for="EmailEnabled">
+                                <label class="form-check-label fw-semibold mb-0" for="EmailEnabled">
                                     Enable Email Notifications
                                 </label>
                                 <div class="text-muted small">Outbound transactional SMTP alerts</div>
@@ -174,7 +226,7 @@
                                     {
                                         var ev = Model.Events[i];
                                         <tr>
-                                            <td class="ps-4">
+                                             <td class="ps-4">
                                                 <input type="hidden" name="Events[@i].EventCode" value="@ev.EventCode" />
                                                 <input type="hidden" name="Events[@i].EventName" value="@ev.EventName" />
                                                 <input type="hidden" name="Events[@i].Category" value="@ev.Category" />
@@ -182,11 +234,11 @@
                                                 <input type="hidden" name="Events[@i].IconClass" value="@ev.IconClass" />
                                                 <input type="hidden" name="Events[@i].ColorClass" value="@ev.ColorClass" />
 
-                                                <div class="fw-semibold text-dark mb-1">@ev.EventName</div>
+                                                <div class="fw-semibold mb-1">@ev.EventName</div>
                                                 <div class="text-muted small text-truncate" style="max-width: 450px;">@ev.Description</div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-secondary border px-2 py-1">@ev.Category</span>
+                                                <span class="badge config-badge px-2 py-1">@ev.Category</span>
                                             </td>
                                             <td class="text-center">
                                                 <div class="form-check form-switch d-inline-block mb-0">
@@ -201,7 +253,7 @@
                                                 </div>
                                             </td>
                                             <td class="text-center pe-4">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary btn-test-action" onclick="triggerSampleEvent('@ev.EventCode')" title="Trigger test notification">
+                                                <button type="button" class="btn btn-sm btn-test-action" onclick="triggerSampleEvent('@ev.EventCode')" title="Trigger test notification">
                                                     <i class="fa-solid fa-play small"></i>
                                                 </button>
                                             </td>
@@ -225,8 +277,8 @@
                 <div class="row g-4">
                     <div class="col-lg-7">
                         <div class="config-card">
-                            <div class="p-3 p-md-4 border-bottom bg-light">
-                                <h6 class="mb-0 fw-bold text-dark">SMTP Server Settings</h6>
+                            <div class="p-3 p-md-4 config-card-header">
+                                <h6 class="mb-0 fw-bold">SMTP Server Settings</h6>
                             </div>
                             <div class="p-3 p-md-4">
                                 <div class="row g-3">
@@ -270,8 +322,8 @@
 
                     <div class="col-lg-5">
                         <div class="config-card">
-                            <div class="p-3 p-md-4 border-bottom bg-light">
-                                <h6 class="mb-0 fw-bold text-dark">Test Email Delivery</h6>
+                            <div class="p-3 p-md-4 config-card-header">
+                                <h6 class="mb-0 fw-bold">Test Email Delivery</h6>
                             </div>
                             <div class="p-3 p-md-4">
                                 <p class="text-muted small mb-3">Send a real-time verification email to ensure your SMTP server and credentials authenticate properly.</p>

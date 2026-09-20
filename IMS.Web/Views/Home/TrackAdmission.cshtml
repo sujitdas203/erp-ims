@@ -1,0 +1,332 @@
+@model IMS.Models.ViewModels.AdmissionApplicationDetailsViewModel
+@{
+    ViewData["Title"] = "Track Admission Application Status";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    var searched = ViewBag.SearchAttempted == true;
+    var appNumber = (string)ViewBag.AppNumber ?? "";
+    var phone = (string)ViewBag.Phone ?? "";
+}
+
+<div class="track-admission-page py-5" style="background: var(--parchment-dim, #f8fafc); min-height: 85vh;">
+    <div class="container" style="max-width: 900px;">
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <span class="badge rounded-pill px-3 py-2 text-uppercase mb-2 shadow-sm" style="background:#2563eb; color:#ffffff; font-size:0.75rem; letter-spacing:1px;">
+                Admissions Portal &bull; Live Status
+            </span>
+            <h2 class="fw-bold text-dark mb-2">Track Application Status</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                Enter your Application Reference Number (e.g. <code>APP-26-XXXX</code>) to check the current review stage and next enrollment steps.
+            </p>
+        </div>
+
+        <!-- Search Form Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4" style="background:#ffffff; border:1px solid #e2e8f0;">
+            <div class="card-body p-4 p-md-4">
+                <form asp-controller="Home" asp-action="TrackAdmission" method="get" id="trackSearchForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label for="appNumber" class="form-label fw-semibold small text-muted">Application Reference Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-hash text-primary"></i></span>
+                                <input type="text" name="appNumber" id="appNumber" class="form-control border-start-0 py-2" placeholder="e.g. APP-26-1024" value="@appNumber" required />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="phone" class="form-label fw-semibold small text-muted">Registered Mobile Number (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-phone text-muted"></i></span>
+                                <input type="text" name="phone" id="phone" class="form-control border-start-0 py-2" placeholder="e.g. +91 9876543210" value="@phone" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
+                                <i class="bi bi-search me-1"></i> Track
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result Display -->
+        @if (searched && Model == null)
+        {
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center mb-4 bg-white border border-danger-subtle">
+                <div class="text-danger display-5 mb-2"><i class="bi bi-exclamation-circle"></i></div>
+                <h5 class="fw-bold text-dark mb-1">No Application Found</h5>
+                <p class="text-muted small mb-3">We couldn't find an application matching Reference <strong>@appNumber</strong>. Please check the spelling or contact our admissions desk.</p>
+                <div>
+                    <a href="/Home/Admission" class="btn btn-outline-primary btn-sm rounded-pill px-3">Submit New Application</a>
+                </div>
+            </div>
+        }
+        else if (Model != null)
+        {
+            <div id="printableStatusSlip">
+                <!-- Status Banner Card -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background:#ffffff; border:1px solid #e2e8f0;">
+                    
+                    <!-- Header Strip -->
+                    <div class="py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2" 
+                         style="background: @GetStatusGradient(Model.AA_Status);">
+                        <div>
+                            <span class="badge bg-white text-dark text-uppercase px-2 py-1 small fw-bold mb-1">Application @Model.AA_Status</span>
+                            <h4 class="mb-0 fw-bold text-white">#@Model.AA_ApplicationNumber</h4>
+                        </div>
+                        <div class="text-end">
+                            <span class="d-block small text-white-50">Applied Date</span>
+                            <strong class="text-white">@(Model.AA_SubmittedAt?.ToString("dd-MMM-yyyy") ?? "-")</strong>
+                        </div>
+                    </div>
+
+                    <!-- Progress Stepper -->
+                    <div class="p-4 bg-light border-bottom">
+                        <div class="position-relative m-3">
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar @GetProgressBarClass(Model.AA_Status)" role="progressbar" style="width: @GetProgressPercent(Model.AA_Status)%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between position-absolute top-50 start-0 w-100 translate-middle-y">
+                                <!-- Step 1: Submitted -->
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-primary text-white shadow-sm" style="width:30px; height:30px; font-size:12px;">
+                                        <i class="bi bi-check-lg"></i>
+                                    </div>
+                                    <span class="d-block small fw-bold text-dark mt-1" style="font-size:0.75rem;">Submitted</span>
+                                </div>
+                                <!-- Step 2: Under Review -->
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center @(IsStepPassed(Model.AA_Status, 2) ? "bg-primary text-white" : "bg-white border text-muted") shadow-sm" style="width:30px; height:30px; font-size:12px;">
+                                        <i class="bi bi-file-earmark-person"></i>
+                                    </div>
+                                    <span class="d-block small fw-bold @(IsStepPassed(Model.AA_Status, 2) ? "text-dark" : "text-muted") mt-1" style="font-size:0.75rem;">Under Review</span>
+                                </div>
+                                <!-- Step 3: Decision -->
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center @GetStep3CircleClass(Model.AA_Status) shadow-sm" style="width:30px; height:30px; font-size:12px;">
+                                        <i class="bi @GetStep3Icon(Model.AA_Status)"></i>
+                                    </div>
+                                    <span class="d-block small fw-bold text-dark mt-1" style="font-size:0.75rem;">@GetStep3Label(Model.AA_Status)</span>
+                                </div>
+                                <!-- Step 4: Enrolled -->
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center @(Model.AA_Status == "Enrolled" ? "bg-success text-white" : "bg-white border text-muted") shadow-sm" style="width:30px; height:30px; font-size:12px;">
+                                        <i class="bi bi-mortarboard-fill"></i>
+                                    </div>
+                                    <span class="d-block small fw-bold @(Model.AA_Status == "Enrolled" ? "text-success" : "text-muted") mt-1" style="font-size:0.75rem;">Enrolled</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Decision & Next Steps Alert -->
+                    <div class="p-4">
+                        @if (Model.AA_Status == "Submitted" || Model.AA_Status == "UnderReview")
+                        {
+                            <div class="alert alert-warning border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
+                                <i class="bi bi-hourglass-split fs-3 text-warning"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">Your Application is Under Review</h6>
+                                    <p class="small text-muted mb-0">Our admissions committee is verifying your submitted academic credentials and documents. You will receive an email notification once a decision is reached.</p>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.AA_Status == "Approved")
+                        {
+                            <div class="alert alert-success border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
+                                <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+                                <div class="w-100">
+                                    <h6 class="fw-bold mb-1 text-success">Congratulations! Your Admission has been Approved</h6>
+                                    <p class="small text-dark mb-2">We look forward to welcoming you. Please complete the following final enrollment requirements:</p>
+                                    <ol class="small text-muted ps-3 mb-0">
+                                        <li>Bring original documents (Birth Certificate, Marksheets, TC, Identity Proof) to the campus admissions desk.</li>
+                                        <li>Pay the admission fee to finalize seat allocation and receive official portal login credentials.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.AA_Status == "Enrolled")
+                        {
+                            <div class="alert alert-primary border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
+                                <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
+                                <div class="w-100">
+                                    <h6 class="fw-bold mb-1 text-primary">Enrolled Student &bull; Active Registry</h6>
+                                    <p class="small text-dark mb-2">You are officially enrolled as a student! Below are your student allocation details:</p>
+                                    <div class="row g-2 small bg-white p-2 rounded border">
+                                        <div class="col-sm-6">Student Code: <strong>@(Model.AdmittedStudentCode ?? "-")</strong></div>
+                                        <div class="col-sm-6">Admission No: <strong>@(Model.AdmittedStudentAdmissionNumber ?? Model.AA_ApplicationNumber)</strong></div>
+                                        <div class="col-sm-6">Class/Grade: <strong>@Model.ClassName</strong></div>
+                                        <div class="col-sm-6">Campus: <strong>@Model.BranchName</strong></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="/Student/Login" class="btn btn-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i> Log in to Student Portal
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.AA_Status == "Waitlisted")
+                        {
+                            <div class="alert alert-secondary border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
+                                <i class="bi bi-clock-history fs-3 text-secondary"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">Application Waitlisted</h6>
+                                    <p class="small text-muted mb-0">Your application has been placed on the admissions waiting list. You will be contacted if a seat becomes available for the requested grade.</p>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.AA_Status == "Rejected")
+                        {
+                            <div class="alert alert-danger border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
+                                <i class="bi bi-x-circle-fill fs-3 text-danger"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-danger">Application Not Approved</h6>
+                                    <p class="small text-muted mb-0">We regret to inform you that your application could not be approved at this time. @(!string.IsNullOrWhiteSpace(Model.AA_Notes) ? $"Remarks: {Model.AA_Notes}" : "")</p>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Applicant Summary Table -->
+                        <div class="card border bg-white rounded-3 mb-3">
+                            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                <span class="fw-bold small text-dark"><i class="bi bi-person-lines-fill me-1 text-primary"></i> Application Summary</span>
+                                <span class="text-muted small">Session: <strong>@Model.AcademicYearName</strong></span>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="row g-3">
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Applicant Name</span>
+                                        <span class="fw-bold text-dark">@Model.FullName</span>
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Applied Grade / Class</span>
+                                        <span class="fw-semibold">@(Model.ClassName ?? Model.CourseName ?? "-")</span>
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Campus / Branch</span>
+                                        <span class="fw-semibold">@Model.BranchName</span>
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Contact Phone</span>
+                                        <span class="fw-semibold">@Model.AA_Phone</span>
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Contact Email</span>
+                                        <span class="fw-semibold">@(Model.AA_Email ?? "-")</span>
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <span class="text-muted small d-block">Father / Guardian</span>
+                                        <span class="fw-semibold">@(Model.AA_FatherName ?? Model.AA_GuardianName ?? "-")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="d-flex align-items-center justify-content-between pt-2">
+                            <a href="/Home/TrackAdmission" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                <i class="bi bi-arrow-left me-1"></i> Check Another
+                            </a>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4" onclick="window.print()">
+                                <i class="bi bi-printer me-1"></i> Print Status Slip
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Informational Cards for Public Visitors -->
+            <div class="row g-4 mt-2">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-white">
+                        <div class="display-6 text-primary mb-2"><i class="bi bi-file-earmark-check"></i></div>
+                        <h6 class="fw-bold mb-1">1. Application Review</h6>
+                        <p class="small text-muted mb-0">Our admissions panel validates personal information and academic history.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-white">
+                        <div class="display-6 text-success mb-2"><i class="bi bi-envelope-check"></i></div>
+                        <h6 class="fw-bold mb-1">2. Notification</h6>
+                        <p class="small text-muted mb-0">Applicants receive real-time email updates upon status progression or approval.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center bg-white">
+                        <div class="display-6 text-info mb-2"><i class="bi bi-mortarboard"></i></div>
+                        <h6 class="fw-bold mb-1">3. Enrollment &amp; Login</h6>
+                        <p class="small text-muted mb-0">Once approved and enrolled, student credentials are issued for the portal.</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@functions {
+    string GetStatusGradient(string status) => status switch
+    {
+        "Approved" => "linear-gradient(135deg, #059669 0%, #047857 100%)",
+        "Enrolled" => "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)",
+        "Rejected" => "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+        "Waitlisted" => "linear-gradient(135deg, #475569 0%, #334155 100%)",
+        _ => "linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%)"
+    };
+
+    int GetProgressPercent(string status) => status switch
+    {
+        "Submitted" => 15,
+        "UnderReview" => 45,
+        "Approved" => 75,
+        "Waitlisted" => 75,
+        "Rejected" => 75,
+        "Enrolled" => 100,
+        _ => 15
+    };
+
+    string GetProgressBarClass(string status) => status switch
+    {
+        "Approved" => "bg-success",
+        "Enrolled" => "bg-primary",
+        "Rejected" => "bg-danger",
+        "Waitlisted" => "bg-secondary",
+        _ => "bg-primary"
+    };
+
+    bool IsStepPassed(string status, int step)
+    {
+        if (step == 2) return status == "UnderReview" || status == "Approved" || status == "Waitlisted" || status == "Rejected" || status == "Enrolled";
+        return false;
+    }
+
+    string GetStep3CircleClass(string status) => status switch
+    {
+        "Approved" or "Enrolled" => "bg-success text-white",
+        "Waitlisted" => "bg-secondary text-white",
+        "Rejected" => "bg-danger text-white",
+        _ => "bg-white border text-muted"
+    };
+
+    string GetStep3Icon(string status) => status switch
+    {
+        "Approved" or "Enrolled" => "bi-check-circle-fill",
+        "Waitlisted" => "bi-clock-history",
+        "Rejected" => "bi-x-circle-fill",
+        _ => "bi-stamp"
+    };
+
+    string GetStep3Label(string status) => status switch
+    {
+        "Approved" => "Approved",
+        "Waitlisted" => "Waitlisted",
+        "Rejected" => "Rejected",
+        "Enrolled" => "Approved",
+        _ => "Decision"
+    };
+}

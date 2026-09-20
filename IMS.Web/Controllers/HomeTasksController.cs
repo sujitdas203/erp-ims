@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using IMS.Helpers.Constants;
 using IMS.Models.HomeTask;
 using IMS.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 

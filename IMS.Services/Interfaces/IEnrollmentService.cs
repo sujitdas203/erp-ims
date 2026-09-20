@@ -6,10 +6,11 @@ namespace IMS.Services.Interfaces
 {
     public interface IEnrollmentService
     {
-        Task<EnrollmentIndexViewModel> GetListAsync(Guid tenantId, string searchTerm, Guid? academicYearId,
-            Guid? courseId, Guid? batchId, string status, int page, int pageSize);
-        Task<EnrollmentDetailsViewModel> GetDetailsAsync(Guid id, Guid tenantId);
-        Task<EnrollmentFormViewModel> GetForEditAsync(Guid id, Guid tenantId);
+        Task<EnrollmentIndexViewModel> GetListAsync(Guid tenantId, string? searchTerm, Guid? academicYearId,
+            Guid? courseId, Guid? batchId, string? status, int page, int pageSize,
+            Guid? branchId = null, Guid? classId = null, Guid? sectionId = null);
+        Task<EnrollmentDetailsViewModel?> GetDetailsAsync(Guid id, Guid tenantId);
+        Task<EnrollmentFormViewModel?> GetForEditAsync(Guid id, Guid tenantId);
         Task<ServiceResult> CreateAsync(EnrollmentFormViewModel model, Guid tenantId);
         Task<ServiceResult> UpdateAsync(EnrollmentFormViewModel model, Guid tenantId);
         Task<ServiceResult> DeleteAsync(Guid id, Guid tenantId);

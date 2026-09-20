@@ -4,9 +4,12 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-list-check me-2"></i>Home Tasks &amp; Homework</h3>
-    <a asp-controller="HomeTasks" asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add Home Task
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>Home Tasks &amp; Homework</h4>
+        <p class="text-muted small mb-0">Assign, track, and review homework assignments and submissions.</p>
+    </div>
+    <a asp-controller="HomeTasks" asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> Add Home Task
     </a>
 </div>
 

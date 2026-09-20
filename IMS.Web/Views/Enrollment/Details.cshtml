@@ -1,29 +1,153 @@
 @model IMS.Models.ViewModels.EnrollmentDetailsViewModel
-@{ ViewData["Title"] = "Enrollment Details"; }
+@{
+    ViewData["Title"] = "Enrollment Details - " + Model.E_EnrollmentNumber;
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-user-plus me-2"></i>@Model.E_EnrollmentNumber</h3>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.E_Id" class="btn btn-outline-primary"><i class="fa-solid fa-pen me-1"></i> Edit</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+        <h3 class="mb-0 text-primary fw-bold">
+            <i class="fa-solid fa-id-card me-2"></i>@Model.E_EnrollmentNumber
+            <span class="badge @StatusBadge(Model.E_Status) fs-6 align-middle ms-2">@Model.E_Status</span>
+        </h3>
+        <p class="text-muted mb-0 small">Enrollment details for <strong>@Model.StudentName</strong></p>
+    </div>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.E_Id" class="btn btn-outline-primary me-1">
+            <i class="fa-solid fa-pen me-1"></i> Edit Enrollment
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-4">Enrollment Number</dt><dd class="col-sm-8">@Model.E_EnrollmentNumber</dd>
-            <dt class="col-sm-4">Student</dt><dd class="col-sm-8">@Model.StudentName</dd>
-            <dt class="col-sm-4">Course</dt><dd class="col-sm-8">@Model.CourseName</dd>
-            <dt class="col-sm-4">Batch</dt><dd class="col-sm-8">@Model.BatchName</dd>
-            <dt class="col-sm-4">Academic Year</dt><dd class="col-sm-8">@Model.AcademicYearName</dd>
-            <dt class="col-sm-4">Enrollment Date</dt><dd class="col-sm-8">@Model.E_EnrollmentDate.ToString("dd-MMM-yyyy")</dd>
-            <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><span class="badge @StatusBadge(Model.E_Status)">@Model.E_Status</span></dd>
-            <dt class="col-sm-4">Completion Date</dt><dd class="col-sm-8">@(Model.E_CompletionDate?.ToString("dd-MMM-yyyy") ?? "-")</dd>
-            <dt class="col-sm-4">Created</dt><dd class="col-sm-8">@Model.E_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-            <dt class="col-sm-4">Updated</dt><dd class="col-sm-8">@Model.E_UpdatedAt.ToString("dd-MMM-yyyy HH:mm")</dd>
-        </dl>
+<div class="row g-3">
+    <!-- Card 1: Student & Campus Details -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-transparent py-2 border-bottom fw-bold text-primary">
+                <i class="fa-solid fa-user-graduate me-2"></i>Student & Campus Info
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Student Name</dt>
+                    <dd class="col-sm-7 fw-semibold">@Model.StudentName</dd>
+
+                    <dt class="col-sm-5 text-muted">Student Code / ID</dt>
+                    <dd class="col-sm-7">@(Model.StudentCode ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Admission Number</dt>
+                    <dd class="col-sm-7">@(Model.StudentAdmissionNumber ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Phone Number</dt>
+                    <dd class="col-sm-7">@(Model.StudentPhone ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Email Address</dt>
+                    <dd class="col-sm-7">@(Model.StudentEmail ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Branch / Campus</dt>
+                    <dd class="col-sm-7">@(Model.BranchName ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Academic Placement Details -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-transparent py-2 border-bottom fw-bold text-primary">
+                <i class="fa-solid fa-chalkboard-user me-2"></i>Academic Placement
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Class / Grade (K-12)</dt>
+                    <dd class="col-sm-7">
+                        @if (!string.IsNullOrEmpty(Model.ClassName) && Model.ClassName != "-")
+                        {
+                            <span class="badge bg-primary-subtle text-primary border">@Model.ClassName</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Section</dt>
+                    <dd class="col-sm-7">
+                        @if (!string.IsNullOrEmpty(Model.SectionName) && Model.SectionName != "-")
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border">Section @Model.SectionName</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Stream / Course</dt>
+                    <dd class="col-sm-7">@(Model.CourseName ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Batch</dt>
+                    <dd class="col-sm-7">@(Model.BatchName ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Roll Number</dt>
+                    <dd class="col-sm-7 fw-bold">@(Model.E_RollNumber ?? "-")</dd>
+
+                    <dt class="col-sm-5 text-muted">Academic Year</dt>
+                    <dd class="col-sm-7">@Model.AcademicYearName</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Enrollment Status & Timeline -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-transparent py-2 border-bottom fw-bold text-primary">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Enrollment Timeline & Notes
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Enrollment Type</small>
+                        <span class="fw-semibold">@(Model.E_EnrollmentType ?? "New Admission")</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Enrollment Date</small>
+                        <span class="fw-semibold">@Model.E_EnrollmentDate.ToString("dd-MMM-yyyy")</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Completion / Exit Date</small>
+                        <span class="fw-semibold">@(Model.E_CompletionDate?.ToString("dd-MMM-yyyy") ?? "Active / Ongoing")</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">System Created</small>
+                        <span class="text-muted">@Model.E_CreatedAt.ToString("dd-MMM-yyyy HH:mm")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.E_Remarks))
+                    {
+                        <div class="col-12">
+                            <hr class="my-2" />
+                            <small class="text-muted d-block fw-semibold mb-1">Remarks / Admission Notes</small>
+                            <div class="p-2 bg-light rounded border text-secondary">
+                                @Model.E_Remarks
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-@functions { string StatusBadge(string s) => s switch { "Active" => "bg-success", "Completed" => "bg-info text-dark", "Withdrawn" => "bg-warning text-dark", "Transferred" => "bg-primary", _ => "bg-light text-dark" }; }
+@functions {
+    string StatusBadge(string? s) => s switch
+    {
+        "Active" => "bg-success",
+        "Completed" => "bg-info text-dark",
+        "Withdrawn" => "bg-warning text-dark",
+        "Transferred" => "bg-primary",
+        "Suspended" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
