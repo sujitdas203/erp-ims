@@ -139,25 +139,32 @@
     });
 
     function cancelPortalLeave(leaveId) {
-        if (!confirm("Are you sure you want to cancel this leave application?")) return;
-
-        const token = $('input[name="__RequestVerificationToken"]').val();
-        $.ajax({
-            url: '@Url.Action("DeleteLeave", "Requests", new { area = "StudentPortal" })',
-            type: 'POST',
-            data: { leaveId: leaveId, __RequestVerificationToken: token },
-            success: function (res) {
-                if (res.success) {
-                    if (window.toastr) toastr.success(res.message || "Leave application cancelled.");
-                    $(`#portal-leave-row-${leaveId}`).fadeOut(300, function() { $(this).remove(); });
-                } else {
-                    if (window.toastr) toastr.error(res.message || "Failed to cancel leave.");
-                    else alert(res.message || "Failed to cancel leave.");
-                }
-            },
-            error: function () {
-                if (window.toastr) toastr.error("Request failed. Please try again.");
-                else alert("Request failed. Please try again.");
+        IMSConfirm.show({
+            title: "Cancel Leave Application",
+            message: "Are you sure you want to cancel this leave application?",
+            confirmText: "Yes, Cancel",
+            confirmBtnClass: "btn-confirm btn-danger",
+            iconClass: "fas fa-ban",
+            onConfirm: function () {
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                $.ajax({
+                    url: '@Url.Action("DeleteLeave", "Requests", new { area = "StudentPortal" })',
+                    type: 'POST',
+                    data: { leaveId: leaveId, __RequestVerificationToken: token },
+                    success: function (res) {
+                        if (res.success) {
+                            if (window.toastr) toastr.success(res.message || "Leave application cancelled.");
+                            $(`#portal-leave-row-${leaveId}`).fadeOut(300, function() { $(this).remove(); });
+                        } else {
+                            if (window.toastr) toastr.error(res.message || "Failed to cancel leave.");
+                            else alert(res.message || "Failed to cancel leave.");
+                        }
+                    },
+                    error: function () {
+                        if (window.toastr) toastr.error("Request failed. Please try again.");
+                        else alert("Request failed. Please try again.");
+                    }
+                });
             }
         });
     }

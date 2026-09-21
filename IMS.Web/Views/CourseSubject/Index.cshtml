@@ -92,18 +92,19 @@
                 var courseId = $(this).data("course-id");
                 var subjectId = $(this).data("subject-id");
                 var name = $(this).data("name");
-                if (!confirm("Remove '" + name + "' from this course?")) return;
-                $.ajax({
-                    url: "/CourseSubject/DeleteCourseSubject",
-                    type: "POST",
-                    data: { courseId: courseId, subjectId: subjectId, __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
-                    success: function (r) {
-                        if (r.success) {
-                            if (window.toastr) toastr.success(r.message);
-                            $("#cs-row-" + courseId + "-" + subjectId).fadeOut(300, function () { $(this).remove(); });
-                        } else { if (window.toastr) toastr.error(r.message); }
-                    },
-                    error: function () { if (window.toastr) toastr.error("Request failed."); }
+                IMSConfirm.delete(name ? "Subject '" + name + "'" : "this subject mapping", function () {
+                    $.ajax({
+                        url: "/CourseSubject/DeleteCourseSubject",
+                        type: "POST",
+                        data: { courseId: courseId, subjectId: subjectId, __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
+                        success: function (r) {
+                            if (r.success) {
+                                if (window.toastr) toastr.success(r.message);
+                                $("#cs-row-" + courseId + "-" + subjectId).fadeOut(300, function () { $(this).remove(); });
+                            } else { if (window.toastr) toastr.error(r.message); }
+                        },
+                        error: function () { if (window.toastr) toastr.error("Request failed."); }
+                    });
                 });
             });
         });

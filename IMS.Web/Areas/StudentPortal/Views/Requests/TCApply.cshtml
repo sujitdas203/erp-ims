@@ -137,25 +137,32 @@
 @section Scripts {
 <script>
     function cancelPortalTC(tcId) {
-        if (!confirm("Are you sure you want to cancel this Transfer Certificate request?")) return;
-
-        const token = $('input[name="__RequestVerificationToken"]').val();
-        $.ajax({
-            url: '@Url.Action("DeleteTC", "Requests", new { area = "StudentPortal" })',
-            type: 'POST',
-            data: { tcId: tcId, __RequestVerificationToken: token },
-            success: function (res) {
-                if (res.success) {
-                    if (window.toastr) toastr.success(res.message || "Transfer Certificate request cancelled.");
-                    $(`#portal-tc-card-${tcId}`).fadeOut(300, function() { $(this).remove(); });
-                } else {
-                    if (window.toastr) toastr.error(res.message || "Failed to cancel request.");
-                    else alert(res.message || "Failed to cancel request.");
-                }
-            },
-            error: function () {
-                if (window.toastr) toastr.error("Request failed. Please try again.");
-                else alert("Request failed. Please try again.");
+        IMSConfirm.show({
+            title: "Cancel TC Request",
+            message: "Are you sure you want to cancel this Transfer Certificate request?",
+            confirmText: "Yes, Cancel",
+            confirmBtnClass: "btn-confirm btn-danger",
+            iconClass: "fas fa-ban",
+            onConfirm: function () {
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                $.ajax({
+                    url: '@Url.Action("DeleteTC", "Requests", new { area = "StudentPortal" })',
+                    type: 'POST',
+                    data: { tcId: tcId, __RequestVerificationToken: token },
+                    success: function (res) {
+                        if (res.success) {
+                            if (window.toastr) toastr.success(res.message || "Transfer Certificate request cancelled.");
+                            $(`#portal-tc-card-${tcId}`).fadeOut(300, function() { $(this).remove(); });
+                        } else {
+                            if (window.toastr) toastr.error(res.message || "Failed to cancel request.");
+                            else alert(res.message || "Failed to cancel request.");
+                        }
+                    },
+                    error: function () {
+                        if (window.toastr) toastr.error("Request failed. Please try again.");
+                        else alert("Request failed. Please try again.");
+                    }
+                });
             }
         });
     }

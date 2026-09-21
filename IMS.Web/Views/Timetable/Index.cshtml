@@ -65,11 +65,32 @@ $(function () {
     Dropdown.load({ element: '#batchId', entityType: 'Batch', defaultText: 'All Batches', includeDefault: true, selectedValue: $('#batchId').data('selected-value') });
     $(document).on("click", ".tt-delete-btn", function () {
         var id = $(this).data("id");
-        if (!confirm("Delete this timetable entry?")) return;
-        $.ajax({ url: "/Timetable/DeleteTimetable/" + id, type: "POST",
-            data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); $("#tt-row-" + id).fadeOut(300, function(){$(this).remove();}); } else { if (window.toastr) toastr.error(r.message); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); }
+        var row = $(this).closest("tr");
+        var subject = row.find("td:nth-child(3)").text().trim();
+        var day = row.find("td:first").text().trim();
+        var time = row.find("td:nth-child(2)").text().trim();
+        var label = subject ? `${subject} on ${day} (${time})` : "this timetable entry";
+
+        IMSConfirm.delete(`Are you sure you want to delete <strong>${label}</strong>? This action cannot be undone.`, function (done) {
+            $.ajax({ 
+                url: "/Timetable/DeleteTimetable/" + id, 
+                type: "POST",
+                data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
+                success: function (r) { 
+                    if (r.success) { 
+                        if (window.toastr) toastr.success(r.message || "Deleted."); 
+                        $("#tt-row-" + id).fadeOut(300, function(){$(this).remove();}); 
+                    } else { 
+                        if (window.toastr) toastr.error(r.message || "Delete failed."); 
+                    } 
+                },
+                error: function () { 
+                    if (window.toastr) toastr.error("Request failed."); 
+                },
+                complete: function () {
+                    done();
+                }
+            });
         });
     });
 });

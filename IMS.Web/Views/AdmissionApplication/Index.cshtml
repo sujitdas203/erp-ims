@@ -136,22 +136,30 @@ $(function () {
 
     $(document).on("click", ".aa-delete-btn", function () {
         var id = $(this).data("id");
-        if (!confirm("Are you sure you want to delete this admission application?")) return;
-        $.ajax({ 
-            url: "/AdmissionApplication/DeleteApplication/" + id, 
-            type: "POST",
-            data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
-            success: function (r) { 
-                if (r.success) { 
-                    if (window.toastr) toastr.success(r.message); 
-                    $("#aa-row-" + id).fadeOut(300, function(){ $(this).remove(); }); 
-                } else { 
-                    if (window.toastr) toastr.error(r.message); 
-                } 
-            },
-            error: function () { 
-                if (window.toastr) toastr.error("Request failed."); 
-            }
+        var row = $(this).closest("tr");
+        var applicantName = row.find("td:nth-child(2) span").text().trim();
+        var label = applicantName ? `admission application for <strong>${applicantName}</strong>` : "this admission application";
+
+        IMSConfirm.delete(`Are you sure you want to delete ${label}? This action cannot be undone.`, function (done) {
+            $.ajax({ 
+                url: "/AdmissionApplication/DeleteApplication/" + id, 
+                type: "POST",
+                data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
+                success: function (r) { 
+                    if (r.success) { 
+                        if (window.toastr) toastr.success(r.message || "Application deleted."); 
+                        $("#aa-row-" + id).fadeOut(300, function(){ $(this).remove(); }); 
+                    } else { 
+                        if (window.toastr) toastr.error(r.message || "Delete failed."); 
+                    } 
+                },
+                error: function () { 
+                    if (window.toastr) toastr.error("Request failed."); 
+                },
+                complete: function () {
+                    done();
+                }
+            });
         });
     });
 });

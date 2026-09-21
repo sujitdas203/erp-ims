@@ -279,7 +279,10 @@
                 column = f.ColumnName,
                 gridColumn = string.IsNullOrWhiteSpace(f.GridColumnName)
                                 ? f.ColumnName
-                                : f.GridColumnName
+                                : f.GridColumnName,
+                type = f.FieldType.ToString(),
+                lookupEntity = f.LookupEntityType,
+                lookupTextField = f.LookupTextField
             })
         ));
         const formColumns = @Html.Raw(Json.Serialize(formFields.Select(f => new {
@@ -325,11 +328,47 @@
                 }
             ];
 
-            // gridColumns.forEach(c => columns.push({ data: c, defaultContent: "" }));
             gridColumns.forEach(c => {
                 columns.push({
-                    data: c.gridColumn,
-                    defaultContent: ""
+                    data: null,
+                    defaultContent: "",
+                    render: function (data, type, row) {
+                        var val = getPropValue(row, c.gridColumn);
+
+                        // If value is not set or is a raw GUID, attempt name resolution
+                        if (val === undefined || val === null || val === "" || isGuid(val)) {
+                            if (c.lookupTextField) {
+                                var tfVal = getPropValue(row, c.lookupTextField);
+                                if (tfVal && !isGuid(tfVal)) return tfVal;
+                            }
+                            if (c.lookupEntity) {
+                                var entName = getPropValue(row, c.lookupEntity + "Name");
+                                if (entName && !isGuid(entName)) return entName;
+                            }
+                            var colName = c.column || "";
+                            var stripped = colName.replace(/Id$/i, "Name");
+                            var strippedVal = getPropValue(row, stripped);
+                            if (strippedVal && !isGuid(strippedVal)) return strippedVal;
+
+                            var parts = colName.split('_');
+                            if (parts.length > 1) {
+                                var baseProp = parts[1].replace(/Id$/i, "");
+                                var baseNameVal = getPropValue(row, baseProp + "Name") || getPropValue(row, baseProp);
+                                if (baseNameVal && !isGuid(baseNameVal)) return baseNameVal;
+                            }
+                        }
+
+                        if (val !== undefined && val !== null) {
+                            if (isGuid(val)) {
+                                if (c.lookupEntity) {
+                                    var match = getPropValue(row, c.lookupEntity + "Name");
+                                    if (match) return match;
+                                }
+                            }
+                            return val;
+                        }
+                        return "";
+                    }
                 });
             });
 
@@ -389,6 +428,11 @@
                 }
             }
             return undefined;
+        }
+
+        function isGuid(val) {
+            if (!val || typeof val !== 'string') return false;
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim());
         }
 
         function loadDropdowns() {
@@ -601,16 +645,22 @@
         }
 
         function deleteRecord(id) {
-            if (!confirm("Are you sure you want to delete this record?")) return;
-            $.ajax({
-                url: baseUrl + "/" + id,
-                method: "DELETE",
-                success: function () {
-                    masterTable.ajax.reload();
-                },
-                error: function (xhr) {
-                    alert(xhr.responseJSON?.message || "Delete failed.");
-                }
+            IMSConfirm.delete("Are you sure you want to delete this record? This action cannot be undone.", function (done) {
+                $.ajax({
+                    url: baseUrl + "/" + id,
+                    method: "DELETE",
+                    success: function () {
+                        masterTable.ajax.reload();
+                        if (window.toastr) toastr.success("Record deleted successfully.");
+                    },
+                    error: function (xhr) {
+                        if (window.toastr) toastr.error(xhr.responseJSON?.message || "Delete failed.");
+                        else alert(xhr.responseJSON?.message || "Delete failed.");
+                    },
+                    complete: function () {
+                        done();
+                    }
+                });
             });
         }
     </script>

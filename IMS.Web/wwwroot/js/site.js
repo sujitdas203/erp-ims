@@ -201,3 +201,178 @@ document.addEventListener('DOMContentLoaded', function () {
         initSidebarScroll();
     }
 })();
+
+// ----------------------------------------------------------------------------
+// Universal Classic Confirmation Dialog System (Swing Animated)
+// ----------------------------------------------------------------------------
+window.IMSConfirm = (function () {
+    var confirmCallback = null;
+
+    function getOrCreateModal() {
+        var el = document.getElementById('imsGlobalConfirmModal');
+        if (!el) {
+            var modalHtml = `
+            <div class="modal fade ims-confirm-modal" id="imsGlobalConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content ims-confirm-content border-0 shadow-lg">
+                        <div class="modal-body text-center p-4">
+                            <div class="ims-confirm-icon-wrap mb-3">
+                                <div class="ims-confirm-icon-circle" id="imsConfirmIconWrap">
+                                    <i class="fa-solid fa-triangle-exclamation" id="imsConfirmIcon"></i>
+                                </div>
+                            </div>
+                            <h5 class="ims-confirm-title fw-bold mb-2" id="imsConfirmTitle">Delete Confirmation</h5>
+                            <p class="ims-confirm-message mb-4" id="imsConfirmMessage">Are you sure you want to delete this record? This action cannot be undone.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" id="imsConfirmCancelBtn">Cancel</button>
+                                <button type="button" class="btn btn-danger btn-confirm d-flex align-items-center gap-2" id="imsConfirmOkBtn">
+                                    <i class="fa-solid fa-trash-can" id="imsConfirmOkIcon"></i>
+                                    <span id="imsConfirmOkText">Yes, Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            el = document.getElementById('imsGlobalConfirmModal');
+
+            var okBtn = document.getElementById('imsConfirmOkBtn');
+            okBtn.addEventListener('click', function () {
+                var btn = this;
+                if (typeof confirmCallback === 'function') {
+                    var originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Deleting...';
+
+                    var cb = confirmCallback;
+                    confirmCallback = null;
+
+                    var closeDialog = function () {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        var inst = bootstrap.Modal.getInstance(el);
+                        if (inst) inst.hide();
+                    };
+
+                    try {
+                        var res = cb(closeDialog);
+                        if (res && typeof res.then === 'function') {
+                            res.finally(closeDialog);
+                        } else if (cb.length === 0) {
+                            closeDialog();
+                        }
+                    } catch (e) {
+                        closeDialog();
+                    }
+                } else {
+                    var inst = bootstrap.Modal.getInstance(el);
+                    if (inst) inst.hide();
+                }
+            });
+        }
+        return el;
+    }
+
+    function show(options) {
+        options = options || {};
+        var el = getOrCreateModal();
+        var titleEl = document.getElementById('imsConfirmTitle');
+        var msgEl = document.getElementById('imsConfirmMessage');
+        var okText = document.getElementById('imsConfirmOkText');
+        var okIcon = document.getElementById('imsConfirmOkIcon');
+        var cancelBtn = document.getElementById('imsConfirmCancelBtn');
+        var iconWrap = document.getElementById('imsConfirmIconWrap');
+        var iconEl = document.getElementById('imsConfirmIcon');
+        var okBtn = document.getElementById('imsConfirmOkBtn');
+
+        titleEl.textContent = options.title || 'Delete Confirmation';
+        msgEl.innerHTML = options.message || 'Are you sure you want to delete this record? This action cannot be undone.';
+        okText.textContent = options.confirmText || 'Yes, Delete';
+        cancelBtn.textContent = options.cancelText || 'Cancel';
+
+        if (options.type === 'warning') {
+            iconWrap.className = 'ims-confirm-icon-circle warning';
+            iconEl.className = 'fa-solid fa-triangle-exclamation';
+            okBtn.className = 'btn btn-warning text-dark btn-confirm d-flex align-items-center gap-2';
+        } else {
+            iconWrap.className = 'ims-confirm-icon-circle';
+            iconEl.className = 'fa-solid fa-triangle-exclamation';
+            okBtn.className = 'btn btn-danger btn-confirm d-flex align-items-center gap-2';
+        }
+
+        if (options.icon) {
+            okIcon.className = options.icon;
+        } else {
+            okIcon.className = 'fa-solid fa-trash-can';
+        }
+
+        return new Promise(function (resolve) {
+            confirmCallback = function (done) {
+                if (options.onConfirm) {
+                    options.onConfirm(done);
+                }
+                resolve(true);
+            };
+
+            var inst = bootstrap.Modal.getOrCreateInstance(el);
+            inst.show();
+
+            el.addEventListener('hidden.bs.modal', function handler() {
+                el.removeEventListener('hidden.bs.modal', handler);
+                resolve(false);
+            }, { once: true });
+        });
+    }
+
+    function deleteConfirm(targetNameOrOptions, onConfirm) {
+        var options = {};
+        if (typeof targetNameOrOptions === 'string') {
+            options = {
+                title: 'Delete Confirmation',
+                message: targetNameOrOptions.indexOf('?') > -1 || targetNameOrOptions.indexOf('<') > -1
+                    ? targetNameOrOptions
+                    : (targetNameOrOptions ? `Are you sure you want to delete <strong>${targetNameOrOptions}</strong>? This action cannot be undone.` : 'Are you sure you want to delete this record? This action cannot be undone.'),
+                confirmText: 'Yes, Delete',
+                onConfirm: onConfirm
+            };
+        } else if (typeof targetNameOrOptions === 'object') {
+            options = targetNameOrOptions;
+            if (onConfirm) options.onConfirm = onConfirm;
+        }
+        return show(options);
+    }
+
+    return {
+        show: show,
+        delete: deleteConfirm
+    };
+})();
+
+// Global interceptor for delete buttons across all modules
+$(document).on('click', '.confirm-delete-btn, [data-confirm-delete], .btn-delete-confirm, .action-delete-btn', function (e) {
+    var $btn = $(this);
+    var targetModalId = $btn.attr('data-bs-target') || $btn.attr('href') || ('#deleteModal-' + $btn.data('id'));
+    var $inlineModal = $(targetModalId);
+
+    if ($inlineModal.length && $inlineModal.hasClass('modal')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        var modalMsg = $inlineModal.find('.modal-body').html() || '';
+        modalMsg = modalMsg.trim();
+        if (!modalMsg) {
+            var rowName = $btn.closest('tr').find('td:nth-child(2), td:nth-child(3)').first().text().trim();
+            modalMsg = rowName ? `Are you sure you want to delete <strong>${rowName}</strong>? This action cannot be undone.` : 'Are you sure you want to delete this record? This action cannot be undone.';
+        }
+
+        IMSConfirm.delete(modalMsg, function (done) {
+            var $doDeleteBtn = $inlineModal.find('.do-delete-btn');
+            if ($doDeleteBtn.length) {
+                $doDeleteBtn.trigger('click');
+            }
+            done();
+        });
+        return false;
+    }
+});
