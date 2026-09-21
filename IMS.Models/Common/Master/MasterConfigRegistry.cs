@@ -644,11 +644,11 @@ namespace IMS.Models.Common.Master
 
                 Fields = new List<MasterFieldConfig>
                 {
-                    new MasterFieldConfig { ColumnName = "FS_Name", PropertyName = "Name", DisplayName = "Fee Structure Name", IsRequired = true, IsUnique = true, MaxLength = 200 },
+                    new MasterFieldConfig { ColumnName = "FS_Name", PropertyName = "Name", DisplayName = "Fee Structure Name", IsRequired = true, IsUnique = true, MaxLength = 150 },
                     new MasterFieldConfig { ColumnName = "FS_Code", PropertyName = "Code", DisplayName = "Code", IsRequired = true, IsUnique = true, MaxLength = 50 },
-                    new MasterFieldConfig { ColumnName = "FS_CourseId", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name" },
-                    new MasterFieldConfig { ColumnName = "FS_BatchId", PropertyName = "BatchId", DisplayName = "Batch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Batch", LookupValueField = "BT_Id", LookupTextField = "BT_Name" },
-                    new MasterFieldConfig { ColumnName = "FS_AcademicYearId", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name" },
+                    new MasterFieldConfig { ColumnName = "FS_AcademicYearId", GridColumnName = "AY_Name", PropertyName = "AcademicYearId", DisplayName = "Academic Year", FieldType = MasterFieldType.Dropdown, LookupEntityType = "AcademicYear", LookupValueField = "AY_Id", LookupTextField = "AY_Name", IsRequired = true },
+                    new MasterFieldConfig { ColumnName = "FS_CourseId", GridColumnName = "C_Name", PropertyName = "CourseId", DisplayName = "Course", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Course", LookupValueField = "C_Id", LookupTextField = "C_Name" },
+                    new MasterFieldConfig { ColumnName = "FS_BatchId", GridColumnName = "BT_Name", PropertyName = "BatchId", DisplayName = "Batch", FieldType = MasterFieldType.Dropdown, LookupEntityType = "Batch", LookupValueField = "BT_Id", LookupTextField = "BT_Name" },
                     new MasterFieldConfig { ColumnName = "FS_Description", PropertyName = "Description", DisplayName = "Description", FieldType = MasterFieldType.TextArea }
                 }
             },
