@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -221,6 +221,31 @@ namespace IMS.DAL.Common
             return connection;
         }
         
+        /// <summary>
+        /// Executes a raw SQL query with parameters and returns a DataTable.
+        /// </summary>
+        public DataTable ExecuteDataTable(string sql, Dictionary<string, object> parameters = null)
+        {
+            using (var connection = GetConnection())
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                if (parameters != null)
+                {
+                    foreach (var kvp in parameters)
+                    {
+                        cmd.Parameters.AddWithValue(kvp.Key, kvp.Value ?? DBNull.Value);
+                    }
+                }
+                var table = new DataTable();
+                connection.Open();
+                using (var adapter = new SqlDataAdapter(cmd))
+                {
+                    adapter.Fill(table);
+                }
+                return table;
+            }
+        }
+
         /// <summary>
         /// Executes a raw SQL scalar query with parameters.
         /// </summary>

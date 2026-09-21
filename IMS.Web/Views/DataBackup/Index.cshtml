@@ -1,0 +1,601 @@
+@model IMS.Models.Backup.DataBackupIndexViewModel
+@{
+    ViewData["Title"] = "Data Backup & Extraction";
+    var selectedModule = Model.CurrentFilter.Module ?? "Students";
+}
+
+<div class="container-fluid px-0">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-2" style="width: 42px; height: 42px;">
+                    <i class="fa-solid fa-cloud-arrow-down fa-lg"></i>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">Data Backup & Extraction</h4>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill small">System Utility</span>
+            </div>
+            <p class="text-muted small mb-0">Extract and backup database records filtered by Academic Year, Branch, Course, Batch, Date range and Status into Excel or CSV formats.</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" id="btnRefreshStats">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Stats
+            </button>
+            <button type="button" class="btn btn-danger btn-sm shadow-sm" id="btnExportAll">
+                <i class="fa-solid fa-file-zipper me-1"></i> Full System Backup (.ZIP)
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase">Total System Records</span>
+                        <h3 class="fw-bold mb-0 text-primary mt-1" id="statTotalRecords">@Model.TotalSystemRecords.ToString("N0")</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-server fa-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted">Across all ERP core modules</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase">Export Datasets</span>
+                        <h3 class="fw-bold mb-0 text-success mt-1">@Model.AvailableModules.Count</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-cubes-stacked fa-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted">Ready for filtered extraction</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase">Supported Formats</span>
+                        <div class="d-flex align-items-center gap-1 mt-2">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="fa-solid fa-file-excel me-1"></i>Excel (.xls)</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1"><i class="fa-solid fa-file-csv me-1"></i>CSV</span>
+                        </div>
+                    </div>
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-file-export fa-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted">Universal UTF-8 encoding support</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-medium text-uppercase">Matching Filter Records</span>
+                        <h3 class="fw-bold mb-0 text-dark mt-1" id="statFilteredCount">--</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-filter fa-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted" id="statSelectedModuleLabel">Selected: Students</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+
+        <!-- Left Column: Module Selection Cards -->
+        <div class="col-12 col-lg-5 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-header bg-transparent border-bottom py-3 px-3 d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-database text-primary me-2"></i>1. Select Dataset / Module</h6>
+                    <span class="badge bg-light text-dark border small">@Model.AvailableModules.Count modules</span>
+                </div>
+                <div class="card-body p-2" style="max-height: 680px; overflow-y: auto;">
+                    <div class="list-group list-group-flush gap-1" id="moduleList">
+                        @foreach (var mod in Model.AvailableModules)
+                        {
+                            var isSelected = string.Equals(mod.Code, selectedModule, StringComparison.OrdinalIgnoreCase);
+                            <a href="javascript:void(0);" 
+                               class="list-group-item list-group-item-action rounded-3 border-0 p-3 module-card @(isSelected ? "active-module" : "")"
+                               data-module-code="@mod.Code"
+                               data-module-name="@mod.DisplayName"
+                               data-filters="@string.Join(",", mod.SupportedFilters)">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="module-icon-box rounded-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                                        <i class="fa-solid @mod.Icon"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <h6 class="fw-bold mb-0 text-truncate module-title">@mod.DisplayName</h6>
+                                            <span class="badge rounded-pill bg-light text-secondary border px-2 py-1 small">@mod.EstimatedCount.ToString("N0") rows</span>
+                                        </div>
+                                        <p class="text-muted small mb-1 text-truncate">@mod.Description</p>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">@mod.Category</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Filters, Preview & Export Actions -->
+        <div class="col-12 col-lg-7 col-xl-8">
+            <form id="backupFilterForm" method="post" asp-action="Export">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Module" id="inputSelectedModule" value="@selectedModule" />
+                <input type="hidden" name="FormattedStartDate" id="hiddenFormattedStartDate" value="" />
+                <input type="hidden" name="FormattedEndDate" id="hiddenFormattedEndDate" value="" />
+
+                <!-- Filter Settings Card -->
+                <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+                    <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-sliders text-primary me-2"></i>2. Configure Extraction Filters</h6>
+                            <span class="badge bg-secondary-subtle text-secondary" id="activeFilterBadge">Students Directory</span>
+                        </div>
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" id="btnResetFilters">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Reset Filters
+                        </button>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+
+                            <!-- Academic Year Filter -->
+                            <div class="col-12 col-md-6 col-xl-4 filter-field" data-filter="AcademicYear">
+                                <label class="form-label small fw-semibold text-muted mb-1">Academic Year</label>
+                                <select class="form-select select2-init" name="AcademicYearId" id="filterAcademicYear">
+                                    <option value="">-- All Academic Years --</option>
+                                </select>
+                            </div>
+
+                            <!-- Branch Filter -->
+                            <div class="col-12 col-md-6 col-xl-4 filter-field" data-filter="Branch">
+                                <label class="form-label small fw-semibold text-muted mb-1">Branch / Campus</label>
+                                <select class="form-select select2-init" name="BranchId" id="filterBranch">
+                                    <option value="">-- All Branches --</option>
+                                </select>
+                            </div>
+
+                            <!-- Course Filter -->
+                            <div class="col-12 col-md-6 col-xl-4 filter-field" data-filter="Course">
+                                <label class="form-label small fw-semibold text-muted mb-1">Course / Standard</label>
+                                <select class="form-select select2-init" name="CourseId" id="filterCourse">
+                                    <option value="">-- All Courses --</option>
+                                </select>
+                            </div>
+
+                            <!-- Batch Filter -->
+                            <div class="col-12 col-md-6 col-xl-4 filter-field" data-filter="Batch">
+                                <label class="form-label small fw-semibold text-muted mb-1">Batch / Section</label>
+                                <select class="form-select select2-init" name="BatchId" id="filterBatch">
+                                    <option value="">-- All Batches --</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div class="col-12 col-md-6 col-xl-4 filter-field" data-filter="Status">
+                                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                                <select class="form-select" name="Status" id="filterStatus">
+                                    <option value="">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Submitted">Submitted / Pending</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Partial">Partial</option>
+                                    <option value="Unpaid">Unpaid / Overdue</option>
+                                </select>
+                            </div>
+
+                            <!-- Search Filter -->
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <label class="form-label small fw-semibold text-muted mb-1">Keyword Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" name="SearchTerm" id="filterSearchTerm" placeholder="Code, name, phone..." />
+                                </div>
+                            </div>
+
+                            <!-- Date Range Filters -->
+                            <div class="col-12 col-md-6 col-xl-6 filter-field" data-filter="DateRange">
+                                <label class="form-label small fw-semibold text-muted mb-1">Created / Event Date (From)</label>
+                                <input type="text" class="form-control ims-datepicker-input" name="StartDate" id="filterStartDate" placeholder="DD/MM/YYYY" data-format="dd/MM/yyyy" data-value-format="yyyy-MM-dd" autocomplete="off" />
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-6 filter-field" data-filter="DateRange">
+                                <label class="form-label small fw-semibold text-muted mb-1">Created / Event Date (To)</label>
+                                <input type="text" class="form-control ims-datepicker-input" name="EndDate" id="filterEndDate" placeholder="DD/MM/YYYY" data-format="dd/MM/yyyy" data-value-format="yyyy-MM-dd" autocomplete="off" />
+                            </div>
+
+                        </div>
+
+                        <!-- Export Format Selector -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 mt-3 border-top">
+                            <div>
+                                <label class="form-label small fw-semibold text-muted mb-1 d-block">3. Choose File Format</label>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="Format" id="formatExcel" value="excel" checked>
+                                    <label class="btn btn-outline-success btn-sm px-3" for="formatExcel">
+                                        <i class="fa-solid fa-file-excel me-1"></i> Excel Spreadsheet (.xls)
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="Format" id="formatCsv" value="csv">
+                                    <label class="btn btn-outline-primary btn-sm px-3" for="formatCsv">
+                                        <i class="fa-solid fa-file-csv me-1"></i> Standard CSV (.csv)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2 mt-auto">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3" id="btnPreviewData">
+                                    <i class="fa-solid fa-eye me-1"></i> Preview Records
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm" id="btnDownloadExport">
+                                    <i class="fa-solid fa-download me-1"></i> Download Export
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Preview Table Card -->
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
+                    <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-table-list text-primary me-2"></i>Live Data Preview</h6>
+                            <span class="text-muted small" id="previewSubtitle">Showing sample matching records</span>
+                        </div>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill" id="previewBadgeCount">0 Records Found</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 420px; overflow-y: auto;" id="previewTableContainer">
+                            <div class="text-center py-5 text-muted" id="previewPlaceholder">
+                                <i class="fa-solid fa-circle-notch fa-spin fa-2x mb-3 text-primary" id="previewSpinner" style="display:none;"></i>
+                                <p class="mb-0" id="previewPlaceholderText">Click "Preview Records" or adjust filters to inspect matching data before downloading.</p>
+                            </div>
+                            <table class="table table-hover table-striped table-bordered mb-0 align-middle small d-none" id="previewTable">
+                                <thead class="table-light text-nowrap" id="previewThead"></thead>
+                                <tbody id="previewTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Initialize Dropdowns
+            Dropdown.loadSelect2({ element: '#filterAcademicYear', entityType: 'AcademicYear', defaultText: '-- All Academic Years --', includeDefault: true });
+            Dropdown.loadSelect2({ element: '#filterBranch', entityType: 'Branch', defaultText: '-- All Branches --', includeDefault: true });
+            Dropdown.loadSelect2({ 
+                element: '#filterCourse', 
+                entityType: 'Course', 
+                defaultText: '-- All Courses --', 
+                includeDefault: true,
+                success: function() {
+                    Dropdown.cascade({
+                        parent: '#filterCourse',
+                        child: '#filterBatch',
+                        entityType: 'Batch',
+                        defaultText: '-- All Batches --'
+                    });
+                }
+            });
+            Dropdown.loadSelect2({ element: '#filterBatch', entityType: 'Batch', defaultText: '-- All Batches --', includeDefault: true });
+
+            // Initialize Datepickers
+            if (window.IMSDatePicker) {
+                IMSDatePicker.init({ 
+                    input: '#filterStartDate', 
+                    format: 'dd/MM/yyyy', 
+                    valueFormat: 'yyyy-MM-dd', 
+                    placeholder: 'DD/MM/YYYY',
+                    onChange: function () { loadPreview(); }
+                });
+                IMSDatePicker.init({ 
+                    input: '#filterEndDate', 
+                    format: 'dd/MM/yyyy', 
+                    valueFormat: 'yyyy-MM-dd', 
+                    placeholder: 'DD/MM/YYYY',
+                    onChange: function () { loadPreview(); }
+                });
+            }
+
+            function getFilterValues() {
+                var startVal = null;
+                var endVal = null;
+                if (window.IMSDatePicker) {
+                    startVal = IMSDatePicker.getValue('#filterStartDate') || $('#filterStartDate').val() || null;
+                    endVal = IMSDatePicker.getValue('#filterEndDate') || $('#filterEndDate').val() || null;
+                } else {
+                    startVal = $('#filterStartDate').val() || null;
+                    endVal = $('#filterEndDate').val() || null;
+                }
+
+                return {
+                    Module: $('#inputSelectedModule').val() || 'Students',
+                    AcademicYearId: $('#filterAcademicYear').val() || null,
+                    BranchId: $('#filterBranch').val() || null,
+                    CourseId: $('#filterCourse').val() || null,
+                    BatchId: $('#filterBatch').val() || null,
+                    Status: $('#filterStatus').val() || null,
+                    SearchTerm: $('#filterSearchTerm').val() || null,
+                    StartDate: startVal,
+                    EndDate: endVal,
+                    Format: $('input[name="Format"]:checked').val() || 'excel'
+                };
+            }
+
+            // Module Selection Click
+            $('.module-card').on('click', function () {
+                $('.module-card').removeClass('active-module');
+                $(this).addClass('active-module');
+
+                const modCode = $(this).data('module-code');
+                const modName = $(this).data('module-name');
+                const filters = ($(this).data('filters') || '').split(',');
+
+                $('#inputSelectedModule').val(modCode);
+                $('#activeFilterBadge').text(modName);
+                $('#statSelectedModuleLabel').text('Selected: ' + modName);
+
+                // Show/hide supported filter fields
+                $('.filter-field').each(function () {
+                    const filterType = $(this).data('filter');
+                    if (filterType && filters.indexOf(filterType) === -1) {
+                        $(this).addClass('opacity-50');
+                    } else {
+                        $(this).removeClass('opacity-50');
+                    }
+                });
+
+                loadPreview();
+            });
+
+            // Trigger preview on filter change
+            $('#filterAcademicYear, #filterBranch, #filterCourse, #filterBatch, #filterStatus').on('change', function () {
+                loadPreview();
+            });
+
+            $('#btnPreviewData, #btnRefreshStats').on('click', function () {
+                loadPreview();
+            });
+
+            let searchTimeout = null;
+            $('#filterSearchTerm').on('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(loadPreview, 500);
+            });
+
+            // Reset filters
+            $('#btnResetFilters').on('click', function () {
+                $('#filterAcademicYear').val('').trigger('change.select2');
+                $('#filterBranch').val('').trigger('change.select2');
+                $('#filterCourse').val('').trigger('change.select2');
+                $('#filterBatch').val('').trigger('change.select2');
+                $('#filterStatus').val('');
+                $('#filterSearchTerm').val('');
+                if (window.IMSDatePicker) {
+                    IMSDatePicker.clear('#filterStartDate');
+                    IMSDatePicker.clear('#filterEndDate');
+                } else {
+                    $('#filterStartDate').val('');
+                    $('#filterEndDate').val('');
+                }
+                loadPreview();
+            });
+
+            // Handle standard single module export submit
+            $('#backupFilterForm').on('submit', function () {
+                if (window.IMSDatePicker) {
+                    var sVal = IMSDatePicker.getValue('#filterStartDate');
+                    var eVal = IMSDatePicker.getValue('#filterEndDate');
+                    if (sVal) $('#filterStartDate').val(sVal);
+                    if (eVal) $('#filterEndDate').val(eVal);
+                }
+                return true;
+            });
+
+            // Full system backup ZIP
+            $('#btnExportAll').on('click', function () {
+                var currentFilters = getFilterValues();
+
+                IMSConfirm.show({
+                    title: "Generate Complete Database Backup?",
+                    message: "This will extract all system modules (Students, Admissions, Enrollments, Teachers, Staff, Fees, Attendance, Exams, Timetable, Expenses, and Master Data) into a compressed ZIP file.",
+                    confirmText: "Yes, Download All (.ZIP)",
+                    confirmBtnClass: "btn-confirm btn-danger",
+                    iconClass: "fa-solid fa-file-zipper",
+                    onConfirm: function () {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/DataBackup/ExportAll';
+
+                        const token = $('input[name="__RequestVerificationToken"]').val();
+                        if (token) {
+                            const tokenInput = document.createElement('input');
+                            tokenInput.type = 'hidden';
+                            tokenInput.name = '__RequestVerificationToken';
+                            tokenInput.value = token;
+                            form.appendChild(tokenInput);
+                        }
+
+                        // Pass all active filter criteria to ExportAll
+                        for (var key in currentFilters) {
+                            if (currentFilters[key] !== null && currentFilters[key] !== undefined && currentFilters[key] !== '') {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = currentFilters[key];
+                                form.appendChild(input);
+                            }
+                        }
+
+                        document.body.appendChild(form);
+                        form.submit();
+                        document.body.removeChild(form);
+                    }
+                });
+            });
+
+            // Initial preview load
+            loadPreview();
+
+            function loadPreview() {
+                const filter = getFilterValues();
+
+                $('#previewPlaceholder').show();
+                $('#previewSpinner').show();
+                $('#previewPlaceholderText').text('Extracting preview records...');
+                $('#previewTable').addClass('d-none');
+
+                $.ajax({
+                    url: '/DataBackup/Preview',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(filter),
+                    success: function (res) {
+                        $('#previewSpinner').hide();
+                        if (res.success) {
+                            $('#statFilteredCount').text(res.totalRecords.toLocaleString());
+                            $('#previewBadgeCount').text(res.totalRecords.toLocaleString() + ' Records Found');
+
+                            if (res.totalRecords === 0) {
+                                $('#previewPlaceholder').show();
+                                $('#previewPlaceholderText').html('<i class="fa-solid fa-folder-open fa-2x mb-2 d-block text-muted"></i>No matching records found for the selected filter criteria.');
+                                $('#previewTable').addClass('d-none');
+                                return;
+                            }
+
+                            $('#previewPlaceholder').hide();
+                            $('#previewTable').removeClass('d-none');
+
+                            // Build Headers
+                            let theadHtml = '<tr><th style="width: 40px;">#</th>';
+                            res.columnNames.forEach(function (col) {
+                                theadHtml += '<th>' + escapeHtml(col) + '</th>';
+                            });
+                            theadHtml += '</tr>';
+                            $('#previewThead').html(theadHtml);
+
+                            // Build Rows
+                            let tbodyHtml = '';
+                            res.sampleRows.forEach(function (row, idx) {
+                                tbodyHtml += '<tr><td class="text-muted">' + (idx + 1) + '</td>';
+                                res.columnNames.forEach(function (col) {
+                                    const val = row[col] !== undefined && row[col] !== null ? row[col] : '';
+                                    tbodyHtml += '<td class="text-nowrap">' + escapeHtml(val.toString()) + '</td>';
+                                });
+                                tbodyHtml += '</tr>';
+                            });
+                            $('#previewTbody').html(tbodyHtml);
+                            $('#previewSubtitle').text('Showing ' + res.sampleRows.length + ' of ' + res.totalRecords.toLocaleString() + ' total matching records');
+                        } else {
+                            $('#previewPlaceholder').show();
+                            $('#previewPlaceholderText').text(res.message || 'Error loading preview.');
+                        }
+                    },
+                    error: function () {
+                        $('#previewSpinner').hide();
+                        $('#previewPlaceholder').show();
+                        $('#previewPlaceholderText').text('Server communication error.');
+                    }
+                });
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+        });
+    </script>
+}
+
+<style>
+    /* Data Backup & Extraction Styling */
+    .module-card {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent !important;
+        background-color: var(--bs-card-bg, #ffffff);
+    }
+    .module-card:hover {
+        background-color: rgba(37, 99, 235, 0.05);
+        transform: translateY(-1px);
+    }
+    .module-card.active-module {
+        background-color: rgba(37, 99, 235, 0.08) !important;
+        border: 1px solid rgba(37, 99, 235, 0.35) !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+    }
+    .module-icon-box {
+        width: 44px;
+        height: 44px;
+        background-color: rgba(37, 99, 235, 0.1);
+        color: #2563EB;
+        font-size: 1.15rem;
+    }
+    .active-module .module-icon-box {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    .active-module .module-title {
+        color: #2563EB !important;
+    }
+
+    /* Dark Mode Theme Support */
+    [data-bs-theme="dark"] .module-card,
+    .dark-theme .module-card {
+        background-color: #222225 !important;
+        color: #e5e5e5;
+    }
+    [data-bs-theme="dark"] .module-card:hover,
+    .dark-theme .module-card:hover {
+        background-color: #2d2d31 !important;
+    }
+    [data-bs-theme="dark"] .module-card.active-module,
+    .dark-theme .module-card.active-module {
+        background-color: #2e384d !important;
+        border-color: #3b82f6 !important;
+    }
+    [data-bs-theme="dark"] .card,
+    .dark-theme .card {
+        background-color: #222225 !important;
+        border-color: #333338 !important;
+    }
+    [data-bs-theme="dark"] .card-header,
+    .dark-theme .card-header {
+        border-color: #333338 !important;
+    }
+    [data-bs-theme="dark"] .text-dark,
+    .dark-theme .text-dark {
+        color: #f1f5f9 !important;
+    }
+</style>

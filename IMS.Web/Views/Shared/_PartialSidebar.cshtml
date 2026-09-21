@@ -350,6 +350,16 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link @isActive("", "DataBackup")"
+                   asp-area=""
+                   asp-controller="DataBackup"
+                   asp-action="Index">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                    <span>Data Backup & Export</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link @isActive("", "DbTest")"
                    asp-area=""
                    asp-controller="DbTest"

@@ -46,6 +46,7 @@ namespace IMS.Web.Extensions
             services.AddScoped<IMockTestDAL, MockTestDAL>();
             services.AddScoped<INotificationConfigDAL, NotificationConfigDAL>();
             services.AddScoped<INotificationDAL, NotificationDAL>();
+            services.AddScoped<IDataBackupDAL, DataBackupDAL>();
 
             return services;
         }
