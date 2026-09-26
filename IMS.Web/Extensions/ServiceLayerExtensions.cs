@@ -40,6 +40,7 @@ namespace IMS.Web.Extensions
             services.AddScoped<IMockTestService, MockTestService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDataBackupService, IMS.Services.Backup.DataBackupService>();
 
             return services;
         }
