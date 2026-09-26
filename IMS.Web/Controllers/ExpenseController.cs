@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -40,6 +42,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewExpense)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, Guid? expenseCategoryId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -48,6 +51,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddExpense)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -56,6 +60,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateExpense)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -64,6 +69,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewExpense)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -74,6 +80,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddExpense)]
         public async Task<IActionResult> AddExpense(ExpenseFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -92,6 +99,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateExpense)]
         public async Task<IActionResult> EditExpense(ExpenseFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -110,6 +118,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteExpense)]
         public async Task<IActionResult> DeleteExpense(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -31,6 +33,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewCourseSubject)]
         public async Task<IActionResult> Index(Guid? courseId)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -38,6 +41,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddCourseSubject)]
         public async Task<IActionResult> Create(Guid? courseId)
         {
             var vm = new CourseSubjectFormViewModel { CS_CourseId = courseId ?? Guid.Empty };
@@ -50,6 +54,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
+        [Permission(Permissions.ViewCourseSubject)]
         public async Task<IActionResult> GetNextSequence(Guid courseId)
         {
             if (CurrentTenantId == Guid.Empty || courseId == Guid.Empty)
@@ -67,6 +72,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.UpdateCourseSubject)]
         public async Task<IActionResult> Edit(Guid courseId, Guid subjectId)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -77,6 +83,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddCourseSubject)]
         public async Task<IActionResult> AddCourseSubject(CourseSubjectFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -132,6 +139,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateCourseSubject)]
         public async Task<IActionResult> EditCourseSubject(CourseSubjectFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -183,6 +191,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteCourseSubject)]
         public async Task<IActionResult> DeleteCourseSubject(Guid courseId, Guid subjectId)
         {
             if (CurrentTenantId == Guid.Empty)

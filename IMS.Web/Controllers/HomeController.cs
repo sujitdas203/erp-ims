@@ -35,6 +35,7 @@ namespace IMS.Web.Controllers
 
         //[Authorize(Roles = AppRoles.TenantAdmin)]
         [Authorize]
+        [Permission(Permissions.ViewDashboard)]
         public async Task<IActionResult> Dashboard()
         {
             var user = User.Identity.Name;

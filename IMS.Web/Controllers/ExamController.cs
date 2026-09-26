@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -29,6 +31,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewExam)]
         public async Task<IActionResult> Index(string searchTerm, Guid? courseId, Guid? batchId, string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -37,6 +40,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddExam)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -45,6 +49,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateExam)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -53,6 +58,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewExam)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -61,6 +67,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateExam)]
         public async Task<IActionResult> MarksEntry(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -71,6 +78,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddExam)]
         public async Task<IActionResult> AddExam(ExamFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -89,6 +97,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateExam)]
         public async Task<IActionResult> EditExam(ExamFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -107,6 +116,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteExam)]
         public async Task<IActionResult> DeleteExam(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -125,6 +135,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateExam)]
         public async Task<IActionResult> SaveMarks(MarksEntryViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)

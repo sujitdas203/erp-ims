@@ -1,12 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using IMS.Helpers.Constants;
 using IMS.Models.Backup;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace IMS.Web.Controllers
 {
+    [Authorize]
     [Route("DataBackup")]
     public class DataBackupController : Controller
     {
@@ -32,6 +36,7 @@ namespace IMS.Web.Controllers
 
         [HttpGet("")]
         [HttpGet("Index")]
+        [Permission(Permissions.ViewDataBackup)]
         public async Task<IActionResult> Index()
         {
             try
@@ -51,6 +56,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost("Preview")]
+        [Permission(Permissions.ViewDataBackup)]
         public async Task<IActionResult> Preview([FromBody] DataBackupFilterViewModel filter)
         {
             if (filter == null)
@@ -61,6 +67,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost("Export")]
+        [Permission(Permissions.ManageDataBackup)]
         public async Task<IActionResult> Export([FromForm] DataBackupFilterViewModel filter)
         {
             if (filter == null || string.IsNullOrWhiteSpace(filter.Module))
@@ -83,6 +90,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost("ExportAll")]
+        [Permission(Permissions.ManageDataBackup)]
         public async Task<IActionResult> ExportAll([FromForm] DataBackupFilterViewModel filter)
         {
             try

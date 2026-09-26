@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -29,6 +31,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewAttendance)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, Guid? batchId, DateTime? date, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -37,6 +40,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ManageAttendance)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -45,6 +49,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -53,6 +58,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> MarkAttendance(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -63,6 +69,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> AddSession(AttendanceSessionFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -81,6 +88,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> EditSession(AttendanceSessionFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -99,6 +107,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> DeleteSession(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -117,6 +126,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ManageAttendance)]
         public async Task<IActionResult> SaveAttendance(AttendanceRecordSaveViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)

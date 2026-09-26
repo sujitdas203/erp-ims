@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -31,6 +33,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewEnrollment)]
         public async Task<IActionResult> Index(string? searchTerm, Guid? academicYearId, Guid? courseId,
             Guid? batchId, string? status, Guid? branchId, Guid? classId, Guid? sectionId, int page = 1)
         {
@@ -39,6 +42,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddEnrollment)]
         public IActionResult Create()
         {
             var vm = new EnrollmentFormViewModel();
@@ -46,6 +50,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateEnrollment)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -54,6 +59,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewEnrollment)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -63,6 +69,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.AddEnrollment)]
         public async Task<IActionResult> AddEnrollment(EnrollmentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });
@@ -91,6 +98,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateEnrollment)]
         public async Task<IActionResult> EditEnrollment(EnrollmentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });
@@ -119,6 +127,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteEnrollment)]
         public async Task<IActionResult> DeleteEnrollment(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired. Please log in again." });

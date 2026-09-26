@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -31,6 +33,7 @@ namespace IMS.Web.Controllers
             get { var raw = User.FindFirst("user_id")?.Value; return Guid.TryParse(raw, out var id) ? id : (Guid?)null; }
         }
 
+        [Permission(Permissions.ViewAdmissionApplication)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, Guid? classId, Guid? courseId,
             Guid? academicYearId, string status, int page = 1)
         {
@@ -39,6 +42,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddAdmissionApplication)]
         public IActionResult Create()
         {
             var vm = new AdmissionApplicationFormViewModel();
@@ -46,6 +50,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateAdmissionApplication)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -54,6 +59,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewAdmissionApplication)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -63,6 +69,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.AddAdmissionApplication)]
         public async Task<IActionResult> AddApplication(AdmissionApplicationFormViewModel model)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
@@ -91,6 +98,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateAdmissionApplication)]
         public async Task<IActionResult> EditApplication(AdmissionApplicationFormViewModel model)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
@@ -119,6 +127,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteAdmissionApplication)]
         public async Task<IActionResult> DeleteApplication(Guid id)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
@@ -135,6 +144,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateAdmissionApplication)]
         public async Task<IActionResult> Review(AdmissionReviewViewModel model)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
@@ -152,6 +162,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.AddEnrollment)]
         public async Task<IActionResult> Enroll(AdmissionEnrollViewModel model)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
@@ -169,6 +180,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateAdmissionApplication)]
         public async Task<IActionResult> UploadAttachment(Guid id, string docType, IFormFile file)
         {
             var tenantId = CurrentTenantId != Guid.Empty ? CurrentTenantId : IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;

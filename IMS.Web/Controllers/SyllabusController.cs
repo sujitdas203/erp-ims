@@ -31,18 +31,21 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewSyllabus)]
         public async Task<IActionResult> Index(Guid? courseId, Guid? subjectId, string? status, string? search, int page = 1)
         {
             var vm = await _syllabusService.GetListAsync(CurrentTenantId, courseId, subjectId, status, search, page, pageSize: 10);
             return View(vm);
         }
 
+        [Permission(Permissions.AddSyllabus)]
         public async Task<IActionResult> Create()
         {
             var vm = await _syllabusService.GetEmptyFormAsync(CurrentTenantId);
             return View(vm);
         }
 
+        [Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> Edit(Guid id)
         {
             var vm = await _syllabusService.GetForEditAsync(id, CurrentTenantId);
@@ -51,6 +54,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
+        [Permission(Permissions.ViewSyllabus)]
         public async Task<IActionResult> GetSubjectsByCourse(Guid? courseId)
         {
             try
@@ -67,6 +71,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddSyllabus)]
         public async Task<IActionResult> CreateAjax(SyllabusFormViewModel model)
         {
             var errors = ValidateSyllabus(model);
@@ -99,6 +104,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> EditAjax(SyllabusFormViewModel model)
         {
             var errors = ValidateSyllabus(model);
@@ -136,6 +142,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> ToggleActiveAjax(Guid id, bool isActive)
         {
             try
@@ -152,6 +159,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.EditSyllabus)]
         public async Task<IActionResult> ToggleCompletedAjax(Guid id, bool isCompleted)
         {
             try
@@ -168,6 +176,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteSyllabus)]
         public async Task<IActionResult> DeleteAjax(Guid id)
         {
             try
