@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -11,6 +11,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.11" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" Version="2.3.12" />
     <PackageReference Include="StackExchange.Redis" Version="3.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IMS.Helpers\IMS.Helpers.csproj" />
   </ItemGroup>
 
 </Project>

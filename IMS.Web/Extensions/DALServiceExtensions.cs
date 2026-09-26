@@ -47,6 +47,7 @@ namespace IMS.Web.Extensions
             services.AddScoped<INotificationConfigDAL, NotificationConfigDAL>();
             services.AddScoped<INotificationDAL, NotificationDAL>();
             services.AddScoped<IDataBackupDAL, DataBackupDAL>();
+            services.AddScoped<ISidebarMenuDAL, SidebarMenuDAL>();
 
             return services;
         }
