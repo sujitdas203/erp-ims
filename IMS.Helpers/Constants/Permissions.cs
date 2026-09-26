@@ -131,6 +131,9 @@ namespace IMS.Helpers.Constants
         public const string ViewUserRoles = "ViewUserRoles";
         public const string ManageUserRoles = "ManageUserRoles";
 
+        public const string ViewSidebarMenu = "ViewSidebarMenu";
+        public const string ManageSidebarMenu = "ManageSidebarMenu";
+
         // ─── Insights ────────────────────────────────────────────────────
         public const string ViewReports = "ViewReports";
 
@@ -253,6 +256,9 @@ namespace IMS.Helpers.Constants
 
             new() { Id = ViewUserRoles,   FeatureKey = Feature, FeatureDisplayName = FeatureDisplay, Description = "View users and roles", ServiceName = ServiceName },
             new() { Id = ManageUserRoles, FeatureKey = Feature, FeatureDisplayName = FeatureDisplay, Description = "Manage users and roles", ServiceName = ServiceName },
+
+            new() { Id = ViewSidebarMenu,   FeatureKey = Feature, FeatureDisplayName = FeatureDisplay, Description = "View sidebar menu configuration", ServiceName = ServiceName },
+            new() { Id = ManageSidebarMenu, FeatureKey = Feature, FeatureDisplayName = FeatureDisplay, Description = "Add, edit, reorder, and toggle sidebar menu items", ServiceName = ServiceName },
 
             // Insights / Reports
             new() { Id = ViewReports, FeatureKey = Feature, FeatureDisplayName = FeatureDisplay, Description = "View reports and analytics", ServiceName = ServiceName },

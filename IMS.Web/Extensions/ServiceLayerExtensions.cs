@@ -41,6 +41,8 @@ namespace IMS.Web.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IDataBackupService, IMS.Services.Backup.DataBackupService>();
+            services.AddScoped<ISidebarMenuService, SidebarMenuService>();
+            services.AddMemoryCache();
 
             return services;
         }

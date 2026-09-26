@@ -1,0 +1,465 @@
+@model List<IMS.Models.Common.Navigation.SidebarMenuItemModel>
+@using IMS.Helpers.Constants
+
+@{
+    ViewData["Title"] = "Sidebar Menu Management";
+    var groupedSections = Model.GroupBy(m => new { m.SectionTitle, m.SectionOrder })
+                               .OrderBy(g => g.Key.SectionOrder)
+                               .ToList();
+    var existingSections = Model.Select(m => m.SectionTitle).Distinct().Where(s => !string.IsNullOrEmpty(s)).ToList();
+    var allPermissions = Permissions.All.Select(p => p.Id).Distinct().OrderBy(p => p).ToList();
+}
+
+<div class="container-fluid py-4">
+    @Html.AntiForgeryToken()
+
+    <!-- Header & Action Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="h4 mb-1 fw-bold text-dark">
+                <i class="fa-solid fa-bars-staggered text-primary me-2"></i>Sidebar Menu Management
+            </h2>
+            <p class="text-muted small mb-0">
+                Manage, reorder, enable/disable, or customize admin panel sidebar sections and menu links dynamically.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="fa-solid fa-layer-group text-primary me-1"></i> @groupedSections.Count Sections
+            </span>
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="fa-solid fa-link text-success me-1"></i> @Model.Count(m => m.IsActive) Active Items
+            </span>
+            <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm" onclick="openCreateModal()">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Menu Item</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Messages Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Sections Accordion / Grouped View -->
+    <div class="row g-4">
+        @foreach (var secGroup in groupedSections)
+        {
+            var sectionId = string.IsNullOrEmpty(secGroup.Key.SectionTitle) ? "section-top" : "section-" + Math.Abs(secGroup.Key.SectionTitle.GetHashCode());
+            var sectionTitleDisplay = string.IsNullOrEmpty(secGroup.Key.SectionTitle) ? "Top / Standalone Section (No Header)" : secGroup.Key.SectionTitle;
+            var itemsInSection = secGroup.OrderBy(i => i.MenuOrder).ToList();
+
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1 rounded">
+                                Order: @secGroup.Key.SectionOrder
+                            </span>
+                            <h5 class="mb-0 fw-bold text-dark">@sectionTitleDisplay</h5>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">
+                                @itemsInSection.Count items
+                            </span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openCreateModalForSection('@secGroup.Key.SectionTitle', @secGroup.Key.SectionOrder, @(itemsInSection.Count + 1))">
+                                <i class="fa-solid fa-plus me-1"></i> Add Item Here
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th style="width: 70px;" class="ps-4">Order</th>
+                                    <th style="width: 80px;">Icon</th>
+                                    <th>Menu Title</th>
+                                    <th>Target Route / URL</th>
+                                    <th>Permission Guard</th>
+                                    <th style="width: 120px;">Badge</th>
+                                    <th style="width: 100px;">Status</th>
+                                    <th style="width: 140px;" class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in itemsInSection)
+                                {
+                                    <tr id="row-@item.Id" class="@(!item.IsActive ? "table-light opacity-75" : "")">
+                                        <td class="ps-4">
+                                            <span class="badge bg-light text-dark border">@item.MenuOrder</span>
+                                        </td>
+                                        <td>
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                                <i class="fa-solid @item.Icon text-primary fs-6"></i>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@item.Title</div>
+                                            @if (item.IsMasterManagement)
+                                            {
+                                                <span class="badge bg-info bg-opacity-10 text-info font-monospace small" style="font-size: 0.7rem;">Master Collapsible Submenu</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.CustomUrl))
+                                            {
+                                                <code class="text-muted small">@item.CustomUrl</code>
+                                            }
+                                            else
+                                            {
+                                                <div class="font-monospace small text-muted">
+                                                    /@(string.IsNullOrEmpty(item.Controller) ? "" : item.Controller)/@(string.IsNullOrEmpty(item.Action) ? "Index" : item.Action)
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.PermissionCode))
+                                            {
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 font-monospace small">
+                                                    <i class="fa-solid fa-shield-halved me-1"></i>@item.PermissionCode
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success font-monospace small">
+                                                    <i class="fa-solid fa-lock-open me-1"></i>Public
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.BadgeText))
+                                            {
+                                                <span class="badge bg-primary bg-opacity-25 text-primary">@item.BadgeText</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="switch-@item.Id"
+                                                       @(item.IsActive ? "checked" : "") onchange="toggleStatus(@item.Id)">
+                                                <label class="form-check-label small text-muted ms-1" for="switch-@item.Id">
+                                                    @(item.IsActive ? "Active" : "Inactive")
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-secondary" title="Edit" onclick="openEditModal(@item.Id)">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" title="Delete" onclick="deleteMenuItem(@item.Id, '@item.Title')">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- ADD / EDIT MENU ITEM MODAL                                                -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="menuItemModal" tabindex="-1" aria-labelledby="menuItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="menuItemModalLabel">
+                    <i class="fa-solid fa-bars-staggered me-2"></i><span>Add Menu Item</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="menuItemForm" onsubmit="saveMenuItem(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="itemId" name="id" value="0" />
+
+                    <!-- Section Configuration -->
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="fa-solid fa-layer-group text-primary me-2"></i>Section Configuration
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="sectionTitle" class="form-label small fw-semibold">Section Header Title</label>
+                                <input type="text" class="form-control" id="sectionTitle" name="sectionTitle" list="existingSectionsList" placeholder="e.g. Students & Admissions (Leave empty for standalone top items)">
+                                <datalist id="existingSectionsList">
+                                    @foreach (var sec in existingSections)
+                                    {
+                                        <option value="@sec"></option>
+                                    }
+                                </datalist>
+                                <div class="form-text">All items sharing this Section Title will be grouped together.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="sectionOrder" class="form-label small fw-semibold">Section Order</label>
+                                <input type="number" class="form-control" id="sectionOrder" name="sectionOrder" value="1" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item Details -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="itemTitle" class="form-label small fw-semibold">Menu Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="itemTitle" name="title" required placeholder="e.g. Teachers, Batches">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="itemOrder" class="form-label small fw-semibold">Menu Order in Section</label>
+                            <input type="number" class="form-control" id="itemOrder" name="menuOrder" value="1" min="1">
+                        </div>
+                    </div>
+
+                    <!-- Icon & Route Configuration -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="itemIcon" class="form-label small fw-semibold">FontAwesome Icon Class</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" id="iconPreviewContainer">
+                                    <i class="fa-solid fa-circle text-primary" id="iconPreview"></i>
+                                </span>
+                                <input type="text" class="form-control" id="itemIcon" name="icon" value="fa-circle" placeholder="fa-chalkboard-user" oninput="updateIconPreview(this.value)">
+                            </div>
+                            <div class="form-text">e.g. <code>fa-chalkboard-user</code>, <code>fa-graduation-cap</code></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="permissionCode" class="form-label small fw-semibold">Permission Guard</label>
+                            <input type="text" class="form-control font-monospace" id="permissionCode" name="permissionCode" list="permissionsList" placeholder="e.g. ViewTeacher">
+                            <datalist id="permissionsList">
+                                @foreach (var perm in allPermissions)
+                                {
+                                    <option value="@perm"></option>
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <!-- Controller & Action -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="itemController" class="form-label small fw-semibold">Controller</label>
+                            <input type="text" class="form-control" id="itemController" name="controller" placeholder="e.g. Teachers">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="itemAction" class="form-label small fw-semibold">Action</label>
+                            <input type="text" class="form-control" id="itemAction" name="action" value="Index" placeholder="Index">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="customUrl" class="form-label small fw-semibold">Custom URL (Optional)</label>
+                            <input type="text" class="form-control" id="customUrl" name="customUrl" placeholder="javascript:void(0);">
+                        </div>
+                    </div>
+
+                    <!-- Badge & Advanced Flags -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="badgeText" class="form-label small fw-semibold">Badge Text (Optional)</label>
+                            <input type="text" class="form-control" id="badgeText" name="badgeText" placeholder="e.g. Soon, New">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center gap-4 pt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isMasterManagement" name="isMasterManagement">
+                                <label class="form-check-label small fw-semibold" for="isMasterManagement">
+                                    Master Submenu
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                <label class="form-check-label small fw-semibold" for="isActive">
+                                    Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <i class="fa-solid fa-check me-1"></i> Save Menu Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const modalElement = document.getElementById('menuItemModal');
+        let bsModal = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bsModal = new bootstrap.Modal(modalElement);
+        });
+
+        function getCsrfToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        }
+
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 4000);
+        }
+
+        function updateIconPreview(iconClass) {
+            const preview = document.getElementById('iconPreview');
+            preview.className = `fa-solid ${iconClass || 'fa-circle'} text-primary`;
+        }
+
+        function openCreateModal() {
+            document.getElementById('menuItemForm').reset();
+            document.getElementById('itemId').value = '0';
+            document.getElementById('itemAction').value = 'Index';
+            document.getElementById('isActive').checked = true;
+            document.getElementById('isMasterManagement').checked = false;
+            document.getElementById('menuItemModalLabel').innerHTML = '<i class="fa-solid fa-plus me-2"></i>Add Menu Item';
+            updateIconPreview('fa-circle');
+            bsModal.show();
+        }
+
+        function openCreateModalForSection(sectionTitle, sectionOrder, nextMenuOrder) {
+            openCreateModal();
+            document.getElementById('sectionTitle').value = sectionTitle || '';
+            document.getElementById('sectionOrder').value = sectionOrder || 1;
+            document.getElementById('itemOrder').value = nextMenuOrder || 1;
+        }
+
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`/SidebarMenu/GetById?id=${id}`);
+                const result = await response.json();
+                if (!result.success || !result.data) {
+                    showAlert(result.message || 'Failed to load item.', 'danger');
+                    return;
+                }
+
+                const d = result.data;
+                document.getElementById('itemId').value = d.id;
+                document.getElementById('sectionTitle').value = d.sectionTitle || '';
+                document.getElementById('sectionOrder').value = d.sectionOrder;
+                document.getElementById('itemTitle').value = d.title || '';
+                document.getElementById('itemOrder').value = d.menuOrder;
+                document.getElementById('itemIcon').value = d.icon || 'fa-circle';
+                document.getElementById('permissionCode').value = d.permissionCode || '';
+                document.getElementById('itemController').value = d.controller || '';
+                document.getElementById('itemAction').value = d.action || 'Index';
+                document.getElementById('customUrl').value = d.customUrl || '';
+                document.getElementById('badgeText').value = d.badgeText || '';
+                document.getElementById('isMasterManagement').checked = !!d.isMasterManagement;
+                document.getElementById('isActive').checked = !!d.isActive;
+
+                updateIconPreview(d.icon);
+                document.getElementById('menuItemModalLabel').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Edit Menu Item';
+                bsModal.show();
+            } catch (err) {
+                showAlert('Error fetching item details: ' + err.message, 'danger');
+            }
+        }
+
+        async function saveMenuItem(event) {
+            event.preventDefault();
+            const id = parseInt(document.getElementById('itemId').value) || 0;
+            const model = {
+                id: id,
+                sectionTitle: document.getElementById('sectionTitle').value.trim(),
+                sectionOrder: parseInt(document.getElementById('sectionOrder').value) || 1,
+                title: document.getElementById('itemTitle').value.trim(),
+                menuOrder: parseInt(document.getElementById('itemOrder').value) || 1,
+                icon: document.getElementById('itemIcon').value.trim() || 'fa-circle',
+                permissionCode: document.getElementById('permissionCode').value.trim() || null,
+                controller: document.getElementById('itemController').value.trim() || null,
+                action: document.getElementById('itemAction').value.trim() || 'Index',
+                customUrl: document.getElementById('customUrl').value.trim() || null,
+                badgeText: document.getElementById('badgeText').value.trim() || null,
+                isMasterManagement: document.getElementById('isMasterManagement').checked,
+                isActive: document.getElementById('isActive').checked
+            };
+
+            const endpoint = id > 0 ? '/SidebarMenu/Edit' : '/SidebarMenu/Create';
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(model)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    bsModal.hide();
+                    location.reload();
+                } else {
+                    showAlert(result.message, 'danger');
+                }
+            } catch (err) {
+                showAlert('Failed to save: ' + err.message, 'danger');
+            }
+        }
+
+        async function toggleStatus(id) {
+            try {
+                const response = await fetch(`/SidebarMenu/ToggleStatus?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getCsrfToken()
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('Status updated successfully.', 'success');
+                    setTimeout(() => location.reload(), 600);
+                } else {
+                    showAlert(result.message, 'danger');
+                }
+            } catch (err) {
+                showAlert('Error toggling status: ' + err.message, 'danger');
+            }
+        }
+
+        async function deleteMenuItem(id, title) {
+            if (!confirm(`Are you sure you want to delete "${title}" from the sidebar menu?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/SidebarMenu/Delete?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getCsrfToken()
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) row.remove();
+                } else {
+                    showAlert(result.message, 'danger');
+                }
+            } catch (err) {
+                showAlert('Error deleting menu item: ' + err.message, 'danger');
+            }
+        }
+    </script>
+}
