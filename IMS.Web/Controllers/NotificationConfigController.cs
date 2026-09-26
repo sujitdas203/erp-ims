@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using IMS.Helpers.Constants;
 using IMS.Models.Notification;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -39,6 +40,7 @@ namespace IMS.Web.Controllers
         private string CurrentUserName => User.Identity?.Name ?? "Admin";
 
         [HttpGet]
+        [Permission(Permissions.ViewNotificationConfig)]
         public async Task<IActionResult> Index()
         {
             var config = await _notificationService.GetConfigAsync(CurrentTenantId);
@@ -47,6 +49,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ManageNotificationConfig)]
         public async Task<IActionResult> Save([FromForm] NotificationConfigModel model)
         {
             model.TenantId = CurrentTenantId;
@@ -65,6 +68,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost]
+        [Permission(Permissions.ManageNotificationConfig)]
         public async Task<IActionResult> SaveAjax([FromBody] NotificationConfigModel model)
         {
             if (model == null) return BadRequest(new { success = false, message = "Invalid data payload." });
@@ -80,6 +84,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost]
+        [Permission(Permissions.ManageNotificationConfig)]
         public async Task<IActionResult> SendTestEmail([FromBody] SendTestEmailRequest request)
         {
             if (request == null) return BadRequest(new { success = false, message = "Invalid email request." });
@@ -120,6 +125,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost]
+        [Permission(Permissions.ManageNotificationConfig)]
         public async Task<IActionResult> TriggerSample([FromQuery] string eventCode)
         {
             var title = "Sample Alert: " + eventCode;

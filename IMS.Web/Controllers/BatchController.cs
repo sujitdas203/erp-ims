@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using IMS.Helpers.Constants;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -30,6 +31,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewBatch)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, Guid? courseId,
             Guid? academicYearId, string status, int page = 1)
         {
@@ -39,6 +41,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddBatch)]
         public IActionResult Create()
         {
             var vm = new BatchFormViewModel();
@@ -46,6 +49,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateBatch)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -54,6 +58,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewBatch)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -64,6 +69,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddBatch)]
         public async Task<IActionResult> AddBatch(BatchFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -82,6 +88,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateBatch)]
         public async Task<IActionResult> EditBatch(BatchFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -100,6 +107,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteBatch)]
         public async Task<IActionResult> DeleteBatch(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

@@ -1,10 +1,12 @@
 // IMS.Web/Controllers/MasterController.cs
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IMS.Helpers.Constants;
 using IMS.Models.Common.Master;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
 using IMS.Web.Models;
 
 namespace IMS.Web.Controllers
@@ -14,6 +16,7 @@ namespace IMS.Web.Controllers
     /// Route: /Master/{entityType}  e.g. /Master/Bank, /Master/Warehouse
     /// One controller + one view handles all 9 master tables.
     /// </summary>
+    [Authorize]
     [Route("Master")]
     public class MasterController : Controller
     {
@@ -44,6 +47,7 @@ namespace IMS.Web.Controllers
 
         // GET: /Master
         [HttpGet("")]
+        [Permission(Permissions.ViewMaster)]
         public IActionResult Menu()
         {
             var menuConfigs = MasterConfigRegistry.GetMenuConfigs();
@@ -52,6 +56,7 @@ namespace IMS.Web.Controllers
 
         // GET: /Master/{entityType}
         [HttpGet("{entityType}")]
+        [Permission(Permissions.ViewMaster)]
         public IActionResult Index(string entityType)
         {
             if (string.Equals(entityType, "Batch", StringComparison.OrdinalIgnoreCase))
@@ -67,6 +72,7 @@ namespace IMS.Web.Controllers
 
         // GET: /Master/{entityType}/List  (AJAX - grid data)
         [HttpGet("{entityType}/List")]
+        [Permission(Permissions.ViewMaster)]
         public IActionResult List(string entityType)
         {
             try
@@ -82,6 +88,7 @@ namespace IMS.Web.Controllers
 
         // GET: /Master/{entityType}/{id}
         [HttpGet("{entityType}/{id:guid}")]
+        [Permission(Permissions.ViewMaster)]
         public IActionResult GetById(string entityType, Guid id)
         {
             try
@@ -100,6 +107,7 @@ namespace IMS.Web.Controllers
 
         // POST: /Master/{entityType}
         [HttpPost("{entityType}")]
+        [Permission(Permissions.ManageMaster)]
         public IActionResult Create(string entityType, [FromBody] MasterFormViewModel model)
         {
             if (model?.Values == null)
@@ -115,6 +123,7 @@ namespace IMS.Web.Controllers
 
         // PUT: /Master/{entityType}/{id}
         [HttpPut("{entityType}/{id:guid}")]
+        [Permission(Permissions.ManageMaster)]
         public IActionResult Update(string entityType, Guid id, [FromBody] MasterFormViewModel model)
         {
             if (model?.Values == null)
@@ -130,6 +139,7 @@ namespace IMS.Web.Controllers
 
         // DELETE: /Master/{entityType}/{id}
         [HttpDelete("{entityType}/{id:guid}")]
+        [Permission(Permissions.ManageMaster)]
         public IActionResult Delete(string entityType, Guid id)
         {
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
 using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -33,6 +34,7 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewStaff)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -41,6 +43,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddStaff)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -49,6 +52,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateStaff)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -57,6 +61,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewStaff)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -67,6 +72,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddStaff)]
         public async Task<IActionResult> AddStaff(StaffFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -96,6 +102,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStaff)]
         public async Task<IActionResult> EditStaff(StaffFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -125,6 +132,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteStaff)]
         public async Task<IActionResult> DeleteStaff(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

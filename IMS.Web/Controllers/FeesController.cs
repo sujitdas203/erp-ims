@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -36,6 +38,7 @@ namespace IMS.Web.Controllers
             get { var raw = User.FindFirst("sub")?.Value ?? User.FindFirst("user_id")?.Value; return Guid.TryParse(raw, out var id) ? id : Guid.Empty; }
         }
 
+        [Permission(Permissions.ViewFees)]
         public async Task<IActionResult> Index(string searchTerm, Guid? academicYearId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -43,6 +46,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -51,6 +55,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateFees)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -60,6 +65,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddFeeStructure(FeeStructureFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -72,6 +78,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateFees)]
         public async Task<IActionResult> EditFeeStructure(FeeStructureFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -84,6 +91,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeleteFeeStructure(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -92,6 +100,7 @@ namespace IMS.Web.Controllers
         }
 
         // ---- Invoices ----
+        [Permission(Permissions.ViewFees)]
         public async Task<IActionResult> Invoices(string searchTerm, string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -99,6 +108,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult CreateInvoice()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -108,6 +118,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddInvoice(FeeInvoiceFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -120,6 +131,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeleteInvoice(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -128,6 +140,7 @@ namespace IMS.Web.Controllers
         }
 
         // ---- Payments ----
+        [Permission(Permissions.ViewFees)]
         public async Task<IActionResult> Payments(string searchTerm, string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -135,6 +148,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult CreatePayment()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -144,6 +158,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddPayment(PaymentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -156,6 +171,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeletePayment(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });

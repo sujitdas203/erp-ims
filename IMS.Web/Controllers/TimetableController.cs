@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using IMS.Helpers.Constants;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -31,12 +32,14 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [Permission(Permissions.ViewTimetable)]
         public async Task<IActionResult> Index(Guid? batchId, Guid? branchId)
         {
             var vm = await _service.GetListAsync(CurrentTenantId, batchId, branchId);
             return View(vm);
         }
 
+        [Permission(Permissions.AddTimetable)]
         public IActionResult Create(Guid? batchId)
         {
             var vm = new TimetableFormViewModel
@@ -48,6 +51,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateTimetable)]
         public async Task<IActionResult> Edit(Guid id)
         {
             var vm = await _service.GetForEditAsync(id, CurrentTenantId);
@@ -56,6 +60,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewTimetable)]
         public async Task<IActionResult> Details(Guid id)
         {
             var vm = await _service.GetDetailsAsync(id, CurrentTenantId);
@@ -64,6 +69,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
+        [Permission(Permissions.ViewTimetable)]
         public async Task<IActionResult> CheckConflict(Guid batchId, int dayOfWeek, string startTime, string endTime, Guid? excludeId)
         {
             var hasConflict = await _service.CheckConflictAsync(CurrentTenantId, batchId, dayOfWeek, startTime, endTime, excludeId);
@@ -71,6 +77,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.AddTimetable)]
         public async Task<IActionResult> AddTimetable(TimetableFormViewModel model)
         {
             var errors = ValidateTimetable(model);
@@ -106,6 +113,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateTimetable)]
         public async Task<IActionResult> EditTimetable(TimetableFormViewModel model)
         {
             var errors = ValidateTimetable(model);
@@ -146,6 +154,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteTimetable)]
         public async Task<IActionResult> DeleteTimetable(Guid id)
         {
             try
