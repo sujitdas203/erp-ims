@@ -127,8 +127,8 @@
                             <div class="alert alert-warning border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
                                 <i class="bi bi-hourglass-split fs-3 text-warning"></i>
                                 <div>
-                                    <h6 class="fw-bold mb-1 text-dark">Your Application is Under Review</h6>
-                                    <p class="small text-muted mb-0">Our admissions committee is verifying your submitted academic credentials and documents. You will receive an email notification once a decision is reached.</p>
+                                    <h6 class="fw-bold mb-1 text-dark">Step 1: Your Application is Under Review</h6>
+                                    <p class="small text-muted mb-0">Our admissions committee is verifying your submitted academic credentials and documents. You will receive an email notification once a decision is reached with your approved fee schedule.</p>
                                 </div>
                             </div>
                         }
@@ -137,11 +137,59 @@
                             <div class="alert alert-success border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
                                 <i class="bi bi-check-circle-fill fs-3 text-success"></i>
                                 <div class="w-100">
-                                    <h6 class="fw-bold mb-1 text-success">Congratulations! Your Admission has been Approved</h6>
-                                    <p class="small text-dark mb-2">We look forward to welcoming you. Please complete the following final enrollment requirements:</p>
+                                    <h6 class="fw-bold mb-1 text-success">Step 2: Congratulations! Your Admission has been Approved</h6>
+                                    <p class="small text-dark mb-2">Please complete your document verification and fee payment within the designated schedule:</p>
+                                    
+                                    @if (Model.ContactStartDate.HasValue || Model.ContactEndDate.HasValue)
+                                    {
+                                        <div class="bg-white p-2 rounded border mb-2 small text-dark">
+                                            <i class="bi bi-calendar-event text-primary me-1"></i> <strong>Contact &amp; Payment Window:</strong>
+                                            @(Model.ContactStartDate?.ToString("dd-MMM-yyyy") ?? "Immediate") to @(Model.ContactEndDate?.ToString("dd-MMM-yyyy") ?? "Open")
+                                            @if (!string.IsNullOrWhiteSpace(Model.ContactOfficeNotes))
+                                            {
+                                                <div class="text-muted mt-1"><i class="bi bi-info-circle me-1"></i> @Model.ContactOfficeNotes</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @if (Model.FeeStructureItems != null && Model.FeeStructureItems.Any())
+                                    {
+                                        <div class="bg-white p-2 rounded border mb-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-1 small fw-bold text-dark">
+                                                <span><i class="bi bi-receipt text-primary me-1"></i> Fee Structure (@Model.FeeStructureName)</span>
+                                                <span class="text-success">Total: @Model.TotalFeeAmount.ToString("C")</span>
+                                            </div>
+                                            <table class="table table-sm table-bordered mb-0 small" style="font-size:0.8rem;">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Fee Head</th>
+                                                        <th>Frequency</th>
+                                                        <th class="text-end">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var fee in Model.FeeStructureItems)
+                                                    {
+                                                        <tr>
+                                                            <td>@fee.FeeHeadName</td>
+                                                            <td>@fee.Frequency</td>
+                                                            <td class="text-end">@fee.Amount.ToString("N2")</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                                <tfoot class="table-light fw-bold">
+                                                    <tr>
+                                                        <td colspan="2" class="text-end">Total Payable:</td>
+                                                        <td class="text-end text-success">@Model.TotalFeeAmount.ToString("N2")</td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    }
+
                                     <ol class="small text-muted ps-3 mb-0">
                                         <li>Bring original documents (Birth Certificate, Marksheets, TC, Identity Proof) to the campus admissions desk.</li>
-                                        <li>Pay the admission fee to finalize seat allocation and receive official portal login credentials.</li>
+                                        <li>Complete fee payment at the counter to finalize seat allocation and receive official student portal credentials.</li>
                                     </ol>
                                 </div>
                             </div>
@@ -151,18 +199,19 @@
                             <div class="alert alert-primary border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3">
                                 <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
                                 <div class="w-100">
-                                    <h6 class="fw-bold mb-1 text-primary">Enrolled Student &bull; Active Registry</h6>
-                                    <p class="small text-dark mb-2">You are officially enrolled as a student! Below are your student allocation details:</p>
-                                    <div class="row g-2 small bg-white p-2 rounded border">
+                                    <h6 class="fw-bold mb-1 text-primary">Step 3: Enrolled Student &bull; Admission Complete</h6>
+                                    <p class="small text-dark mb-2">You are officially enrolled as a student! Your admission and fee payment have been verified. You can now access the student portal.</p>
+                                    <div class="row g-2 small bg-white p-2 rounded border mb-3">
                                         <div class="col-sm-6">Student Code: <strong>@(Model.AdmittedStudentCode ?? "-")</strong></div>
                                         <div class="col-sm-6">Admission No: <strong>@(Model.AdmittedStudentAdmissionNumber ?? Model.AA_ApplicationNumber)</strong></div>
-                                        <div class="col-sm-6">Class/Grade: <strong>@Model.ClassName</strong></div>
-                                        <div class="col-sm-6">Campus: <strong>@Model.BranchName</strong></div>
+                                        <div class="col-sm-6">Class / Grade: <strong>@Model.ClassName</strong></div>
+                                        <div class="col-sm-6">Campus / Branch: <strong>@Model.BranchName</strong></div>
                                     </div>
-                                    <div class="mt-2">
-                                        <a href="/Student/Login" class="btn btn-primary btn-sm rounded-pill px-3">
+                                    <div>
+                                        <a href="/Student/Login" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
                                             <i class="bi bi-box-arrow-in-right me-1"></i> Log in to Student Portal
                                         </a>
+                                        <small class="text-muted d-block mt-1">Credentials have been sent to your registered email <strong>@(Model.AA_Email ?? "")</strong>.</small>
                                     </div>
                                 </div>
                             </div>

@@ -182,6 +182,13 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetFeeStructureItems(Guid feeStructureId)
+        {
+            var items = await _service.GetFeeStructureItemsAsync(feeStructureId);
+            return Json(new { success = true, items, total = items.Sum(x => x.Amount) });
+        }
+
         [HttpPost, ValidateAntiForgeryToken]
         [Permission(Permissions.UpdateAdmissionApplication)]
         public async Task<IActionResult> UploadAttachment(Guid id, string docType, Microsoft.AspNetCore.Http.IFormFile file)

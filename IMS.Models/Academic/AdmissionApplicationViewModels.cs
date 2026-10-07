@@ -377,6 +377,13 @@ namespace IMS.Models.ViewModels
         public DateTime AA_CreatedAt { get; set; }
         public DateTime AA_UpdatedAt { get; set; }
 
+        // Fee Breakdown & Offer Details
+        public List<FeeStructureItemSummaryViewModel> FeeStructureItems { get; set; } = new();
+        public decimal TotalFeeAmount { get; set; }
+        public DateTime? ContactStartDate { get; set; }
+        public DateTime? ContactEndDate { get; set; }
+        public string? ContactOfficeNotes { get; set; }
+
         // Modal options for Quick Enroll
         public List<SelectListItem> ClassOptions { get; set; } = new();
         public List<SelectListItem> SectionOptions { get; set; } = new();
@@ -384,11 +391,32 @@ namespace IMS.Models.ViewModels
         public List<SelectListItem> FeeStructureOptions { get; set; } = new();
     }
 
+    public class FeeStructureItemSummaryViewModel
+    {
+        public Guid FSI_Id { get; set; }
+        public string FeeCategoryName { get; set; } = string.Empty;
+        public string FeeHeadName 
+        { 
+            get => string.IsNullOrWhiteSpace(_feeHeadName) ? FeeCategoryName : _feeHeadName; 
+            set => _feeHeadName = value; 
+        }
+        private string? _feeHeadName;
+        public string Frequency { get; set; } = "Annual / Term";
+        public decimal Amount { get; set; }
+        public bool IsMandatory { get; set; } = true;
+        public int? DueDays { get; set; }
+    }
+
     public class AdmissionReviewViewModel
     {
         public Guid AA_Id { get; set; }
-        public string AA_Status { get; set; }
-        public string AA_Notes { get; set; }
+        [Required]
+        public string AA_Status { get; set; } = "Approved";
+        public string? AA_Notes { get; set; }
+        public Guid? FeeStructureId { get; set; }
+        public DateTime? ContactStartDate { get; set; } = DateTime.Today;
+        public DateTime? ContactEndDate { get; set; } = DateTime.Today.AddDays(14);
+        public string? ContactOfficeNotes { get; set; }
     }
 
     public class AdmissionEnrollViewModel
@@ -404,5 +432,15 @@ namespace IMS.Models.ViewModels
         public string? RollNumber { get; set; }
         public DateTime? AdmissionDate { get; set; } = DateTime.Today;
         public Guid? FeeStructureId { get; set; }
+
+        // Fee Payment Collection on Enrolment
+        public bool RecordPayment { get; set; } = true;
+        public decimal PaidAmount { get; set; }
+        public decimal TotalFeeAmount { get; set; }
+        public string? PaymentMethod { get; set; } = "Cash";
+        public string? TransactionReference { get; set; }
+        public string? ReceiptNumber { get; set; }
+        public DateTime? PaymentDate { get; set; } = DateTime.Today;
+        public string? PaymentRemarks { get; set; }
     }
 }

@@ -270,6 +270,18 @@ namespace IMS.DAL.Repositories
             return (int)await cmd.ExecuteScalarAsync() > 0;
         }
 
+        public async Task<decimal> GetTotalDueByStudentAsync(Guid studentId, Guid tenantId)
+        {
+            using var conn = _dbHelper.GetConnection();
+            using var cmd = _dbHelper.CreateCommand("SELECT ISNULL(SUM(FI_BalanceAmount), 0) FROM FeeInvoices_FI WHERE FI_StudentId = @StudentId AND FI_TenantId = @TenantId AND FI_BalanceAmount > 0", conn);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add("@StudentId", SqlDbType.UniqueIdentifier).Value = studentId;
+            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+            await conn.OpenAsync();
+            var result = await cmd.ExecuteScalarAsync();
+            return result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
+        }
+
         private void AddParameters(SqlCommand cmd, FeeInvoice fi)
         {
             cmd.Parameters.Add("@FI_Id", SqlDbType.UniqueIdentifier).Value = fi.FI_Id;
@@ -363,9 +375,16 @@ namespace IMS.DAL.Repositories
         public async Task<Guid> CreateAsync(Payment payment)
         {
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("USP_Payments_PAY", conn);
-            cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 20).Value = "Insert";
-            AddParameters(cmd, payment);
+            using var cmd = _dbHelper.CreateCommand("USP_ProcessStudentPayment", conn);
+            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = payment.PAY_TenantId;
+            cmd.Parameters.Add("@StudentId", SqlDbType.UniqueIdentifier).Value = payment.PAY_StudentId;
+            cmd.Parameters.Add("@PaymentDate", SqlDbType.DateTime2).Value = payment.PAY_PaymentDate;
+            cmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value = payment.PAY_Amount;
+            cmd.Parameters.Add("@PaymentMethodId", SqlDbType.UniqueIdentifier).Value = payment.PAY_PaymentMethodId;
+            cmd.Parameters.Add("@TransactionReference", SqlDbType.NVarChar, 150).Value = (object)payment.PAY_TransactionReference ?? DBNull.Value;
+            cmd.Parameters.Add("@Notes", SqlDbType.NVarChar, -1).Value = (object)payment.PAY_Notes ?? DBNull.Value;
+            cmd.Parameters.Add("@CreatedBy", SqlDbType.UniqueIdentifier).Value = payment.PAY_CreatedBy;
+            
             await conn.OpenAsync();
             var result = await cmd.ExecuteScalarAsync();
             return Guid.TryParse(result?.ToString(), out var id) ? id : payment.PAY_Id;

@@ -36,14 +36,18 @@ namespace IMS.Services
                     Timeout = 15000
                 };
 
-                if (!string.IsNullOrWhiteSpace(smtpConfig.SmtpUsername))
+                var authUser = !string.IsNullOrWhiteSpace(smtpConfig.SmtpUsername) && smtpConfig.SmtpUsername.Contains("@")
+                    ? smtpConfig.SmtpUsername.Trim()
+                    : (!string.IsNullOrWhiteSpace(smtpConfig.FromEmail) && smtpConfig.FromEmail.Contains("@") ? smtpConfig.FromEmail.Trim() : smtpConfig.SmtpUsername?.Trim());
+
+                if (!string.IsNullOrWhiteSpace(authUser))
                 {
-                    client.Credentials = new NetworkCredential(smtpConfig.SmtpUsername, smtpConfig.SmtpPassword ?? "");
+                    client.Credentials = new NetworkCredential(authUser, (smtpConfig.SmtpPassword ?? "").Trim());
                 }
 
                 var from = new MailAddress(
-                    string.IsNullOrWhiteSpace(smtpConfig.FromEmail) ? "noreply@ims-erp.com" : smtpConfig.FromEmail,
-                    string.IsNullOrWhiteSpace(smtpConfig.FromName) ? "IMS ERP" : smtpConfig.FromName
+                    string.IsNullOrWhiteSpace(smtpConfig.FromEmail) ? "team.fastapps@gmail.com" : smtpConfig.FromEmail.Trim(),
+                    string.IsNullOrWhiteSpace(smtpConfig.FromName) ? "IMS ERP System" : smtpConfig.FromName.Trim()
                 );
 
                 using var mailMessage = new MailMessage
@@ -54,14 +58,15 @@ namespace IMS.Services
                     IsBodyHtml = true
                 };
 
-                mailMessage.To.Add(toEmail);
+                mailMessage.To.Add(toEmail.Trim());
 
                 await client.SendMailAsync(mailMessage);
+                _logger.LogInformation("Admissions/Transactional email sent successfully to {ToEmail} with Subject: {Subject}", toEmail, subject);
                 return (true, "Email sent successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send email to {ToEmail}", toEmail);
+                _logger.LogError(ex, "Failed to send email to {ToEmail} using SMTP host {Host}:{Port}", toEmail, smtpConfig.SmtpHost, smtpConfig.SmtpPort);
                 return (false, $"SMTP error: {ex.Message}");
             }
         }

@@ -18,6 +18,7 @@ namespace IMS.Services.Interfaces
         Task<ServiceResult> CreateFeeInvoiceAsync(FeeInvoiceFormViewModel model, Guid tenantId);
         Task<ServiceResult> DeleteFeeInvoiceAsync(Guid id, Guid tenantId);
         void PopulateFeeInvoiceDropdowns(FeeInvoiceFormViewModel vm, Guid tenantId);
+        Task<decimal> GetTotalDueByStudentAsync(Guid studentId, Guid tenantId);
 
         Task<PaymentIndexViewModel> GetPaymentListAsync(Guid tenantId, string searchTerm, string status, int pageNumber, int pageSize);
         Task<PaymentFormViewModel> GetPaymentForEditAsync(Guid id, Guid tenantId);

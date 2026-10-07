@@ -34,6 +34,7 @@ namespace IMS.DAL.Interfaces
         Task<bool> UpdateAsync(FeeInvoice invoice);
         Task<bool> UpdatePaidAmountAsync(Guid invoiceId, decimal paidAmount);
         Task<bool> DeleteAsync(Guid id, Guid tenantId);
+        Task<decimal> GetTotalDueByStudentAsync(Guid studentId, Guid tenantId);
     }
 
     public interface IPaymentDAL

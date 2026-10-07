@@ -17,6 +17,10 @@ namespace IMS.Services
         private readonly IStudentDAL _studentDAL;
         private readonly IEmailService _emailService;
         private readonly INotificationConfigDAL _configDAL;
+        private readonly IFeeStructureDAL _feeStructureDAL;
+        private readonly IFeeStructureItemDAL _feeStructureItemDAL;
+        private readonly IFeeInvoiceDAL _feeInvoiceDAL;
+        private readonly IPaymentDAL _paymentDAL;
         private readonly ILogger<AdmissionApplicationService> _logger;
 
         public AdmissionApplicationService(
@@ -27,6 +31,10 @@ namespace IMS.Services
             IStudentDAL studentDAL,
             IEmailService emailService,
             INotificationConfigDAL configDAL,
+            IFeeStructureDAL feeStructureDAL,
+            IFeeStructureItemDAL feeStructureItemDAL,
+            IFeeInvoiceDAL feeInvoiceDAL,
+            IPaymentDAL paymentDAL,
             ILogger<AdmissionApplicationService> logger)
         {
             _repo = repo;
@@ -36,6 +44,10 @@ namespace IMS.Services
             _studentDAL = studentDAL;
             _emailService = emailService;
             _configDAL = configDAL;
+            _feeStructureDAL = feeStructureDAL;
+            _feeStructureItemDAL = feeStructureItemDAL;
+            _feeInvoiceDAL = feeInvoiceDAL;
+            _paymentDAL = paymentDAL;
             _logger = logger;
         }
 
@@ -114,6 +126,37 @@ namespace IMS.Services
             };
         }
 
+        public async Task<List<FeeStructureItemSummaryViewModel>> GetFeeStructureItemsAsync(Guid feeStructureId)
+        {
+            var list = new List<FeeStructureItemSummaryViewModel>();
+            if (feeStructureId == Guid.Empty) return list;
+
+            try
+            {
+                var items = await _feeStructureItemDAL.GetByFeeStructureIdAsync(feeStructureId);
+                if (items != null)
+                {
+                    foreach (var it in items)
+                    {
+                        list.Add(new FeeStructureItemSummaryViewModel
+                        {
+                            FSI_Id = it.FSI_Id,
+                            FeeCategoryName = !string.IsNullOrWhiteSpace(it.FeeCategoryName) ? it.FeeCategoryName : "Fee Component",
+                            Amount = it.FSI_Amount,
+                            IsMandatory = it.FSI_IsMandatory,
+                            DueDays = it.FSI_DueDays
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not fetch fee structure items for {FsId}", feeStructureId);
+            }
+
+            return list;
+        }
+
         public async Task<AdmissionApplicationDetailsViewModel> GetDetailsAsync(Guid id, Guid tenantId)
         {
             tenantId = tenantId != Guid.Empty ? tenantId : HardcodedMasterData.CurrentTenantId;
@@ -121,12 +164,19 @@ namespace IMS.Services
             if (a == null) return null;
 
             string? feeStructureName = null;
+            var feeItems = new List<FeeStructureItemSummaryViewModel>();
             if (a.AA_FeeStructureId.HasValue && a.AA_FeeStructureId != Guid.Empty)
             {
                 var fs = _masterService.GetById("FeeStructure", a.AA_FeeStructureId.Value);
                 if (fs != null && fs.TryGetValue("FS_Name", out var fsName))
                     feeStructureName = fsName?.ToString();
+
+                feeItems = await GetFeeStructureItemsAsync(a.AA_FeeStructureId.Value);
             }
+
+            var reviewDate = a.AA_ReviewedAt ?? a.AA_UpdatedAt;
+            var contactStart = reviewDate.Date;
+            var contactEnd = reviewDate.Date.AddDays(14);
 
             var vm = new AdmissionApplicationDetailsViewModel
             {
@@ -206,6 +256,10 @@ namespace IMS.Services
 
                 AA_FeeStructureId = a.AA_FeeStructureId,
                 FeeStructureName = feeStructureName ?? "-",
+                FeeStructureItems = feeItems,
+                TotalFeeAmount = feeItems.Sum(x => x.Amount),
+                ContactStartDate = contactStart,
+                ContactEndDate = contactEnd,
 
                 AA_Status = a.AA_Status ?? "Submitted",
                 AA_SubmittedAt = a.AA_SubmittedAt,
@@ -229,12 +283,19 @@ namespace IMS.Services
             if (a == null) return null;
 
             string? feeStructureName = null;
+            var feeItems = new List<FeeStructureItemSummaryViewModel>();
             if (a.AA_FeeStructureId.HasValue && a.AA_FeeStructureId != Guid.Empty)
             {
                 var fs = _masterService.GetById("FeeStructure", a.AA_FeeStructureId.Value);
                 if (fs != null && fs.TryGetValue("FS_Name", out var fsName))
                     feeStructureName = fsName?.ToString();
+
+                feeItems = await GetFeeStructureItemsAsync(a.AA_FeeStructureId.Value);
             }
+
+            var reviewDate = a.AA_ReviewedAt ?? a.AA_UpdatedAt;
+            var contactStart = reviewDate.Date;
+            var contactEnd = reviewDate.Date.AddDays(14);
 
             var vm = new AdmissionApplicationDetailsViewModel
             {
@@ -314,6 +375,10 @@ namespace IMS.Services
 
                 AA_FeeStructureId = a.AA_FeeStructureId,
                 FeeStructureName = feeStructureName ?? "-",
+                FeeStructureItems = feeItems,
+                TotalFeeAmount = feeItems.Sum(x => x.Amount),
+                ContactStartDate = contactStart,
+                ContactEndDate = contactEnd,
 
                 AA_Status = a.AA_Status ?? "Submitted",
                 AA_SubmittedAt = a.AA_SubmittedAt,
@@ -511,15 +576,22 @@ namespace IMS.Services
         public async Task<ServiceResult> ReviewAsync(AdmissionReviewViewModel model, Guid tenantId, Guid reviewedBy)
         {
             tenantId = tenantId != Guid.Empty ? tenantId : HardcodedMasterData.CurrentTenantId;
-            var success = await _repo.ReviewAsync(model.AA_Id, model.AA_Status, model.AA_Notes, tenantId, reviewedBy);
+            var success = await _repo.ReviewAsync(model.AA_Id, model.AA_Status, model.AA_Notes, tenantId, reviewedBy, model.FeeStructureId);
             if (success && string.Equals(model.AA_Status, "Approved", StringComparison.OrdinalIgnoreCase))
             {
-                // Send approval confirmation email in background
+                // Send Step 2 Approval & Fee Structure Offer email in background
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        await SendAdmissionApprovalEmailAsync(model.AA_Id, model.AA_Notes, tenantId);
+                        await SendAdmissionApprovalEmailAsync(
+                            model.AA_Id, 
+                            model.AA_Notes, 
+                            model.ContactStartDate ?? DateTime.Today,
+                            model.ContactEndDate ?? DateTime.Today.AddDays(14),
+                            model.ContactOfficeNotes,
+                            model.FeeStructureId,
+                            tenantId);
                     }
                     catch (Exception ex)
                     {
@@ -644,15 +716,94 @@ namespace IMS.Services
 
             var enrollmentId = await _enrollmentDAL.CreateAsync(enrollment);
 
-            // 4. Update Admission Application Status & Link References
+            // 4. Create Fee Invoice and Record Initial Payment if applicable
+            var chosenFeeStructureId = model.FeeStructureId ?? app.AA_FeeStructureId;
+            decimal totalFeeAmount = model.TotalFeeAmount;
+            decimal paidAmount = model.RecordPayment ? model.PaidAmount : 0;
+            string receiptNumber = !string.IsNullOrWhiteSpace(model.ReceiptNumber) 
+                ? model.ReceiptNumber 
+                : ("REC-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999));
+
+            if (chosenFeeStructureId.HasValue && chosenFeeStructureId.Value != Guid.Empty)
+            {
+                try
+                {
+                    var feeItems = await _feeStructureItemDAL.GetByFeeStructureIdAsync(chosenFeeStructureId.Value);
+                    if (totalFeeAmount <= 0 && feeItems != null && feeItems.Count > 0)
+                    {
+                        totalFeeAmount = feeItems.Sum(x => x.FSI_Amount);
+                    }
+
+                    if (totalFeeAmount <= 0 && paidAmount > 0)
+                    {
+                        totalFeeAmount = paidAmount;
+                    }
+
+                    var invoiceNumber = await _feeInvoiceDAL.GetNextInvoiceNumberAsync(tenantId);
+                    decimal balanceAmount = totalFeeAmount >= paidAmount ? (totalFeeAmount - paidAmount) : 0;
+                    string invoiceStatus = balanceAmount == 0 && paidAmount > 0 ? "Paid" : (paidAmount > 0 ? "Partially Paid" : "Unpaid");
+
+                    var invoice = new FeeInvoice
+                    {
+                        FI_Id = Guid.NewGuid(),
+                        FI_TenantId = tenantId,
+                        FI_StudentId = studentId,
+                        FI_InvoiceNumber = invoiceNumber,
+                        FI_InvoiceDate = model.PaymentDate ?? DateTime.Today,
+                        FI_DueDate = (model.PaymentDate ?? DateTime.Today).AddDays(15),
+                        FI_Subtotal = totalFeeAmount,
+                        FI_DiscountAmount = 0,
+                        FI_TaxAmount = 0,
+                        FI_TotalAmount = totalFeeAmount,
+                        FI_PaidAmount = paidAmount,
+                        FI_BalanceAmount = balanceAmount,
+                        FI_Status = invoiceStatus,
+                        FI_Notes = $"Admission fee invoice for Application #{app.AA_ApplicationNumber}",
+                        FI_CreatedAt = DateTime.UtcNow,
+                        FI_UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _feeInvoiceDAL.CreateAsync(invoice);
+
+                    if (paidAmount > 0)
+                    {
+                        var payment = new Payment
+                        {
+                            PAY_Id = Guid.NewGuid(),
+                            PAY_TenantId = tenantId,
+                            PAY_StudentId = studentId,
+                            PAY_PaymentNumber = receiptNumber,
+                            PAY_PaymentDate = model.PaymentDate ?? DateTime.Today,
+                            PAY_Amount = paidAmount,
+                            PAY_PaymentMethodId = Guid.Empty,
+                            PAY_Status = "Completed",
+                            PAY_TransactionReference = !string.IsNullOrWhiteSpace(model.TransactionReference) 
+                                ? model.TransactionReference 
+                                : ("TXN-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999)),
+                            PAY_Notes = $"Admission enrollment payment ({model.PaymentMethod ?? "Cash"}) - {model.PaymentRemarks}",
+                            PAY_CreatedBy = currentUserId,
+                            PAY_CreatedAt = DateTime.UtcNow,
+                            PAY_UpdatedAt = DateTime.UtcNow
+                        };
+
+                        await _paymentDAL.CreateAsync(payment);
+                    }
+                }
+                catch (Exception feeEx)
+                {
+                    _logger.LogWarning(feeEx, "Fee invoice or payment record creation failed during enrollment of student {StudentId}", studentId);
+                }
+            }
+
+            // 5. Update Admission Application Status & Link References
             await _repo.LinkEnrolledStudentAsync(app.AA_Id, studentId, enrollmentId, tenantId, currentUserId);
 
-            // 5. Send Student Portal Credentials & Welcome Email in background
+            // 6. Send Student Portal Credentials & Welcome Email with Enrolment and Payment Details in background
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await SendStudentEnrollmentCredentialsEmailAsync(app, studentId, enrollment, tenantId);
+                    await SendStudentEnrollmentCredentialsEmailAsync(app, studentId, enrollment, model, totalFeeAmount, paidAmount, receiptNumber, tenantId);
                 }
                 catch (Exception ex)
                 {
@@ -868,7 +1019,7 @@ namespace IMS.Services
         }
 
         // =========================================================================
-        // Automated Email Notifications for Admissions & Student Enrollment
+        // Automated Email Notifications for Admissions Workflow (Steps 1, 2, 3)
         // =========================================================================
 
         private async Task SendApplicationSubmittedEmailAsync(AdmissionApplication app, Guid tenantId)
@@ -884,25 +1035,26 @@ namespace IMS.Services
 
             var subject = $"[IMS ERP] Admission Application Received: #{app.AA_ApplicationNumber} - {studentFullName}";
             var bodyHtml = $@"
-<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
+<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:620px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
     <div style='background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding:28px 24px; text-align:center;'>
-        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Portal</h2>
-        <span style='background:#3b82f6; color:#ffffff; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Application Received</span>
+        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Admissions Portal</h2>
+        <span style='background:#3b82f6; color:#ffffff; font-size:12px; font-weight:600; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Application Received (Step 1 of 3)</span>
     </div>
     <div style='padding:28px 24px;'>
         <h3 style='color:#0f172a; margin-top:0;'>Application Submitted Successfully!</h3>
         <p style='color:#475569; font-size:14px; line-height:1.6;'>
-            Dear <strong>{studentFullName}</strong>,
+            Dear <strong>{studentFullName}</strong> &amp; Parents,
         </p>
         <p style='color:#475569; font-size:14px; line-height:1.6;'>
-            Your application has been received and registered. Our admissions team will review your credentials and contact you shortly.
+            Your admission application has been registered successfully in our system. You can now use your unique <strong>Application Reference Number</strong> below to track your application status in real-time.
         </p>
         
-        <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:20px 0;'>
+        <!-- Application Reference Card -->
+        <div style='background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; padding:18px; margin:20px 0;'>
             <table style='width:100%; font-size:14px; color:#334155; border-collapse:collapse;'>
                 <tr>
-                    <td style='padding:6px 0; font-weight:600; width:45%; color:#64748b;'>Application Reference:</td>
-                    <td style='padding:6px 0; font-weight:700; color:#2563eb;'>{app.AA_ApplicationNumber}</td>
+                    <td style='padding:6px 0; font-weight:600; width:45%; color:#64748b;'>Application Reference No:</td>
+                    <td style='padding:6px 0; font-weight:700; color:#2563eb; font-size:16px; font-family:monospace;'>{app.AA_ApplicationNumber}</td>
                 </tr>
                 <tr>
                     <td style='padding:6px 0; font-weight:600; color:#64748b;'>Applicant Name:</td>
@@ -921,25 +1073,45 @@ namespace IMS.Services
                     <td style='padding:6px 0;'>{academicYearName}</td>
                 </tr>
                 <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Application Status:</td>
-                    <td style='padding:6px 0;'><span style='background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:6px; font-weight:600; font-size:12px;'>Submitted / Under Review</span></td>
+                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Current Status:</td>
+                    <td style='padding:6px 0;'><span style='background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:6px; font-weight:600; font-size:12px;'>Submitted / Under Review</span></td>
                 </tr>
             </table>
+
+            <div style='text-align:center; margin-top:16px; padding-top:14px; border-top:1px dashed #cbd5e1;'>
+                <a href='/Home/TrackAdmission?appNumber={Uri.EscapeDataString(app.AA_ApplicationNumber ?? "")}' style='display:inline-block; background:#2563eb; color:#ffffff; padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;'>
+                    Track Live Application Status &rarr;
+                </a>
+            </div>
+        </div>
+
+        <div style='background:#eff6ff; border-left:4px solid #3b82f6; padding:12px 16px; margin:20px 0; border-radius:0 8px 8px 0;'>
+            <h4 style='color:#1e40af; margin:0 0 6px 0; font-size:13px; text-transform:uppercase;'>What Happens Next?</h4>
+            <p style='color:#334155; font-size:13px; margin:0; line-height:1.5;'>
+                Our admissions committee will review your application details and uploaded documents. Once approved, you will receive an official approval email detailing your <strong>Fee Structure &amp; components</strong> along with the scheduled date range to visit the campus and complete enrolment.
+            </p>
         </div>
         
-        <p style='color:#64748b; font-size:13px; line-height:1.6; margin-bottom:0;'>
-            Please retain your Application Reference Number (<strong>{app.AA_ApplicationNumber}</strong>) for any future queries or updates.
+        <p style='color:#64748b; font-size:12px; line-height:1.5; margin-bottom:0;'>
+            Please save your Application Number (<strong>{app.AA_ApplicationNumber}</strong>) for all future communications.
         </p>
     </div>
     <div style='background:#f1f5f9; padding:16px 24px; text-align:center; border-top:1px solid #e2e8f0;'>
-        <p style='font-size:12px; color:#94a3b8; margin:0;'>&copy; IMS ERP Admissions Portal. Automated notification.</p>
+        <p style='font-size:12px; color:#94a3b8; margin:0;'>&copy; IMS ERP Admissions Portal. Automated notification dispatch.</p>
     </div>
 </div>";
 
             await _emailService.SendEmailAsync(recipientEmail, subject, bodyHtml, config);
         }
 
-        private async Task SendAdmissionApprovalEmailAsync(Guid applicationId, string? reviewNotes, Guid tenantId)
+        private async Task SendAdmissionApprovalEmailAsync(
+            Guid applicationId, 
+            string? reviewNotes, 
+            DateTime contactStartDate, 
+            DateTime contactEndDate, 
+            string? contactOfficeNotes, 
+            Guid? feeStructureId, 
+            Guid tenantId)
         {
             var app = await _repo.GetByIdAsync(applicationId, tenantId);
             if (app == null) return;
@@ -953,73 +1125,145 @@ namespace IMS.Services
             var branchName = HardcodedMasterData.GetBranchName(app.AA_BranchId);
             var academicYearName = ResolveAcademicYearName(app.AA_AcademicYearId);
 
-            var subject = $"[IMS ERP] Congratulations! Admission Application #{app.AA_ApplicationNumber} Approved";
+            // Fetch Fee Structure & Breakdown
+            var targetFsId = feeStructureId ?? app.AA_FeeStructureId;
+            string feeStructureTitle = "Standard Academic Fee Structure";
+            var feeItems = new List<FeeStructureItemSummaryViewModel>();
+            decimal totalFee = 0;
+
+            if (targetFsId.HasValue && targetFsId.Value != Guid.Empty)
+            {
+                var fs = _masterService.GetById("FeeStructure", targetFsId.Value);
+                if (fs != null && fs.TryGetValue("FS_Name", out var fsName) && fsName != null)
+                {
+                    feeStructureTitle = fsName.ToString()!;
+                }
+
+                feeItems = await GetFeeStructureItemsAsync(targetFsId.Value);
+                totalFee = feeItems.Sum(x => x.Amount);
+            }
+
+            var subject = $"[IMS ERP] Congratulations! Admission Application #{app.AA_ApplicationNumber} Approved - Fee Structure & Enrolment Instructions";
+            
+            // Build fee items table HTML
+            var feeRowsHtml = string.Empty;
+            if (feeItems.Count > 0)
+            {
+                foreach (var item in feeItems)
+                {
+                    feeRowsHtml += $@"
+                    <tr>
+                        <td style='padding:8px 12px; border-bottom:1px solid #e2e8f0; color:#1e293b; font-size:13px;'>{item.FeeCategoryName}</td>
+                        <td style='padding:8px 12px; border-bottom:1px solid #e2e8f0; text-align:center; color:#64748b; font-size:12px;'>{(item.IsMandatory ? "<span style='color:#059669; font-weight:600;'>Mandatory</span>" : "<span style='color:#6b7280;'>Optional</span>")}</td>
+                        <td style='padding:8px 12px; border-bottom:1px solid #e2e8f0; text-align:right; font-weight:600; color:#0f172a; font-size:13px;'>Rs. {item.Amount:N2}</td>
+                    </tr>";
+                }
+            }
+            else
+            {
+                feeRowsHtml = @"
+                <tr>
+                    <td colspan='3' style='padding:10px 12px; text-align:center; color:#64748b; font-size:13px;'>Standard Tuition &amp; Academic Charges Applicable. Please contact admissions office for full component schedule.</td>
+                </tr>";
+            }
+
             var bodyHtml = $@"
-<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
+<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:620px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
     <div style='background:linear-gradient(135deg, #059669 0%, #047857 100%); padding:28px 24px; text-align:center;'>
-        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Admissions</h2>
-        <span style='background:#ffffff; color:#047857; font-size:12px; font-weight:700; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Admission Approved &#10004;</span>
+        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Admissions Office</h2>
+        <span style='background:#ffffff; color:#047857; font-size:12px; font-weight:700; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Application Approved (Step 2 of 3) &#10004;</span>
     </div>
     <div style='padding:28px 24px;'>
-        <h3 style='color:#065f46; margin-top:0;'>Congratulations! Your Application is Approved</h3>
+        <h3 style='color:#065f46; margin-top:0;'>Congratulations! Your Application has been Approved</h3>
         <p style='color:#334155; font-size:14px; line-height:1.6;'>
             Dear <strong>{studentFullName}</strong> &amp; Parents,
         </p>
         <p style='color:#334155; font-size:14px; line-height:1.6;'>
-            We are pleased to inform you that your application for admission has been reviewed and <strong style='color:#059669;'>APPROVED</strong> by our admissions committee.
+            We are pleased to inform you that your admission application <strong style='color:#059669;'>#{app.AA_ApplicationNumber}</strong> has been verified and <strong style='color:#059669;'>APPROVED</strong> for admission into <strong>{gradeOrCourse}</strong> at <strong>{branchName}</strong> for Academic Session <strong>{academicYearName}</strong>.
         </p>
         
-        <div style='background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px; margin:20px 0;'>
-            <table style='width:100%; font-size:14px; color:#1e293b; border-collapse:collapse;'>
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; width:45%; color:#64748b;'>Application Reference:</td>
-                    <td style='padding:6px 0; font-weight:700; color:#059669;'>{app.AA_ApplicationNumber}</td>
-                </tr>
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Student Name:</td>
-                    <td style='padding:6px 0; font-weight:600;'>{studentFullName}</td>
-                </tr>
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Approved Grade / Course:</td>
-                    <td style='padding:6px 0; font-weight:600;'>{gradeOrCourse}</td>
-                </tr>
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Campus / Branch:</td>
-                    <td style='padding:6px 0;'>{branchName}</td>
-                </tr>
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Academic Session:</td>
-                    <td style='padding:6px 0;'>{academicYearName}</td>
-                </tr>
-                {(string.IsNullOrWhiteSpace(reviewNotes) ? "" : $@"
-                <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#64748b;'>Reviewer Remarks:</td>
-                    <td style='padding:6px 0; color:#0f172a;'>{reviewNotes}</td>
-                </tr>")}
+        <!-- Action Timeline / Contact Window Box -->
+        <div style='background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:16px 18px; margin:22px 0;'>
+            <div style='display:flex; align-items:center; margin-bottom:8px;'>
+                <span style='background:#f59e0b; color:#ffffff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;'>Action Required</span>
+                <span style='color:#92400e; font-weight:700; font-size:14px; margin-left:8px;'>Contact School &amp; Complete Enrolment</span>
+            </div>
+            <p style='color:#78350f; font-size:13px; line-height:1.5; margin:0 0 10px 0;'>
+                Please contact our Admissions Desk / School Office within the scheduled date range below to complete document verification, fee payment, and final student enrolment:
+            </p>
+            <div style='background:#ffffff; border:1px solid #fde68a; border-radius:6px; padding:10px 14px; text-align:center;'>
+                <span style='color:#92400e; font-size:12px; font-weight:600; display:block;'>OFFICIAL PAYMENT &amp; ENROLMENT WINDOW:</span>
+                <span style='color:#b45309; font-size:16px; font-weight:800; font-family:monospace;'>
+                    {contactStartDate:dd-MMM-yyyy} &nbsp; to &nbsp; {contactEndDate:dd-MMM-yyyy}
+                </span>
+            </div>
+            {(string.IsNullOrWhiteSpace(contactOfficeNotes) ? "" : $"<p style='color:#92400e; font-size:12px; margin:8px 0 0 0;'><em>Note: {contactOfficeNotes}</em></p>")}
+        </div>
+
+        <!-- Approved Fee Structure Breakdown Box -->
+        <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; margin:22px 0;'>
+            <div style='background:#f1f5f9; padding:10px 16px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;'>
+                <strong style='color:#0f172a; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;'>Fee Structure Breakdown: {feeStructureTitle}</strong>
+            </div>
+            <table style='width:100%; border-collapse:collapse;'>
+                <thead>
+                    <tr style='background:#f8fafc;'>
+                        <th style='padding:8px 12px; text-align:left; font-size:12px; color:#64748b; font-weight:600; border-bottom:1px solid #e2e8f0;'>Fee Component</th>
+                        <th style='padding:8px 12px; text-align:center; font-size:12px; color:#64748b; font-weight:600; border-bottom:1px solid #e2e8f0;'>Type</th>
+                        <th style='padding:8px 12px; text-align:right; font-size:12px; color:#64748b; font-weight:600; border-bottom:1px solid #e2e8f0;'>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {feeRowsHtml}
+                </tbody>
+                {(totalFee > 0 ? $@"
+                <tfoot>
+                    <tr style='background:#f0fdf4;'>
+                        <td colspan='2' style='padding:10px 12px; font-weight:700; color:#065f46; font-size:14px;'>Total Admission &amp; Enrolment Fee Payable:</td>
+                        <td style='padding:10px 12px; text-align:right; font-weight:800; color:#059669; font-size:15px;'>Rs. {totalFee:N2}</td>
+                    </tr>
+                </tfoot>" : "")}
             </table>
         </div>
 
+        <!-- Next Steps Checklist -->
         <div style='background:#f8fafc; border-left:4px solid #059669; padding:14px 16px; margin:20px 0; border-radius:0 8px 8px 0;'>
-            <h4 style='color:#0f172a; margin:0 0 8px 0; font-size:14px;'>Next Steps for Final Enrollment:</h4>
+            <h4 style='color:#0f172a; margin:0 0 8px 0; font-size:14px;'>Checklist to Bring for Final Enrollment:</h4>
             <ol style='margin:0; padding-left:20px; color:#475569; font-size:13px; line-height:1.6;'>
-                <li><strong>Document Verification:</strong> Please bring original certificates (Birth Certificate, Marksheet/Transcript, Transfer Certificate, and Identity Proof) to the campus admissions office.</li>
-                <li><strong>Fee Payment &amp; Seat Confirmation:</strong> Complete the admission fee payment to finalize enrollment and receive your official Student ID &amp; Portal Login Credentials.</li>
+                <li><strong>Original Certificates:</strong> Birth Certificate, Transfer Certificate (TC/Migration), and Previous Marksheet/Grade Report.</li>
+                <li><strong>Identification:</strong> Student &amp; Parent Identity Proof (Aadhaar / Passport / Voter ID).</li>
+                <li><strong>Photographs:</strong> 4 recent passport-size photographs of the student.</li>
+                <li><strong>Fee Payment:</strong> Payable via Cash, Bank Transfer, Demand Draft, or UPI / Card POS at the school accounts desk.</li>
             </ol>
         </div>
 
+        {(string.IsNullOrWhiteSpace(reviewNotes) ? "" : $@"
+        <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; margin:16px 0;'>
+            <span style='color:#64748b; font-size:12px; font-weight:600; display:block;'>Reviewer / Committee Remarks:</span>
+            <span style='color:#1e293b; font-size:13px;'>{reviewNotes}</span>
+        </div>")}
+
         <p style='color:#64748b; font-size:13px; line-height:1.6; margin-bottom:0;'>
-            If you have any questions or require assistance, please contact our Admissions Office.
+            If you have any questions or require assistance with payment schedules, please contact our Campus Admissions Desk.
         </p>
     </div>
     <div style='background:#f1f5f9; padding:16px 24px; text-align:center; border-top:1px solid #e2e8f0;'>
-        <p style='font-size:12px; color:#94a3b8; margin:0;'>&copy; IMS ERP Admissions Portal. Automated notification.</p>
+        <p style='font-size:12px; color:#94a3b8; margin:0;'>&copy; IMS ERP Admissions Portal. Automated notification dispatch.</p>
     </div>
 </div>";
 
             await _emailService.SendEmailAsync(recipientEmail, subject, bodyHtml, config);
         }
 
-        private async Task SendStudentEnrollmentCredentialsEmailAsync(AdmissionApplication app, Guid studentId, Enrollment enrollment, Guid tenantId)
+        private async Task SendStudentEnrollmentCredentialsEmailAsync(
+            AdmissionApplication app, 
+            Guid studentId, 
+            Enrollment enrollment, 
+            AdmissionEnrollViewModel enrollVm,
+            decimal totalFeeAmount,
+            decimal paidAmount,
+            string receiptNumber,
+            Guid tenantId)
         {
             var student = await _studentDAL.GetByIdAsync(studentId, tenantId);
             if (student == null) return;
@@ -1035,29 +1279,34 @@ namespace IMS.Services
             var academicYearName = ResolveAcademicYearName(enrollment.E_AcademicYearId);
 
             var loginIdentifier = !string.IsNullOrWhiteSpace(student.S_Email) ? student.S_Email : student.S_StudentCode;
+            decimal balanceAmount = totalFeeAmount >= paidAmount ? (totalFeeAmount - paidAmount) : 0;
+            string paymentStatusText = balanceAmount == 0 && paidAmount > 0 ? "Fully Paid" : (paidAmount > 0 ? "Partially Paid" : "Payment Pending");
 
-            var subject = $"[IMS ERP] Welcome to Campus! Your Student ID & Portal Login Credentials - {studentFullName}";
+            var subject = $"[IMS ERP] Welcome to Campus! Enrolment Confirmed, Fee Receipt & Portal Credentials - {studentFullName}";
             var bodyHtml = $@"
-<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
+<div style='font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,Helvetica,Arial,sans-serif; max-width:620px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
     <div style='background:linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); padding:28px 24px; text-align:center;'>
-        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Student Portal</h2>
-        <span style='background:#38bdf8; color:#0f172a; font-size:12px; font-weight:700; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Student Enrollment Confirmed &#10004;</span>
+        <h2 style='color:#ffffff; margin:0 0 6px 0; font-size:22px; font-weight:700;'>IMS ERP Academic Management</h2>
+        <span style='background:#38bdf8; color:#0f172a; font-size:12px; font-weight:700; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;'>Enrolment &amp; Payment Complete (Step 3 of 3) &#10004;</span>
     </div>
     <div style='padding:28px 24px;'>
-        <h3 style='color:#1e3a8a; margin-top:0;'>Welcome to the Student &amp; Guardian Portal!</h3>
+        <h3 style='color:#1e3a8a; margin-top:0;'>Welcome to the Campus Community!</h3>
         <p style='color:#334155; font-size:14px; line-height:1.6;'>
-            Dear <strong>{studentFullName}</strong>,
+            Dear <strong>{studentFullName}</strong> &amp; Parents,
         </p>
         <p style='color:#334155; font-size:14px; line-height:1.6;'>
-            Congratulations! You have been successfully enrolled as a student. Below are your official student profile details and your personal portal login credentials.
+            We are thrilled to welcome you! Your fee payment has been acknowledged and your academic enrolment is now <strong style='color:#1d4ed8;'>OFFICIALLY CONFIRMED</strong>. Below are your official student profile details, fee receipt information, and your student portal credentials.
         </p>
 
         <!-- Credentials Highlight Box -->
         <div style='background:#eff6ff; border:2px solid #3b82f6; border-radius:10px; padding:18px; margin:22px 0;'>
-            <h4 style='color:#1d4ed8; margin:0 0 12px 0; font-size:15px; text-transform:uppercase; letter-spacing:0.5px;'>Your Portal Login Credentials</h4>
+            <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #bfdbfe; padding-bottom:8px;'>
+                <h4 style='color:#1d4ed8; margin:0; font-size:15px; text-transform:uppercase; letter-spacing:0.5px;'>Your Student Portal Credentials</h4>
+                <span style='background:#2563eb; color:#ffffff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px;'>PORTAL ACCESS</span>
+            </div>
             <table style='width:100%; font-size:14px; color:#1e293b; border-collapse:collapse;'>
                 <tr>
-                    <td style='padding:6px 0; font-weight:600; width:42%; color:#475569;'>Login Username / Email:</td>
+                    <td style='padding:6px 0; font-weight:600; width:44%; color:#475569;'>Login Username / Email:</td>
                     <td style='padding:6px 0; font-weight:700; color:#1d4ed8; font-family:monospace; font-size:14px;'>{loginIdentifier}</td>
                 </tr>
                 <tr>
@@ -1065,30 +1314,62 @@ namespace IMS.Services
                     <td style='padding:6px 0;'><span style='font-weight:700; color:#0f172a; font-family:monospace; font-size:14px; background:#dbeafe; padding:2px 8px; border-radius:4px;'>Welcome@123</span></td>
                 </tr>
                 <tr>
-                    <td style='padding:6px 0; font-weight:600; color:#475569;'>Student Code / User ID:</td>
-                    <td style='padding:6px 0; font-weight:700; color:#0f172a;'>{student.S_StudentCode}</td>
+                    <td style='padding:6px 0; font-weight:600; color:#475569;'>Student User ID / Code:</td>
+                    <td style='padding:6px 0; font-weight:700; color:#0f172a; font-family:monospace;'>{student.S_StudentCode}</td>
                 </tr>
                 <tr>
                     <td style='padding:6px 0; font-weight:600; color:#475569;'>Admission Number:</td>
-                    <td style='padding:6px 0;'>{student.S_AdmissionNumber}</td>
+                    <td style='padding:6px 0; font-weight:600;'>{student.S_AdmissionNumber}</td>
                 </tr>
                 <tr>
                     <td style='padding:6px 0; font-weight:600; color:#475569;'>Enrollment Number:</td>
-                    <td style='padding:6px 0;'>{enrollment.E_EnrollmentNumber}</td>
+                    <td style='padding:6px 0; font-weight:600;'>{enrollment.E_EnrollmentNumber}</td>
                 </tr>
             </table>
 
             <div style='text-align:center; margin-top:18px;'>
                 <a href='/Student/Login' style='display:inline-block; background:#2563eb; color:#ffffff; padding:12px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px;'>
-                    Log In to Student Panel &rarr;
+                    Log In to Student &amp; Guardian Portal &rarr;
                 </a>
             </div>
             <p style='font-size:12px; color:#64748b; text-align:center; margin:10px 0 0 0;'>
-                Portal Link: <strong>/Student/Login</strong>
+                Direct Portal URL: <strong>/Student/Login</strong>
             </p>
         </div>
 
-        <!-- Academic Information Box -->
+        <!-- Fee Payment Receipt Box -->
+        <div style='background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px; margin:22px 0;'>
+            <h4 style='color:#166534; margin:0 0 10px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;'>Fee Payment Confirmation</h4>
+            <table style='width:100%; font-size:13px; color:#1e293b; border-collapse:collapse;'>
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; width:45%; color:#64748b;'>Receipt / Transaction No:</td>
+                    <td style='padding:4px 0; font-weight:700; color:#15803d; font-family:monospace;'>{receiptNumber}</td>
+                </tr>
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; color:#64748b;'>Amount Paid:</td>
+                    <td style='padding:4px 0; font-weight:700; color:#15803d;'>Rs. {paidAmount:N2}</td>
+                </tr>
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; color:#64748b;'>Payment Method:</td>
+                    <td style='padding:4px 0;'>{(enrollVm.PaymentMethod ?? "Cash")}</td>
+                </tr>
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; color:#64748b;'>Payment Date:</td>
+                    <td style='padding:4px 0;'>{(enrollVm.PaymentDate ?? DateTime.Today):dd-MMM-yyyy}</td>
+                </tr>
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; color:#64748b;'>Fee Status:</td>
+                    <td style='padding:4px 0;'><span style='background:#dcfce7; color:#15803d; font-weight:700; padding:2px 8px; border-radius:4px; font-size:12px;'>{paymentStatusText}</span></td>
+                </tr>
+                {(balanceAmount > 0 ? $@"
+                <tr>
+                    <td style='padding:4px 0; font-weight:600; color:#b91c1c;'>Remaining Balance Due:</td>
+                    <td style='padding:4px 0; font-weight:700; color:#b91c1c;'>Rs. {balanceAmount:N2}</td>
+                </tr>" : "")}
+            </table>
+        </div>
+
+        <!-- Academic Allocation Box -->
         <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:20px 0;'>
             <h4 style='color:#0f172a; margin:0 0 10px 0; font-size:14px;'>Academic Allocation Details</h4>
             <table style='width:100%; font-size:13px; color:#334155; border-collapse:collapse;'>
@@ -1111,15 +1392,15 @@ namespace IMS.Services
             </table>
         </div>
 
-        <!-- Student Features -->
+        <!-- Student Portal Features -->
         <div style='margin:20px 0; color:#475569; font-size:13px; line-height:1.6;'>
             <p style='margin:0 0 6px 0; font-weight:600; color:#0f172a;'>Through your Student &amp; Guardian Portal, you can:</p>
             <ul style='margin:0; padding-left:20px;'>
-                <li>Check your daily class timetable and schedules</li>
+                <li>Check daily class timetable and schedules</li>
                 <li>Monitor live attendance records</li>
                 <li>Submit home tasks and download study materials</li>
                 <li>View exam results and download digital report cards</li>
-                <li>Track fee invoices and download payment receipts</li>
+                <li>Track fee invoices and download official payment receipts</li>
             </ul>
         </div>
 

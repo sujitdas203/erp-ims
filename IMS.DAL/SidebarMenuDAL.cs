@@ -29,7 +29,7 @@ namespace IMS.DAL
                 if (_tableChecked) return;
             }
 
-            const string checkSql = @"
+            const string ensureTableAndSeedSql = @"
                 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[SidebarMenuItems_SBM]') AND type in (N'U'))
                 BEGIN
                     CREATE TABLE [dbo].[SidebarMenuItems_SBM] (
@@ -56,7 +56,10 @@ namespace IMS.DAL
 
                     CREATE INDEX IX_SidebarMenuItems_Order 
                     ON [dbo].[SidebarMenuItems_SBM] ([IsActive], [SectionOrder], [MenuOrder]);
+                END;
 
+                IF (SELECT COUNT(1) FROM [dbo].[SidebarMenuItems_SBM]) = 0
+                BEGIN
                     INSERT INTO [dbo].[SidebarMenuItems_SBM]
                     ([SectionTitle], [SectionOrder], [Title], [Controller], [Action], [Area], [Icon], [PermissionCode], [MenuOrder], [BadgeText], [BadgeClass], [CustomUrl], [IsCollapsible], [CollapseTargetId], [IsMasterManagement], [IsActive])
                     VALUES
@@ -87,12 +90,12 @@ namespace IMS.DAL
                     ('System Setup', 8, 'Data Backup & Export', 'DataBackup', 'Index', '', 'fa-cloud-arrow-down', 'ViewDataBackup', 3, NULL, NULL, NULL, 0, NULL, 0, 1),
                     ('System Setup', 8, 'Users & Roles', '', '', '', 'fa-user-shield', 'ViewUserRoles', 4, 'Soon', 'IMS-soon-badge', 'javascript:void(0);', 0, NULL, 0, 1),
                     ('Insights', 9, 'Reports', '', '', '', 'fa-chart-line', 'ViewReports', 1, 'Soon', 'IMS-soon-badge', 'javascript:void(0);', 0, NULL, 0, 1);
-                END";
+                END;";
 
             try
             {
                 using var conn = _dbHelper.GetConnection();
-                using var cmd = new SqlCommand(checkSql, conn);
+                using var cmd = new SqlCommand(ensureTableAndSeedSql, conn);
                 await conn.OpenAsync();
                 await cmd.ExecuteNonQueryAsync();
                 _tableChecked = true;
@@ -105,57 +108,119 @@ namespace IMS.DAL
 
         public async Task<List<SidebarMenuItemModel>> GetActiveMenuItemsAsync()
         {
-            await EnsureTableAndSeedAsync();
-            var list = new List<SidebarMenuItemModel>();
-
-            using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_GetActive", conn);
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            try
             {
-                list.Add(MapRow(reader));
+                await EnsureTableAndSeedAsync();
+                var list = new List<SidebarMenuItemModel>();
+
+                const string sql = @"
+                    SELECT [Id], [SectionTitle], [SectionOrder], [Title], [Controller], [Action], [Area], [Icon], 
+                           [PermissionCode], [MenuOrder], [BadgeText], [BadgeClass], [CustomUrl], [IsCollapsible], 
+                           [CollapseTargetId], [IsMasterManagement], [IsActive], [CreatedAt], [UpdatedAt]
+                    FROM [dbo].[SidebarMenuItems_SBM]
+                    WHERE [IsActive] = 1
+                    ORDER BY [SectionOrder] ASC, [MenuOrder] ASC;";
+
+                using var conn = _dbHelper.GetConnection();
+                using var cmd = new SqlCommand(sql, conn);
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    list.Add(MapRow(reader));
+                }
+
+                if (list.Count > 0)
+                {
+                    return list;
+                }
             }
-            return list;
+            catch
+            {
+                // Fallback to built-in list if database is unreachable or table not populated
+            }
+
+            return GetDefaultMenuItems();
         }
 
         public async Task<List<SidebarMenuItemModel>> GetAllMenuItemsAsync()
         {
-            await EnsureTableAndSeedAsync();
-            var list = new List<SidebarMenuItemModel>();
-
-            using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_GetAll", conn);
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            try
             {
-                list.Add(MapRow(reader));
+                await EnsureTableAndSeedAsync();
+                var list = new List<SidebarMenuItemModel>();
+
+                const string sql = @"
+                    SELECT [Id], [SectionTitle], [SectionOrder], [Title], [Controller], [Action], [Area], [Icon], 
+                           [PermissionCode], [MenuOrder], [BadgeText], [BadgeClass], [CustomUrl], [IsCollapsible], 
+                           [CollapseTargetId], [IsMasterManagement], [IsActive], [CreatedAt], [UpdatedAt]
+                    FROM [dbo].[SidebarMenuItems_SBM]
+                    ORDER BY [SectionOrder] ASC, [MenuOrder] ASC;";
+
+                using var conn = _dbHelper.GetConnection();
+                using var cmd = new SqlCommand(sql, conn);
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    list.Add(MapRow(reader));
+                }
+
+                if (list.Count > 0)
+                {
+                    return list;
+                }
             }
-            return list;
+            catch
+            {
+                // Fallback to defaults
+            }
+
+            return GetDefaultMenuItems();
         }
 
         public async Task<SidebarMenuItemModel?> GetByIdAsync(int id)
         {
-            await EnsureTableAndSeedAsync();
-            using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_GetById", conn);
-            cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
-
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            try
             {
-                return MapRow(reader);
+                await EnsureTableAndSeedAsync();
+                const string sql = @"
+                    SELECT [Id], [SectionTitle], [SectionOrder], [Title], [Controller], [Action], [Area], [Icon], 
+                           [PermissionCode], [MenuOrder], [BadgeText], [BadgeClass], [CustomUrl], [IsCollapsible], 
+                           [CollapseTargetId], [IsMasterManagement], [IsActive], [CreatedAt], [UpdatedAt]
+                    FROM [dbo].[SidebarMenuItems_SBM]
+                    WHERE [Id] = @Id;";
+
+                using var conn = _dbHelper.GetConnection();
+                using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return MapRow(reader);
+                }
             }
+            catch
+            {
+            }
+
             return null;
         }
 
         public async Task<int> CreateAsync(SidebarMenuItemModel item)
         {
             await EnsureTableAndSeedAsync();
+            const string sql = @"
+                INSERT INTO [dbo].[SidebarMenuItems_SBM]
+                ([SectionTitle], [SectionOrder], [Title], [Controller], [Action], [Area], [Icon], [PermissionCode], [MenuOrder], [BadgeText], [BadgeClass], [CustomUrl], [IsCollapsible], [CollapseTargetId], [IsMasterManagement], [IsActive], [CreatedAt])
+                VALUES
+                (@SectionTitle, @SectionOrder, @Title, @Controller, @Action, @Area, @Icon, @PermissionCode, @MenuOrder, @BadgeText, @BadgeClass, @CustomUrl, @IsCollapsible, @CollapseTargetId, @IsMasterManagement, @IsActive, GETUTCDATE());
+                SELECT CAST(SCOPE_IDENTITY() as int);";
+
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_Create", conn);
+            using var cmd = new SqlCommand(sql, conn);
             AddParameters(cmd, item);
 
             await conn.OpenAsync();
@@ -166,51 +231,87 @@ namespace IMS.DAL
         public async Task<bool> UpdateAsync(SidebarMenuItemModel item)
         {
             await EnsureTableAndSeedAsync();
+            const string sql = @"
+                UPDATE [dbo].[SidebarMenuItems_SBM]
+                SET [SectionTitle] = @SectionTitle,
+                    [SectionOrder] = @SectionOrder,
+                    [Title] = @Title,
+                    [Controller] = @Controller,
+                    [Action] = @Action,
+                    [Area] = @Area,
+                    [Icon] = @Icon,
+                    [PermissionCode] = @PermissionCode,
+                    [MenuOrder] = @MenuOrder,
+                    [BadgeText] = @BadgeText,
+                    [BadgeClass] = @BadgeClass,
+                    [CustomUrl] = @CustomUrl,
+                    [IsCollapsible] = @IsCollapsible,
+                    [CollapseTargetId] = @CollapseTargetId,
+                    [IsMasterManagement] = @IsMasterManagement,
+                    [IsActive] = @IsActive,
+                    [UpdatedAt] = GETUTCDATE()
+                WHERE [Id] = @Id;";
+
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_Update", conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = item.Id;
             AddParameters(cmd, item);
 
             await conn.OpenAsync();
-            var rows = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            var rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
             await EnsureTableAndSeedAsync();
+            const string sql = "DELETE FROM [dbo].[SidebarMenuItems_SBM] WHERE [Id] = @Id;";
+
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_Delete", conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
 
             await conn.OpenAsync();
-            var rows = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            var rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
 
         public async Task<bool> ToggleStatusAsync(int id)
         {
             await EnsureTableAndSeedAsync();
+            const string sql = @"
+                UPDATE [dbo].[SidebarMenuItems_SBM]
+                SET [IsActive] = CASE WHEN [IsActive] = 1 THEN 0 ELSE 1 END,
+                    [UpdatedAt] = GETUTCDATE()
+                WHERE [Id] = @Id;";
+
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_ToggleStatus", conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
 
             await conn.OpenAsync();
-            var rows = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            var rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
 
         public async Task<bool> UpdateOrderAsync(int id, int sectionOrder, int menuOrder)
         {
             await EnsureTableAndSeedAsync();
+            const string sql = @"
+                UPDATE [dbo].[SidebarMenuItems_SBM]
+                SET [SectionOrder] = @SectionOrder,
+                    [MenuOrder] = @MenuOrder,
+                    [UpdatedAt] = GETUTCDATE()
+                WHERE [Id] = @Id;";
+
             using var conn = _dbHelper.GetConnection();
-            using var cmd = _dbHelper.CreateCommand("SP_SidebarMenuItems_UpdateOrder", conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
             cmd.Parameters.Add("@SectionOrder", SqlDbType.Int).Value = sectionOrder;
             cmd.Parameters.Add("@MenuOrder", SqlDbType.Int).Value = menuOrder;
 
             await conn.OpenAsync();
-            var rows = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            var rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
 
@@ -257,6 +358,58 @@ namespace IMS.DAL
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 UpdatedAt = reader.IsDBNull(reader.GetOrdinal("UpdatedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("UpdatedAt"))
+            };
+        }
+
+        public static List<SidebarMenuItemModel> GetDefaultMenuItems()
+        {
+            return new List<SidebarMenuItemModel>
+            {
+                new() { Id = 1, SectionTitle = "", SectionOrder = 0, Title = "Dashboard", Controller = "Home", Action = "Index", Area = "", Icon = "fa-gauge-high", PermissionCode = "ViewDashboard", MenuOrder = 1, IsActive = true },
+                
+                // Students & Admissions
+                new() { Id = 2, SectionTitle = "Students & Admissions", SectionOrder = 1, Title = "Admissions", Controller = "AdmissionApplication", Action = "Index", Area = "", Icon = "fa-address-card", PermissionCode = "ViewAdmissionApplication", MenuOrder = 1, IsActive = true },
+                new() { Id = 3, SectionTitle = "Students & Admissions", SectionOrder = 1, Title = "Enrollments", Controller = "Enrollment", Action = "Index", Area = "", Icon = "fa-user-plus", PermissionCode = "ViewEnrollment", MenuOrder = 2, IsActive = true },
+                new() { Id = 4, SectionTitle = "Students & Admissions", SectionOrder = 1, Title = "Students", Controller = "Students", Action = "Index", Area = "", Icon = "fa-user-graduate", PermissionCode = "ViewStudent", MenuOrder = 3, IsActive = true },
+                new() { Id = 5, SectionTitle = "Students & Admissions", SectionOrder = 1, Title = "Student Leaves", Controller = "StudentLeave", Action = "Index", Area = "", Icon = "fa-user-clock", PermissionCode = "ViewStudentLeave", MenuOrder = 4, IsActive = true },
+                new() { Id = 6, SectionTitle = "Students & Admissions", SectionOrder = 1, Title = "Transfer Certificates (TC)", Controller = "TransferCertificate", Action = "Index", Area = "", Icon = "fa-file-shield", PermissionCode = "ViewTransferCertificate", MenuOrder = 5, IsActive = true },
+
+                // Academic Delivery
+                new() { Id = 7, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Batches", Controller = "Batch", Action = "Index", Area = "", Icon = "fa-users-rectangle", PermissionCode = "ViewBatch", MenuOrder = 1, IsActive = true },
+                new() { Id = 8, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Course Subjects", Controller = "CourseSubject", Action = "Index", Area = "", Icon = "fa-book-bookmark", PermissionCode = "ViewCourseSubject", MenuOrder = 2, IsActive = true },
+                new() { Id = 9, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Syllabus", Controller = "Syllabus", Action = "Index", Area = "", Icon = "fa-book-open-reader", PermissionCode = "ViewSyllabus", MenuOrder = 3, IsActive = true },
+                new() { Id = 10, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Timetable", Controller = "Timetable", Action = "Index", Area = "", Icon = "fa-calendar-days", PermissionCode = "ViewTimetable", MenuOrder = 4, IsActive = true },
+                new() { Id = 11, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Home Tasks", Controller = "HomeTasks", Action = "Index", Area = "", Icon = "fa-list-check", PermissionCode = "ViewHomeTasks", MenuOrder = 5, IsActive = true },
+                new() { Id = 12, SectionTitle = "Academic Delivery", SectionOrder = 2, Title = "Mock Tests", Controller = "MockTests", Action = "Index", Area = "", Icon = "fa-vial-circle-check", PermissionCode = "ViewMockTests", MenuOrder = 6, IsActive = true },
+
+                // Attendance Centre
+                new() { Id = 13, SectionTitle = "Attendance Centre", SectionOrder = 3, Title = "Student Attendance", Controller = "Attendance", Action = "Index", Area = "", Icon = "fa-calendar-check", PermissionCode = "ViewAttendance", MenuOrder = 1, IsActive = true },
+                new() { Id = 14, SectionTitle = "Attendance Centre", SectionOrder = 3, Title = "Teacher Attendance", Controller = "TeacherAttendance", Action = "Index", Area = "", Icon = "fa-clipboard-user", PermissionCode = "ViewTeacherAttendance", MenuOrder = 2, IsActive = true },
+
+                // HR & Faculty
+                new() { Id = 15, SectionTitle = "HR & Faculty", SectionOrder = 4, Title = "Teachers", Controller = "Teachers", Action = "Index", Area = "", Icon = "fa-chalkboard-user", PermissionCode = "ViewTeacher", MenuOrder = 1, IsActive = true },
+                new() { Id = 16, SectionTitle = "HR & Faculty", SectionOrder = 4, Title = "Staff", Controller = "Staff", Action = "Index", Area = "", Icon = "fa-user-tie", PermissionCode = "ViewStaff", MenuOrder = 2, IsActive = true },
+                new() { Id = 17, SectionTitle = "HR & Faculty", SectionOrder = 4, Title = "Teacher Leaves", Controller = "TeacherLeave", Action = "Index", Area = "", Icon = "fa-calendar-xmark", PermissionCode = "ViewTeacherLeave", MenuOrder = 3, IsActive = true },
+
+                // Examinations
+                new() { Id = 18, SectionTitle = "Examinations", SectionOrder = 5, Title = "Examinations", Controller = "Exam", Action = "Index", Area = "", Icon = "fa-file-pen", PermissionCode = "ViewExam", MenuOrder = 1, IsActive = true },
+
+                // Finance
+                new() { Id = 19, SectionTitle = "Finance", SectionOrder = 6, Title = "Fees & Payments", Controller = "Fees", Action = "Index", Area = "", Icon = "fa-indian-rupee-sign", PermissionCode = "ViewFees", MenuOrder = 1, IsActive = true },
+                new() { Id = 20, SectionTitle = "Finance", SectionOrder = 6, Title = "Expenses", Controller = "Expense", Action = "Index", Area = "", Icon = "fa-receipt", PermissionCode = "ViewExpense", MenuOrder = 2, IsActive = true },
+
+                // Communication
+                new() { Id = 21, SectionTitle = "Communication", SectionOrder = 7, Title = "Announcements", Controller = "Announcements", Action = "Index", Area = "", Icon = "fa-bullhorn", PermissionCode = "ViewAnnouncement", MenuOrder = 1, IsActive = true },
+                new() { Id = 22, SectionTitle = "Communication", SectionOrder = 7, Title = "Notification Hub", Controller = "NotificationConfig", Action = "Index", Area = "", Icon = "fa-sliders", PermissionCode = "ViewNotificationConfig", MenuOrder = 2, IsActive = true },
+
+                // System Setup
+                new() { Id = 23, SectionTitle = "System Setup", SectionOrder = 8, Title = "Master Management", Controller = "Master", Action = "Index", Area = "", Icon = "fa-database", PermissionCode = "ViewMaster", MenuOrder = 1, IsCollapsible = true, CollapseTargetId = "masterMenuCollapse", IsMasterManagement = true, IsActive = true },
+                new() { Id = 24, SectionTitle = "System Setup", SectionOrder = 8, Title = "Sidebar Management", Controller = "SidebarMenu", Action = "Index", Area = "", Icon = "fa-bars-staggered", PermissionCode = "ViewSidebarMenu", MenuOrder = 2, IsActive = true },
+                new() { Id = 25, SectionTitle = "System Setup", SectionOrder = 8, Title = "Data Backup & Export", Controller = "DataBackup", Action = "Index", Area = "", Icon = "fa-cloud-arrow-down", PermissionCode = "ViewDataBackup", MenuOrder = 3, IsActive = true },
+                new() { Id = 26, SectionTitle = "System Setup", SectionOrder = 8, Title = "Users & Roles", Controller = "", Action = "", Area = "", Icon = "fa-user-shield", PermissionCode = "ViewUserRoles", MenuOrder = 4, BadgeText = "Soon", BadgeClass = "IMS-soon-badge", CustomUrl = "javascript:void(0);", IsActive = true },
+
+                // Insights
+                new() { Id = 27, SectionTitle = "Insights", SectionOrder = 9, Title = "Reports", Controller = "", Action = "", Area = "", Icon = "fa-chart-line", PermissionCode = "ViewReports", MenuOrder = 1, BadgeText = "Soon", BadgeClass = "IMS-soon-badge", CustomUrl = "javascript:void(0);", IsActive = true }
             };
         }
     }

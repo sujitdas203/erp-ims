@@ -11,9 +11,14 @@
     var currentEntityType = ViewContext.RouteData.Values["entityType"]?.ToString() ?? "";
 
     Func<string, string, string> isActive = (area, controller) =>
-        string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
-            ? "active" : "";
+    {
+        if (string.IsNullOrEmpty(controller)) return "";
+        var matchArea = string.Equals(currentArea, area ?? "", StringComparison.OrdinalIgnoreCase);
+        var matchCtrl = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ||
+                       (string.Equals(controller, "AdmissionApplication", StringComparison.OrdinalIgnoreCase) && string.Equals(currentController, "Admission", StringComparison.OrdinalIgnoreCase)) ||
+                       (string.Equals(controller, "Students", StringComparison.OrdinalIgnoreCase) && string.Equals(currentController, "Student", StringComparison.OrdinalIgnoreCase));
+        return matchArea && matchCtrl ? "active" : "";
+    };
 
     var masterConfigs = MasterConfigRegistry.GetMenuConfigs();
     var isMasterController = string.Equals(currentController, "Master", StringComparison.OrdinalIgnoreCase);
@@ -132,12 +137,23 @@
                                     }
                                 </a>
                             }
-                            else
+                            else if (!string.IsNullOrEmpty(item.Controller))
                             {
                                 <a class="nav-link @isActive(item.Area, item.Controller)"
                                    asp-area="@item.Area"
                                    asp-controller="@item.Controller"
-                                   asp-action="@item.Action">
+                                   asp-action="@(string.IsNullOrEmpty(item.Action) ? "Index" : item.Action)">
+                                    <i class="fa-solid @item.Icon"></i>
+                                    <span>@item.Title</span>
+                                    @if (!string.IsNullOrEmpty(item.BadgeText))
+                                    {
+                                        <span class="@(item.BadgeClass ?? "IMS-soon-badge")">@item.BadgeText</span>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="nav-link" href="javascript:void(0);">
                                     <i class="fa-solid @item.Icon"></i>
                                     <span>@item.Title</span>
                                     @if (!string.IsNullOrEmpty(item.BadgeText))

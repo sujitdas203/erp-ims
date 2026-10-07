@@ -171,6 +171,11 @@ namespace IMS.Services
             vm.FeeCategoryOptions = GetMasterSelectList("FeeCategory", null);
         }
 
+        public async Task<decimal> GetTotalDueByStudentAsync(Guid studentId, Guid tenantId)
+        {
+            return await _fiDAL.GetTotalDueByStudentAsync(studentId, tenantId);
+        }
+
         // ==================== Payments ====================
         public async Task<PaymentIndexViewModel> GetPaymentListAsync(Guid tenantId, string searchTerm, string status, int pageNumber, int pageSize)
         {

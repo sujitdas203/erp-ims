@@ -15,7 +15,7 @@ namespace IMS.DAL.Interfaces
         Task<Guid> CreateAsync(AdmissionApplication a);
         Task<bool> UpdateAsync(AdmissionApplication a);
         Task<bool> DeleteAsync(Guid id, Guid tenantId);
-        Task<bool> ReviewAsync(Guid id, string status, string notes, Guid tenantId, Guid reviewedBy);
+        Task<bool> ReviewAsync(Guid id, string status, string notes, Guid tenantId, Guid reviewedBy, Guid? feeStructureId = null);
         Task<bool> LinkEnrolledStudentAsync(Guid id, Guid studentId, Guid enrollmentId, Guid tenantId, Guid currentUserId);
     }
 }
