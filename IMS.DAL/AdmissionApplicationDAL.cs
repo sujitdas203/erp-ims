@@ -423,7 +423,7 @@ SELECT @@ROWCOUNT;", conn);
             }
         }
 
-        public async Task<bool> ReviewAsync(Guid id, string status, string notes, Guid tenantId, Guid reviewedBy)
+        public async Task<bool> ReviewAsync(Guid id, string status, string notes, Guid tenantId, Guid reviewedBy, Guid? feeStructureId = null)
         {
             try
             {
@@ -435,6 +435,10 @@ SELECT @@ROWCOUNT;", conn);
                 cmd.Parameters.Add("@AA_Status", SqlDbType.NVarChar, 20).Value = status;
                 cmd.Parameters.Add("@AA_Notes", SqlDbType.NVarChar, -1).Value = (object)notes ?? DBNull.Value;
                 cmd.Parameters.Add("@AA_ReviewedBy", SqlDbType.UniqueIdentifier).Value = reviewedBy;
+                if (feeStructureId.HasValue && feeStructureId.Value != Guid.Empty)
+                {
+                    cmd.Parameters.Add("@AA_FeeStructureId", SqlDbType.UniqueIdentifier).Value = feeStructureId.Value;
+                }
                 await conn.OpenAsync();
                 var res = await cmd.ExecuteScalarAsync();
                 if (res != null && int.TryParse(res.ToString(), out var count) && count > 0)
@@ -447,20 +451,23 @@ SELECT @@ROWCOUNT;", conn);
             try
             {
                 using var conn = _dbHelper.GetConnection();
-                using var cmd = new SqlCommand(@"
+                var sql = @"
 UPDATE dbo.AdmissionApplications_AA
 SET 
     AA_Status = @AA_Status,
     AA_Notes = ISNULL(@AA_Notes, AA_Notes),
+    AA_FeeStructureId = CASE WHEN @AA_FeeStructureId IS NOT NULL THEN @AA_FeeStructureId ELSE AA_FeeStructureId END,
     AA_ReviewedAt = SYSUTCDATETIME(),
     AA_ReviewedBy = @AA_ReviewedBy,
     AA_UpdatedAt = SYSUTCDATETIME()
 WHERE AA_Id = @AA_Id;
-SELECT @@ROWCOUNT;", conn);
+SELECT @@ROWCOUNT;";
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.Add("@AA_Id", SqlDbType.UniqueIdentifier).Value = id;
                 cmd.Parameters.Add("@AA_Status", SqlDbType.NVarChar, 20).Value = status;
                 cmd.Parameters.Add("@AA_Notes", SqlDbType.NVarChar, -1).Value = (object)notes ?? DBNull.Value;
                 cmd.Parameters.Add("@AA_ReviewedBy", SqlDbType.UniqueIdentifier).Value = reviewedBy;
+                cmd.Parameters.Add("@AA_FeeStructureId", SqlDbType.UniqueIdentifier).Value = (object)feeStructureId ?? DBNull.Value;
                 await conn.OpenAsync();
                 var count = await cmd.ExecuteScalarAsync();
                 return count != null && int.TryParse(count.ToString(), out var rows) && rows > 0;

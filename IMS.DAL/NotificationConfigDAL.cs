@@ -69,11 +69,12 @@ END";
                 await conn.OpenAsync();
 
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT NS_InAppEnabled, NS_EmailEnabled, NS_SmtpHost, NS_SmtpPort, 
+                cmd.CommandText = @"SELECT TOP 1 NS_TenantId, NS_InAppEnabled, NS_EmailEnabled, NS_SmtpHost, NS_SmtpPort, 
                                            NS_SmtpUsername, NS_SmtpPassword, NS_FromEmail, NS_FromName, 
                                            NS_EnableSsl, NS_EventConfigJson 
                                     FROM NotificationSettings 
-                                    WHERE NS_TenantId = @TenantId";
+                                    WHERE (NS_TenantId = @TenantId OR NS_SmtpHost IS NOT NULL)
+                                    ORDER BY CASE WHEN NS_TenantId = @TenantId THEN 0 ELSE 1 END, NS_UpdatedAt DESC";
                 cmd.Parameters.AddWithValue("@TenantId", tenantId);
 
                 using var reader = await cmd.ExecuteReaderAsync();
@@ -81,14 +82,14 @@ END";
                 {
                     var config = new NotificationConfigModel
                     {
-                        TenantId = tenantId,
+                        TenantId = reader.GetGuid(reader.GetOrdinal("NS_TenantId")),
                         InAppEnabled = reader.GetBoolean(reader.GetOrdinal("NS_InAppEnabled")),
                         EmailEnabled = reader.GetBoolean(reader.GetOrdinal("NS_EmailEnabled")),
                         SmtpHost = reader["NS_SmtpHost"] as string ?? "smtp.gmail.com",
                         SmtpPort = reader.GetInt32(reader.GetOrdinal("NS_SmtpPort")),
                         SmtpUsername = reader["NS_SmtpUsername"] as string ?? "",
                         SmtpPassword = reader["NS_SmtpPassword"] as string ?? "",
-                        FromEmail = reader["NS_FromEmail"] as string ?? "noreply@ims-erp.com",
+                        FromEmail = reader["NS_FromEmail"] as string ?? "team.fastapps@gmail.com",
                         FromName = reader["NS_FromName"] as string ?? "IMS ERP System",
                         EnableSsl = reader.GetBoolean(reader.GetOrdinal("NS_EnableSsl"))
                     };

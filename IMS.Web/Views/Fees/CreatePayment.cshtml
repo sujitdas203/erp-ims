@@ -24,6 +24,7 @@
                     <label class="form-label">Amount <span class="text-danger">*</span></label>
                     @Html.TextBoxFor(m => m.PAY_Amount, new { @class = "form-control", type = "number", min = "0", step = "0.01" })
                     <div class="text-danger small field-error" data-for="PAY_Amount"></div>
+                    <div id="due-amount-info" class="mt-1"></div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Payment Date</label>
@@ -63,6 +64,24 @@ $(function(){
             success: function(r){ if(r.success){ if(window.toastr) toastr.success(r.message); setTimeout(function(){window.location.href="/Fees/Payments";},700); } else { if(window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Payment'); } },
             error: function(){ if(window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Payment'); }
         });
+    });
+
+    $("#PAY_StudentId").on("change", function() {
+        var studentId = $(this).val();
+        if (studentId) {
+            $.get("/Fees/GetStudentDueAmount", { studentId: studentId }, function(res) {
+                if(res.success) {
+                    $("#PAY_Amount").val(res.dueAmount);
+                    if(res.dueAmount > 0) {
+                        $("#due-amount-info").html('<span class="text-info small">Pending Due: ' + res.dueAmount.toFixed(2) + '</span>');
+                    } else {
+                        $("#due-amount-info").html('<span class="text-success small">No pending due</span>');
+                    }
+                }
+            });
+        } else {
+            $("#due-amount-info").html('');
+        }
     });
 });
 </script>

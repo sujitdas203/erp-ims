@@ -139,6 +139,15 @@ namespace IMS.Web.Controllers
             return Json(new { success = result.Success, message = result.Message });
         }
 
+        [HttpGet]
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> GetStudentDueAmount(Guid studentId)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, dueAmount = 0 });
+            var dueAmount = await _feeService.GetTotalDueByStudentAsync(studentId, CurrentTenantId);
+            return Json(new { success = true, dueAmount });
+        }
+
         // ---- Payments ----
         [Permission(Permissions.ViewFees)]
         public async Task<IActionResult> Payments(string searchTerm, string status, int page = 1)

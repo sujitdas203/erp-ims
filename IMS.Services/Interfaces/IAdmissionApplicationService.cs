@@ -17,6 +17,7 @@ namespace IMS.Services.Interfaces
         Task<ServiceResult> ReviewAsync(AdmissionReviewViewModel model, Guid tenantId, Guid reviewedBy);
         Task<ServiceResult> EnrollStudentAsync(AdmissionEnrollViewModel model, Guid tenantId, Guid currentUserId);
         Task<ServiceResult> UploadAttachmentAsync(Guid id, string docType, Microsoft.AspNetCore.Http.IFormFile file, Guid tenantId);
+        Task<List<FeeStructureItemSummaryViewModel>> GetFeeStructureItemsAsync(Guid feeStructureId);
 
         void PopulateDropdowns(AdmissionApplicationFormViewModel vm);
     }
