@@ -1,0 +1,40 @@
+@model IMS.Web.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Something Went Wrong";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-3" style="font-size: 3rem; color: #dc3545;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">An unexpected error occurred</h2>
+                    <p class="text-muted mb-4">
+                        We could not complete your request. Please try again. If the problem persists,
+                        contact the system administrator with the reference below.
+                    </p>
+
+                    @if (Model?.ShowRequestId == true)
+                    {
+                        <p class="small text-muted mb-4">
+                            Reference ID: <code>@Model.RequestId</code>
+                        </p>
+                    }
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="/" class="btn btn-primary px-4">
+                            <i class="fa-solid fa-house me-1"></i>Back to Home
+                        </a>
+                        <a href="/Home/Dashboard" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-gauge-high me-1"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

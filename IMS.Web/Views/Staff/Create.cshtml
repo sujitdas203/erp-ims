@@ -1,18 +1,22 @@
 @model IMS.Models.ViewModels.StaffFormViewModel
-@{ ViewData["Title"] = "Create Staff"; }
+@{ 
+    ViewData["Title"] = "Create Staff"; 
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-chalkboard-user me-2"></i>Create Staff</h3>
+    <div>
+        <h3 class="mb-0"><i class="fa-solid fa-user-plus me-2 text-primary"></i>Create Staff</h3>
+        <span class="text-muted small">Add a new staff member or employee profile</span>
+    </div>
+    <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-list me-1"></i> Staff List
+    </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="staffCreateForm" asp-controller="Staff" asp-action="AddStaff" method="post">
-            @Html.AntiForgeryToken()
-            <partial name="_Form" model="Model" />
-        </form>
-    </div>
-</div>
+<form id="staffCreateForm" asp-controller="Staff" asp-action="AddStaff" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_Form" model="Model" />
+</form>
 
 @section Scripts {
     <script src="~/js/common/datepicker.js"></script>
@@ -20,7 +24,16 @@
     <script>
         $(function () {
             IMSStaffForm.init('/Staff/AddStaff');
+
             IMSDatePicker.init({ input: '#ST_JoiningDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+            IMSDatePicker.init({ input: '#ST_DateOfBirth', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+            Dropdown.load({ element: '#ST_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true });
+            Dropdown.load({ element: '#ST_DepartmentId', entityType: 'Department', defaultText: 'Select Department', includeDefault: true });
+            Dropdown.load({ element: '#ST_DesignationId', entityType: 'Designation', defaultText: 'Select Designation', includeDefault: true });
+            Dropdown.load({ element: '#ST_Gender', entityType: 'Gender', defaultText: 'Select Gender', includeDefault: true });
+            Dropdown.load({ element: '#ST_BloodGroup', entityType: 'BloodGroup', defaultText: 'Select Blood Group', includeDefault: true });
+            Dropdown.load({ element: '#ST_Status', entityType: 'StaffStatus', defaultText: '-- Select Status --', includeDefault: false });
         });
     </script>
 }

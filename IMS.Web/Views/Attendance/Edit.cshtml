@@ -21,6 +21,11 @@
         $(function () {
             IMSAttendanceSessionForm.init('/Attendance/EditSession');
             IMSDatePicker.init({ input: '#AS_AttendanceDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+            Dropdown.load({ element: '#AS_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true, selectedValue: $('#AS_BranchId').data('selected-value') });
+            Dropdown.load({ element: '#AS_BatchId', entityType: 'Batch', defaultText: 'Select Batch', includeDefault: true, selectedValue: $('#AS_BatchId').data('selected-value') });
+            Dropdown.load({ element: '#AS_SubjectId', entityType: 'Subject', defaultText: 'Select Subject', includeDefault: true, selectedValue: $('#AS_SubjectId').data('selected-value') });
+            Dropdown.load({ element: '#AS_StaffId', entityType: 'Staff', defaultText: 'Select Staff', includeDefault: true, selectedValue: $('#AS_StaffId').data('selected-value') });
         });
     </script>
 }

@@ -11,6 +11,11 @@ namespace IMS.Models.ViewModels
         public string S_AdmissionNumber { get; set; }
         public string FullName { get; set; }
         public string S_Gender { get; set; }
+        public string S_Email { get; set; }
+        public string S_Phone { get; set; }
+        public DateTime? S_DateOfBirth { get; set; }
+        public string S_BloodGroup { get; set; }
+        public string FullAddress { get; set; }
         public string BranchName { get; set; }
         public string ClassName { get; set; }
         public string SectionName { get; set; }
@@ -90,24 +95,121 @@ namespace IMS.Models.ViewModels
     public class StudentDetailsViewModel
     {
         public Guid S_Id { get; set; }
+        public Guid S_TenantId { get; set; }
         public string S_StudentCode { get; set; }
         public string S_AdmissionNumber { get; set; }
         public string FullName { get; set; }
+        public string S_FirstName { get; set; }
+        public string S_MiddleName { get; set; }
+        public string S_LastName { get; set; }
         public DateTime? S_DateOfBirth { get; set; }
         public string S_Gender { get; set; }
         public string S_Email { get; set; }
         public string S_Phone { get; set; }
+
+        public Guid S_BranchId { get; set; }
         public string BranchName { get; set; }
+
+        public Guid? S_ClassId { get; set; }
         public string ClassName { get; set; }
+
+        public Guid? S_SectionId { get; set; }
         public string SectionName { get; set; }
+
         public Guid? S_BatchId { get; set; }
         public string BatchName { get; set; }
+
         public string S_BloodGroup { get; set; }
         public string FullAddress { get; set; }
+        public string S_AddressLine1 { get; set; }
+        public string S_AddressLine2 { get; set; }
+        public string S_City { get; set; }
+        public string S_State { get; set; }
+        public string S_PostalCode { get; set; }
+        public string S_Country { get; set; }
+
         public DateTime? S_AdmissionDate { get; set; }
         public string S_Status { get; set; }
         public DateTime S_CreatedAt { get; set; }
         public DateTime S_UpdatedAt { get; set; }
+
         public List<GuardianRowViewModel> Guardians { get; set; } = new();
+
+        // Financial summary
+        public decimal TotalFeeInvoiced { get; set; }
+        public decimal TotalFeePaid { get; set; }
+        public decimal TotalFeeBalance { get; set; }
+        public string FeeStatus { get; set; } = "No Invoices";
+        public List<StudentInvoiceSummaryViewModel> RecentInvoices { get; set; } = new();
+
+        // Attendance summary
+        public int TotalAttendanceSessions { get; set; }
+        public int PresentSessions { get; set; }
+        public int AbsentSessions { get; set; }
+        public double AttendancePercentage { get; set; } = 100;
+
+        // Leave summary
+        public int TotalLeavesTaken { get; set; }
+        public List<StudentLeaveSummaryViewModel> RecentLeaves { get; set; } = new();
+
+        // Academic & Class Enrollment History
+        public List<StudentEnrollmentHistoryViewModel> EnrollmentHistory { get; set; } = new();
+
+        // Dropdowns for in-place editing
+        public List<SelectListItem> BranchOptions { get; set; } = new();
+        public List<SelectListItem> ClassOptions { get; set; } = new();
+        public List<SelectListItem> SectionOptions { get; set; } = new();
+        public List<SelectListItem> BatchOptions { get; set; } = new();
+        public List<SelectListItem> StatusOptions { get; set; } = new();
+        public List<SelectListItem> GenderOptions { get; set; } = new();
+        public List<SelectListItem> BloodGroupOptions { get; set; } = new();
+    }
+
+    public class QuickStudentUpdateModel
+    {
+        public Guid S_Id { get; set; }
+        public string S_FirstName { get; set; }
+        public string S_MiddleName { get; set; }
+        public string S_LastName { get; set; }
+        public string S_Status { get; set; }
+        public string S_Phone { get; set; }
+        public string S_Email { get; set; }
+        public DateTime? S_DateOfBirth { get; set; }
+        public string S_Gender { get; set; }
+        public string S_BloodGroup { get; set; }
+        public Guid? S_BranchId { get; set; }
+        public Guid? S_ClassId { get; set; }
+        public Guid? S_SectionId { get; set; }
+        public Guid? S_BatchId { get; set; }
+        public DateTime? S_AdmissionDate { get; set; }
+        public string S_AddressLine1 { get; set; }
+        public string S_AddressLine2 { get; set; }
+        public string S_City { get; set; }
+        public string S_State { get; set; }
+        public string S_PostalCode { get; set; }
+        public string S_Country { get; set; }
+    }
+
+    public class StudentInvoiceSummaryViewModel
+    {
+        public Guid InvoiceId { get; set; }
+        public string InvoiceNumber { get; set; }
+        public DateTime InvoiceDate { get; set; }
+        public DateTime? DueDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal BalanceAmount { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class StudentLeaveSummaryViewModel
+    {
+        public Guid LeaveId { get; set; }
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public int TotalDays { get; set; }
+        public string LeaveType { get; set; }
+        public string Reason { get; set; }
+        public string Status { get; set; }
     }
 }

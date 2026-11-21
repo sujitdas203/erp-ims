@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -25,10 +28,13 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                if (Guid.TryParse(raw, out var id) && id != Guid.Empty)
+                    return id;
+                return HardcodedMasterData.CurrentTenantId;
             }
         }
 
+        [Permission(Permissions.ViewStaff)]
         public async Task<IActionResult> Index(string searchTerm, Guid? branchId, string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -37,6 +43,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddStaff)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -45,6 +52,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateStaff)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -53,6 +61,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewStaff)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -63,10 +72,22 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddStaff)]
         public async Task<IActionResult> AddStaff(StaffFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
                 return Json(new { success = false, message = "Your session has expired." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, message = "Please correct the form errors.", errors });
+            }
+
             try
             {
                 var result = await _staffService.CreateStaffAsync(model, CurrentTenantId);
@@ -75,16 +96,28 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating staff for tenant {TenantId}", CurrentTenantId);
-                return Json(new { success = false, message = "Something went wrong while saving the staff member." });
+                return Json(new { success = false, message = "Something went wrong while saving the staff member: " + ex.Message });
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStaff)]
         public async Task<IActionResult> EditStaff(StaffFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
                 return Json(new { success = false, message = "Your session has expired." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, message = "Please correct the form errors.", errors });
+            }
+
             try
             {
                 var result = await _staffService.UpdateStaffAsync(model, CurrentTenantId);
@@ -93,12 +126,13 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating staff {StaffId} for tenant {TenantId}", model?.ST_Id, CurrentTenantId);
-                return Json(new { success = false, message = "Something went wrong while saving the staff member." });
+                return Json(new { success = false, message = "Something went wrong while saving the staff member: " + ex.Message });
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteStaff)]
         public async Task<IActionResult> DeleteStaff(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

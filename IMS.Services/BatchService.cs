@@ -42,9 +42,9 @@ namespace IMS.Services
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount,
-                BranchOptions = HardcodedMasterData.GetBranchSelectList(branchId),
-                CourseOptions = new(),
-                AcademicYearOptions = new(),
+                BranchOptions = GetMasterSelectList("Branch", branchId?.ToString()),
+                CourseOptions = GetMasterSelectList("Course", courseId?.ToString()),
+                AcademicYearOptions = GetMasterSelectList("AcademicYear", academicYearId?.ToString()),
                 StatusOptions = GetBatchStatusSelectList(status)
             };
 
@@ -55,7 +55,7 @@ namespace IMS.Services
                     BT_Id = b.BT_Id,
                     BT_Name = b.BT_Name,
                     BT_Code = b.BT_Code,
-                    BranchName = HardcodedMasterData.GetBranchName(b.BT_BranchId),
+                    BranchName = !string.IsNullOrEmpty(b.BranchName) ? b.BranchName : HardcodedMasterData.GetBranchName(b.BT_BranchId),
                     CourseName = b.CourseName ?? "-",
                     AcademicYearName = b.AcademicYearName ?? "-",
                     BT_StartDate = b.BT_StartDate,
@@ -79,7 +79,7 @@ namespace IMS.Services
                 BT_Id = b.BT_Id,
                 BT_Name = b.BT_Name,
                 BT_Code = b.BT_Code,
-                BranchName = HardcodedMasterData.GetBranchName(b.BT_BranchId),
+                BranchName = !string.IsNullOrEmpty(b.BranchName) ? b.BranchName : HardcodedMasterData.GetBranchName(b.BT_BranchId),
                 CourseName = b.CourseName ?? "-",
                 AcademicYearName = b.AcademicYearName ?? "-",
                 BT_StartDate = b.BT_StartDate,
@@ -117,6 +117,9 @@ namespace IMS.Services
 
         public async Task<ServiceResult> CreateBatchAsync(BatchFormViewModel model, Guid tenantId)
         {
+            if (!model.BT_StartDate.HasValue)
+                return ServiceResult.Fail("Start Date is required.");
+
             if (!string.IsNullOrWhiteSpace(model.BT_Code) &&
                 await _repo.IsCodeTakenAsync(tenantId, model.BT_Code, null))
                 return ServiceResult.Fail("This batch code is already in use.");
@@ -130,6 +133,9 @@ namespace IMS.Services
         {
             if (!model.BT_Id.HasValue)
                 return ServiceResult.Fail("Batch Id is required for update.");
+
+            if (!model.BT_StartDate.HasValue)
+                return ServiceResult.Fail("Start Date is required.");
 
             if (await _repo.IsCodeTakenAsync(tenantId, model.BT_Code, model.BT_Id))
                 return ServiceResult.Fail("This batch code is already in use.");
@@ -151,7 +157,9 @@ namespace IMS.Services
 
         public void PopulateDropdowns(BatchFormViewModel vm)
         {
-            vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.BT_BranchId);
+            vm.BranchOptions = GetMasterSelectList("Branch", vm.BT_BranchId.ToString());
+            if (vm.BranchOptions == null || !vm.BranchOptions.Any())
+                vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.BT_BranchId);
             vm.CourseOptions = GetMasterSelectList("Course", vm.BT_CourseId.ToString());
             vm.AcademicYearOptions = GetMasterSelectList("AcademicYear", vm.BT_AcademicYearId.ToString());
             vm.StatusOptions = GetBatchStatusSelectList(vm.BT_Status);
@@ -195,7 +203,7 @@ namespace IMS.Services
             BT_AcademicYearId = m.BT_AcademicYearId,
             BT_Name = m.BT_Name,
             BT_Code = m.BT_Code,
-            BT_StartDate = m.BT_StartDate,
+            BT_StartDate = m.BT_StartDate!.Value,   // null guard is in Create/UpdateBatchAsync
             BT_EndDate = m.BT_EndDate,
             BT_Capacity = m.BT_Capacity,
             BT_Status = m.BT_Status

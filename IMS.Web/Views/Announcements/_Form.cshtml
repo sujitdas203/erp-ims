@@ -1,4 +1,4 @@
-﻿@model IMS.Models.Announcement.AnnouncementFormViewModel
+@model IMS.Models.Announcement.AnnouncementFormViewModel
 
 @if (Model.ANN_Id.HasValue)
 {
@@ -13,7 +13,10 @@
     </div>
     <div class="col-md-6">
         @Html.LabelFor(m => m.BranchId, "Branch (leave blank for all branches)", new { @class = "form-label" })
-        @Html.DropDownListFor(m => m.BranchId, Model.BranchOptions, "All Branches (tenant-wide)", new { @class = "form-select" })
+        <select id="BranchId" name="BranchId" class="form-select" data-selected-value="@(Model.BranchId?.ToString() ?? "")">
+            <option value="">All Branches (tenant-wide)</option>
+        </select>
+        <div class="text-danger small field-error" data-for="BranchId"></div>
     </div>
 
     <div class="col-12">
@@ -24,13 +27,24 @@
 
     <div class="col-md-4">
         @Html.LabelFor(m => m.PublishedAt, "Publish At (leave blank to save as Draft)", new { @class = "form-label" })
-        <input type="datetime-local" name="PublishedAt" class="form-control"
-               value="@(Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm"))" />
+        <input type="text" id="PublishedAt" name="PublishedAt" class="form-control ims-datepicker-input"
+               placeholder="DD/MM/YYYY HH:mm"
+               value="@(Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+               data-format="dd/MM/yyyy HH:mm"
+               data-value-format="yyyy-MM-ddTHH:mm"
+               data-placeholder="DD/MM/YYYY HH:mm"
+               data-show-time="true" />
+        <div class="text-danger small field-error" data-for="PublishedAt"></div>
     </div>
     <div class="col-md-4">
         @Html.LabelFor(m => m.ExpiresAt, "Expires At (leave blank to never expire)", new { @class = "form-label" })
-        <input type="datetime-local" name="ExpiresAt" class="form-control"
-               value="@(Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm"))" />
+        <input type="text" id="ExpiresAt" name="ExpiresAt" class="form-control ims-datepicker-input"
+               placeholder="DD/MM/YYYY HH:mm"
+               value="@(Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+               data-format="dd/MM/yyyy HH:mm"
+               data-value-format="yyyy-MM-ddTHH:mm"
+               data-placeholder="DD/MM/YYYY HH:mm"
+               data-show-time="true" />
         <div class="text-danger small field-error" data-for="ExpiresAt"></div>
     </div>
     <div class="col-md-4 d-flex align-items-center">

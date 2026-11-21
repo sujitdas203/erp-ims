@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -22,7 +24,13 @@ namespace IMS.Web.Controllers
 
         private Guid CurrentTenantId
         {
-            get { var raw = User.FindFirst("tenant_id")?.Value; return Guid.TryParse(raw, out var id) ? id : Guid.Empty; }
+            get
+            {
+                var raw = User.FindFirst("tenant_id")?.Value;
+                if (Guid.TryParse(raw, out var id) && id != Guid.Empty)
+                    return id;
+                return IMS.Helpers.Constants.HardcodedMasterData.CurrentTenantId;
+            }
         }
 
         private Guid CurrentUserId
@@ -30,13 +38,19 @@ namespace IMS.Web.Controllers
             get { var raw = User.FindFirst("sub")?.Value ?? User.FindFirst("user_id")?.Value; return Guid.TryParse(raw, out var id) ? id : Guid.Empty; }
         }
 
-        public async Task<IActionResult> Index(string searchTerm, Guid? academicYearId, int page = 1)
+        // =========================================================================
+        // Fee Structures
+        // =========================================================================
+
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> Index(string? searchTerm, Guid? academicYearId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _feeService.GetFeeStructureListAsync(CurrentTenantId, searchTerm, academicYearId, page, 10);
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -45,6 +59,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateFees)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -54,6 +69,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddFeeStructure(FeeStructureFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -66,6 +82,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateFees)]
         public async Task<IActionResult> EditFeeStructure(FeeStructureFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -78,6 +95,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeleteFeeStructure(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -85,14 +103,19 @@ namespace IMS.Web.Controllers
             return Json(new { success = result.Success, message = result.Message });
         }
 
-        // ---- Invoices ----
-        public async Task<IActionResult> Invoices(string searchTerm, string status, int page = 1)
+        // =========================================================================
+        // Fee Invoices
+        // =========================================================================
+
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> Invoices(string? searchTerm, string? status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _feeService.GetFeeInvoiceListAsync(CurrentTenantId, searchTerm, status, page, 10);
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult CreateInvoice()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -102,6 +125,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddInvoice(FeeInvoiceFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -114,6 +138,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeleteInvoice(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -121,14 +146,28 @@ namespace IMS.Web.Controllers
             return Json(new { success = result.Success, message = result.Message });
         }
 
-        // ---- Payments ----
-        public async Task<IActionResult> Payments(string searchTerm, string status, int page = 1)
+        [HttpGet]
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> GetStudentDueAmount(Guid studentId)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, dueAmount = 0 });
+            var dueAmount = await _feeService.GetTotalDueByStudentAsync(studentId, CurrentTenantId);
+            return Json(new { success = true, dueAmount });
+        }
+
+        // =========================================================================
+        // Standard Payment Views
+        // =========================================================================
+
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> Payments(string? searchTerm, string? status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
             var vm = await _feeService.GetPaymentListAsync(CurrentTenantId, searchTerm, status, page, 10);
             return View(vm);
         }
 
+        [Permission(Permissions.AddFees)]
         public IActionResult CreatePayment()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -138,6 +177,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
         public async Task<IActionResult> AddPayment(PaymentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
@@ -150,11 +190,161 @@ namespace IMS.Web.Controllers
         }
 
         [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
         public async Task<IActionResult> DeletePayment(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
             var result = await _feeService.DeletePaymentAsync(id, CurrentTenantId);
             return Json(new { success = result.Success, message = result.Message });
+        }
+
+        // =========================================================================
+        // Point-of-Sale (POS) Fee Collection Counter
+        // =========================================================================
+
+        [HttpGet]
+        [Permission(Permissions.AddFees)]
+        public async Task<IActionResult> CollectFee(Guid? studentId)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+            var vm = await _feeService.GetFeeCollectDeskAsync(studentId, CurrentTenantId);
+            return View(vm);
+        }
+
+        [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
+        public async Task<IActionResult> ProcessCollection(FeeCollectSubmissionModel model)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            try
+            {
+                var result = await _feeService.ProcessFeeCollectionAsync(model, CurrentTenantId, CurrentUserId);
+                return Json(new { success = result.Success, message = result.Message, paymentId = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing fee collection");
+                return Json(new { success = false, message = "An error occurred while recording the fee collection." });
+            }
+        }
+
+        // =========================================================================
+        // Official Printable Money Receipt (মানি রসিদ)
+        // =========================================================================
+
+        [HttpGet]
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> Receipt(Guid id)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+            if (id == Guid.Empty) return BadRequest("Payment ID is required.");
+
+            var vm = await _feeService.GetReceiptForPrintAsync(id, CurrentTenantId);
+            if (vm == null) return NotFound("Receipt record not found.");
+
+            return View(vm);
+        }
+
+        // =========================================================================
+        // Student Fee Passbook / Ledger (খতিয়ান)
+        // =========================================================================
+
+        [HttpGet]
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> StudentLedger(Guid studentId)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+            if (studentId == Guid.Empty) return BadRequest("Student ID is required.");
+
+            var vm = await _feeService.GetStudentFeeLedgerAsync(studentId, CurrentTenantId);
+            if (vm == null) return NotFound("Student financial records not found.");
+
+            return View(vm);
+        }
+
+        // =========================================================================
+        // Cashier Day-End Collection Scroll
+        // =========================================================================
+
+        [HttpGet]
+        [Permission(Permissions.ViewFees)]
+        public async Task<IActionResult> DailyScroll(DateTime? fromDate, DateTime? toDate, Guid? paymentMethodId)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+            var start = fromDate ?? DateTime.Today;
+            var end = toDate ?? DateTime.Today;
+
+            var vm = await _feeService.GetDailyCollectionReportAsync(CurrentTenantId, start, end, paymentMethodId, null);
+            return View(vm);
+        }
+
+        // =========================================================================
+        // On-Demand Quick Charge & Scheduled Bulk Invoicing
+        // =========================================================================
+
+        [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
+        public async Task<IActionResult> AddQuickCharge(AdHocChargeFormViewModel model)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            try
+            {
+                var result = await _feeService.CreateAdHocChargeAsync(model, CurrentTenantId, CurrentUserId);
+                return Json(new { success = result.Success, message = result.Message, invoiceId = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating quick charge");
+                return Json(new { success = false, message = "Failed to add on-demand fee charge." });
+            }
+        }
+
+        [HttpGet]
+        [Permission(Permissions.AddFees)]
+        public IActionResult GenerateBatchInvoices()
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+            var vm = new BatchInvoiceGenerateViewModel();
+            _feeService.PopulateBatchInvoiceDropdowns(vm, CurrentTenantId);
+            return View(vm);
+        }
+
+        [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.AddFees)]
+        public async Task<IActionResult> ProcessBatchInvoices(BatchInvoiceGenerateViewModel model)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            try
+            {
+                var result = await _feeService.GenerateBatchInvoicesAsync(model, CurrentTenantId, CurrentUserId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating batch invoices");
+                return Json(new { success = false, message = "Error during scheduled bulk billing generation." });
+            }
+        }
+
+        // =========================================================================
+        // Safe Reversal / Cancellation
+        // =========================================================================
+
+        [HttpPost][ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteFees)]
+        public async Task<IActionResult> CancelPayment(CancelPaymentViewModel model)
+        {
+            if (CurrentTenantId == Guid.Empty) return Json(new { success = false, message = "Session expired." });
+            try
+            {
+                var result = await _feeService.CancelPaymentAsync(model.PaymentId, model.Reason, CurrentTenantId, CurrentUserId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling payment");
+                return Json(new { success = false, message = "Failed to reverse payment transaction." });
+            }
         }
     }
 }

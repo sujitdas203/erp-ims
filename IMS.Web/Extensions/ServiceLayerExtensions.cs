@@ -33,11 +33,16 @@ namespace IMS.Web.Extensions
             services.AddScoped<ITeacherDirectoryLookup, TeacherApiDirectoryLookup>();
             services.AddScoped<IStudentLeaveService, StudentLeaveService>();
             services.AddScoped<ITransferCertificateService, TransferCertificateService>();
-            services.AddScoped<IStuddentPortalService, StuddentStuddentPortalService>();
+            services.AddScoped<IStudentPortalService, StudentPortalService>();
             services.AddScoped<IAnnouncementService, AnnouncementService>();
             services.AddScoped<ISubjectSyllabusService, SubjectSyllabusService>();
             services.AddScoped<IHomeTaskService, HomeTaskService>();
             services.AddScoped<IMockTestService, MockTestService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDataBackupService, IMS.Services.Backup.DataBackupService>();
+            services.AddScoped<ISidebarMenuService, SidebarMenuService>();
+            services.AddMemoryCache();
 
             return services;
         }

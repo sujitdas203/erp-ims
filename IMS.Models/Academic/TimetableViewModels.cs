@@ -8,7 +8,17 @@ namespace IMS.Models.ViewModels
     {
         public Guid TT_Id { get; set; }
         public int TT_DayOfWeek { get; set; }
-        public string DayName => System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName((DayOfWeek)TT_DayOfWeek);
+        public string DayName => TT_DayOfWeek switch
+        {
+            1 => "Monday",
+            2 => "Tuesday",
+            3 => "Wednesday",
+            4 => "Thursday",
+            5 => "Friday",
+            6 => "Saturday",
+            7 => "Sunday",
+            _ => "-"
+        };
         public TimeSpan TT_StartTime { get; set; }
         public TimeSpan TT_EndTime { get; set; }
         public string SubjectName { get; set; }

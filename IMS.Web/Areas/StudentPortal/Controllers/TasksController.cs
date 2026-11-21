@@ -7,11 +7,11 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
 {
     public class TasksController : StudentPortalBaseController
     {
-        private readonly IStuddentPortalService _StuddentPortalService;
+        private readonly IStudentPortalService _portalService;
 
-        public TasksController(IStuddentPortalService StuddentPortalService)
+        public TasksController(IStudentPortalService portalService)
         {
-            _StuddentPortalService = StuddentPortalService;
+            _portalService = portalService;
         }
 
         [HttpGet]
@@ -20,7 +20,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
 
-            var vm = await _StuddentPortalService.GetHomeTasksAsync(studentId, CurrentTenantId);
+            var vm = await _portalService.GetHomeTasksAsync(studentId, CurrentTenantId);
             return View(vm);
         }
 
@@ -31,7 +31,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return BadRequest(new { success = false, message = "No active student selected." });
 
-            var success = await _StuddentPortalService.SubmitHomeTaskAsync(taskId, studentId, content, attachmentUrl);
+            var success = await _portalService.SubmitHomeTaskAsync(taskId, studentId, content, attachmentUrl);
             if (success)
             {
                 return Json(new { success = true, message = "Home task submitted successfully." });
@@ -46,7 +46,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
 
-            var vm = await _StuddentPortalService.GetMockTestsAsync(studentId, CurrentTenantId);
+            var vm = await _portalService.GetMockTestsAsync(studentId, CurrentTenantId);
             return View(vm);
         }
     }

@@ -21,6 +21,11 @@
         $(function () {
             IMSExpenseForm.init('/Expense/EditExpense');
             IMSDatePicker.init({ input: '#EXP_ExpenseDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+
+            Dropdown.load({ element: '#EXP_BranchId', entityType: 'Branch', defaultText: 'Select Branch', includeDefault: true, selectedValue: $('#EXP_BranchId').data('selected-value') });
+            Dropdown.load({ element: '#EXP_ExpenseCategoryId', entityType: 'ExpenseCategory', defaultText: 'Select Category', includeDefault: true, selectedValue: $('#EXP_ExpenseCategoryId').data('selected-value') });
+            Dropdown.load({ element: '#EXP_VendorId', entityType: 'Vendor', defaultText: 'Select Vendor', includeDefault: true, selectedValue: $('#EXP_VendorId').data('selected-value') });
+            Dropdown.load({ element: '#EXP_PaymentMethodId', entityType: 'PaymentMethod', defaultText: 'Select Method', includeDefault: true, selectedValue: $('#EXP_PaymentMethodId').data('selected-value') });
         });
     </script>
 }

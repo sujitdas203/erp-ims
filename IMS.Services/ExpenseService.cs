@@ -42,9 +42,14 @@ namespace IMS.Services
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount,
-                BranchOptions = HardcodedMasterData.GetBranchSelectList(branchId),
+                BranchOptions = GetMasterSelectList("Branch", branchId?.ToString()),
                 ExpenseCategoryOptions = new()
             };
+
+            if (vm.BranchOptions.Count == 0)
+            {
+                vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(branchId);
+            }
 
             var categories = await _expenseCategoryDAL.GetAllAsync(tenantId);
             vm.ExpenseCategoryOptions = categories.Select(c => new SelectListItem
@@ -61,7 +66,7 @@ namespace IMS.Services
                     EXP_Id = e.EXP_Id,
                     EXP_ExpenseNumber = e.EXP_ExpenseNumber,
                     EXP_ExpenseDate = e.EXP_ExpenseDate,
-                    BranchName = HardcodedMasterData.GetBranchName(e.EXP_BranchId),
+                    BranchName = !string.IsNullOrWhiteSpace(e.BranchName) ? e.BranchName : HardcodedMasterData.GetBranchName(e.EXP_BranchId),
                     ExpenseCategoryName = e.ExpenseCategoryName ?? "-",
                     VendorName = e.VendorName ?? "-",
                     EXP_Amount = e.EXP_Amount,
@@ -83,7 +88,7 @@ namespace IMS.Services
                 EXP_Id = e.EXP_Id,
                 EXP_ExpenseNumber = e.EXP_ExpenseNumber,
                 EXP_ExpenseDate = e.EXP_ExpenseDate,
-                BranchName = HardcodedMasterData.GetBranchName(e.EXP_BranchId),
+                BranchName = !string.IsNullOrWhiteSpace(e.BranchName) ? e.BranchName : HardcodedMasterData.GetBranchName(e.EXP_BranchId),
                 ExpenseCategoryName = e.ExpenseCategoryName ?? "-",
                 VendorName = e.VendorName ?? "-",
                 EXP_Amount = e.EXP_Amount,
@@ -148,7 +153,8 @@ namespace IMS.Services
 
         public void PopulateDropdowns(ExpenseFormViewModel vm, Guid tenantId)
         {
-            vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.EXP_BranchId);
+            var branchList = GetMasterSelectList("Branch", vm.EXP_BranchId != Guid.Empty ? vm.EXP_BranchId.ToString() : null);
+            vm.BranchOptions = branchList.Count > 0 ? branchList : HardcodedMasterData.GetBranchSelectList(vm.EXP_BranchId != Guid.Empty ? vm.EXP_BranchId : null);
 
             var categories = _expenseCategoryDAL.GetAllAsync(tenantId).GetAwaiter().GetResult();
             vm.ExpenseCategoryOptions = categories.Select(c => new SelectListItem

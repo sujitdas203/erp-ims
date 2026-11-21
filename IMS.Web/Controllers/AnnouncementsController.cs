@@ -1,4 +1,4 @@
-﻿using IMS.Helpers.Constants;
+using IMS.Helpers.Constants;
 using IMS.Models.Announcement;
 using IMS.Services.Interfaces;
 using IMS.Web.Authorization;
@@ -24,7 +24,7 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
@@ -37,7 +37,7 @@ namespace IMS.Web.Controllers
             }
         }
 
-        //[Permission(Permissions.ViewAnnouncement)]
+        [Permission(Permissions.ViewAnnouncement)]
         public async Task<IActionResult> Index(Guid? branchId, string? status, string? search, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -46,14 +46,14 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
-        //[Permission(Permissions.AddAnnouncement)]
+        [Permission(Permissions.AddAnnouncement)]
         public IActionResult Create()
         {
             var vm = new AnnouncementFormViewModel { BranchOptions = HardcodedMasterData.GetBranchSelectList() };
             return View(vm);
         }
 
-        //[Permission(Permissions.EditAnnouncement)]
+        [Permission(Permissions.EditAnnouncement)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -65,7 +65,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.AddAnnouncement)]
+        [Permission(Permissions.AddAnnouncement)]
         public async Task<IActionResult> CreateAjax(AnnouncementFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -85,7 +85,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.EditAnnouncement)]
+        [Permission(Permissions.EditAnnouncement)]
         public async Task<IActionResult> EditAjax(AnnouncementFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -105,7 +105,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.EditAnnouncement)]
+        [Permission(Permissions.EditAnnouncement)]
         public async Task<IActionResult> ToggleActiveAjax(Guid id, bool isActive)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -125,7 +125,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.DeleteAnnouncement)]
+        [Permission(Permissions.DeleteAnnouncement)]
         public async Task<IActionResult> DeleteAjax(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

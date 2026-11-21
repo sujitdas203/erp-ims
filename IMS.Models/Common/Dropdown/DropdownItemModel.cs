@@ -10,12 +10,10 @@ namespace IMS.Models.Common.Dropdown
         /// <summary>
         /// Dropdown Value.
         /// Usually the Primary Key.
-        /// Example:
-        /// 1
-        /// 2
-        /// 10
+        /// Example (INT): 1, 2, 10
+        /// Example (GUID): "22222222-2222-2222-2222-222222222201"
         /// </summary>
-        public int Value { get; set; }
+        public string Value { get; set; }
 
         /// <summary>
         /// Dropdown Display Text.
@@ -40,12 +38,10 @@ namespace IMS.Models.Common.Dropdown
         /// <summary>
         /// Parent Id.
         /// Used for cascading dropdowns.
-        /// Example:
-        /// CountryId
-        /// StateId
-        /// CategoryId
+        /// Example (INT): 1, 5
+        /// Example (GUID): "22222222-2222-2222-2222-222222222201"
         /// </summary>
-        public int? ParentId { get; set; }
+        public string? ParentId { get; set; }
 
         /// <summary>
         /// Record Active Status.

@@ -111,3 +111,8 @@ TestResults/
 
 .dotnet/
 .nuget/
+
+database/
+
+scripts/
+test_scripts/

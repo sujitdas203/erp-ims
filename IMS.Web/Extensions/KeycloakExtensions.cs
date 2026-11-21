@@ -105,7 +105,7 @@ namespace IMS.Web.Extensions
             .AddCookie("StudentPortalAuth", options =>
             {
                 options.LoginPath = "/Student/Login";
-                options.LogoutPath = "/StudentPortal/Auth/Logout";
+                options.LogoutPath = "/StudentPortal/Auth/LogoutGet";
                 options.AccessDeniedPath = "/StudentPortal/Auth/AccessDenied";
                 options.Cookie.Name = "IMS.StudentPortalAuth";
                 options.ExpireTimeSpan = TimeSpan.FromDays(7);
@@ -114,7 +114,7 @@ namespace IMS.Web.Extensions
             .AddCookie("PortalAuth", options =>
             {
                 options.LoginPath = "/Student/Login";
-                options.LogoutPath = "/StudentPortal/Auth/Logout";
+                options.LogoutPath = "/StudentPortal/Auth/LogoutGet";
                 options.AccessDeniedPath = "/StudentPortal/Auth/AccessDenied";
                 options.Cookie.Name = "IMS.StudentPortalAuth";
                 options.ExpireTimeSpan = TimeSpan.FromDays(7);

@@ -5,56 +5,134 @@
     @Html.HiddenFor(m => m.ST_Id)
 }
 
-<div class="row g-3">
-    <div class="col-md-6">
-        <label for="ST_BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.ST_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
-        <div class="text-danger small field-error" data-for="ST_BranchId"></div>
+<!-- Section 1: Personal Information -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light py-2">
+        <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-user me-2"></i>Personal Information</h6>
     </div>
-    <div class="col-md-6">
-        <label for="ST_EmployeeCode" class="form-label">Employee Code <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.ST_EmployeeCode, new { @class = "form-control", placeholder = "e.g. EMP-001" })
-        <div class="text-danger small field-error" data-for="ST_EmployeeCode"></div>
-    </div>
-    <div class="col-md-4">
-        <label for="ST_FirstName" class="form-label">First Name <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.ST_FirstName, new { @class = "form-control", placeholder = "First name" })
-        <div class="text-danger small field-error" data-for="ST_FirstName"></div>
-    </div>
-    <div class="col-md-4">
-        <label for="ST_LastName" class="form-label">Last Name <span class="text-danger">*</span></label>
-        @Html.TextBoxFor(m => m.ST_LastName, new { @class = "form-control", placeholder = "Last name" })
-        <div class="text-danger small field-error" data-for="ST_LastName"></div>
-    </div>
-    <div class="col-md-4">
-        <label for="ST_DepartmentId" class="form-label">Department</label>
-        @Html.DropDownListFor(m => m.ST_DepartmentId, Model.DepartmentOptions, "Select Department", new { @class = "form-select" })
-    </div>
-    <div class="col-md-4">
-        <label for="ST_DesignationId" class="form-label">Designation</label>
-        @Html.DropDownListFor(m => m.ST_DesignationId, Model.DesignationOptions, "Select Designation", new { @class = "form-select" })
-    </div>
-    <div class="col-md-4">
-        <label for="ST_Email" class="form-label">Email</label>
-        @Html.TextBoxFor(m => m.ST_Email, new { @class = "form-control", type = "email", placeholder = "email@example.com" })
-    </div>
-    <div class="col-md-4">
-        <label for="ST_Phone" class="form-label">Phone</label>
-        @Html.TextBoxFor(m => m.ST_Phone, new { @class = "form-control", placeholder = "Phone number" })
-    </div>
-    <div class="col-md-4">
-        <label for="ST_JoiningDate" class="form-label">Joining Date</label>
-        @Html.TextBoxFor(m => m.ST_JoiningDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "ST_JoiningDate" })
-    </div>
-    <div class="col-md-4">
-        <label for="ST_Status" class="form-label">Status <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.ST_Status, Model.StatusOptions, new { @class = "form-select" })
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="ST_FirstName" class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.ST_FirstName, new { @class = "form-control", placeholder = "Enter first name", maxlength = "50" })
+                <div class="text-danger small field-error" data-for="ST_FirstName"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_LastName" class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.ST_LastName, new { @class = "form-control", placeholder = "Enter last name", maxlength = "50" })
+                <div class="text-danger small field-error" data-for="ST_LastName"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_Gender" class="form-label fw-medium">Gender</label>
+                <select id="ST_Gender" name="ST_Gender" class="form-select" data-selected-value="@(Model.ST_Gender)"></select>
+                <div class="text-danger small field-error" data-for="ST_Gender"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_DateOfBirth" class="form-label fw-medium">Date of Birth</label>
+                @Html.TextBoxFor(m => m.ST_DateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "ST_DateOfBirth" })
+                <div class="text-danger small field-error" data-for="ST_DateOfBirth"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_BloodGroup" class="form-label fw-medium">Blood Group</label>
+                <select id="ST_BloodGroup" name="ST_BloodGroup" class="form-select" data-selected-value="@(Model.ST_BloodGroup)"></select>
+                <div class="text-danger small field-error" data-for="ST_BloodGroup"></div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-end gap-2 mt-4">
-    <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-    <button type="submit" class="btn btn-primary">
+<!-- Section 2: Employment Information -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light py-2">
+        <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-briefcase me-2"></i>Employment & Role Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="ST_BranchId" class="form-label fw-medium">Branch <span class="text-danger">*</span></label>
+                <select id="ST_BranchId" name="ST_BranchId" class="form-select" data-selected-value="@(Model.ST_BranchId != Guid.Empty ? Model.ST_BranchId.ToString() : "")"></select>
+                <div class="text-danger small field-error" data-for="ST_BranchId"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_EmployeeCode" class="form-label fw-medium">Employee Code <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.ST_EmployeeCode, new { @class = "form-control", placeholder = "e.g. EMP-001", maxlength = "50" })
+                <div class="text-danger small field-error" data-for="ST_EmployeeCode"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_DepartmentId" class="form-label fw-medium">Department</label>
+                <select id="ST_DepartmentId" name="ST_DepartmentId" class="form-select" data-selected-value="@(Model.ST_DepartmentId?.ToString())"></select>
+                <div class="text-danger small field-error" data-for="ST_DepartmentId"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_DesignationId" class="form-label fw-medium">Designation</label>
+                <select id="ST_DesignationId" name="ST_DesignationId" class="form-select" data-selected-value="@(Model.ST_DesignationId?.ToString())"></select>
+                <div class="text-danger small field-error" data-for="ST_DesignationId"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_JoiningDate" class="form-label fw-medium">Joining Date</label>
+                @Html.TextBoxFor(m => m.ST_JoiningDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input", placeholder = "DD/MM/YYYY", @id = "ST_JoiningDate" })
+                <div class="text-danger small field-error" data-for="ST_JoiningDate"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_Status" class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                <select id="ST_Status" name="ST_Status" class="form-select" data-selected-value="@(Model.ST_Status ?? "Active")"></select>
+                <div class="text-danger small field-error" data-for="ST_Status"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_Qualification" class="form-label fw-medium">Qualification</label>
+                @Html.TextBoxFor(m => m.ST_Qualification, new { @class = "form-control", placeholder = "e.g. M.Ed, M.Sc, B.A", maxlength = "255" })
+                <div class="text-danger small field-error" data-for="ST_Qualification"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_ExperienceYears" class="form-label fw-medium">Experience (Years)</label>
+                @Html.TextBoxFor(m => m.ST_ExperienceYears, new { @class = "form-control", type = "number", min = "0", max = "60", placeholder = "e.g. 5" })
+                <div class="text-danger small field-error" data-for="ST_ExperienceYears"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_BasicSalary" class="form-label fw-medium">Basic Salary</label>
+                @Html.TextBoxFor(m => m.ST_BasicSalary, new { @class = "form-control", type = "number", step = "0.01", min = "0", placeholder = "e.g. 35000.00" })
+                <div class="text-danger small field-error" data-for="ST_BasicSalary"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: Contact & Address Information -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light py-2">
+        <h6 class="mb-0 fw-semibold text-primary"><i class="fa-solid fa-address-book me-2"></i>Contact & Address Information</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="ST_Email" class="form-label fw-medium">Email Address</label>
+                @Html.TextBoxFor(m => m.ST_Email, new { @class = "form-control", type = "email", placeholder = "staff@example.com", maxlength = "100" })
+                <div class="text-danger small field-error" data-for="ST_Email"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_Phone" class="form-label fw-medium">Primary Phone</label>
+                @Html.TextBoxFor(m => m.ST_Phone, new { @class = "form-control", placeholder = "e.g. +1 234 567 8901", maxlength = "20" })
+                <div class="text-danger small field-error" data-for="ST_Phone"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="ST_EmergencyContact" class="form-label fw-medium">Emergency Contact</label>
+                @Html.TextBoxFor(m => m.ST_EmergencyContact, new { @class = "form-control", placeholder = "Name & Phone number", maxlength = "50" })
+                <div class="text-danger small field-error" data-for="ST_EmergencyContact"></div>
+            </div>
+            <div class="col-12">
+                <label for="ST_Address" class="form-label fw-medium">Residential Address</label>
+                @Html.TextAreaFor(m => m.ST_Address, new { @class = "form-control", rows = "2", placeholder = "Street address, City, State, Postal Code", maxlength = "500" })
+                <div class="text-danger small field-error" data-for="ST_Address"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-3">
+    <a asp-controller="Staff" asp-action="Index" class="btn btn-outline-secondary px-4">
+        <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+    </a>
+    <button type="submit" class="btn btn-primary px-4">
         <i class="fa-solid fa-check me-1"></i> Save Staff
     </button>
 </div>

@@ -2,8 +2,11 @@
 @{ ViewData["Title"] = "Timetable"; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-calendar-days me-2"></i>Timetable</h3>
-    <a asp-controller="Timetable" asp-action="Create" asp-route-batchId="@Model.BatchFilter" class="btn btn-primary">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Timetable</h4>
+        <p class="text-muted small mb-0">Schedule weekly classes, periods, and room allocations.</p>
+    </div>
+    <a asp-controller="Timetable" asp-action="Create" asp-route-batchId="@Model.BatchFilter" class="btn btn-primary shadow-sm">
         <i class="fa-solid fa-plus me-1"></i> Add Entry
     </a>
 </div>
@@ -13,8 +16,9 @@
         @using (Html.BeginForm("Index", "Timetable", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
         {
             <div class="col-md-4">
-                @Html.Label("batchId", "Batch", new { @class = "form-label" })
-                @Html.DropDownList("batchId", Model.BatchOptions, "All Batches", new { @class = "form-select" })
+                <label for="batchId" class="form-label">Batch</label>
+                <select name="batchId" id="batchId" class="form-select" data-selected-value="@(Model.BatchFilter?.ToString())">
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -30,12 +34,7 @@
                 <tr><th>Day</th><th>Time</th><th>Subject</th><th>Staff</th><th>Room</th><th class="text-end">Actions</th></tr>
             </thead>
             <tbody>
-                @if (!Model.Entries.Any())
-                {
-                    <tr><td colspan="6" class="text-center text-muted py-4">No timetable entries found.</td></tr>
-                }
-                else
-                {
+                @{
                     var ordered = Model.Entries.OrderBy(e => e.TT_DayOfWeek).ThenBy(e => e.TT_StartTime).ToList();
                     foreach (var t in ordered)
                     {
@@ -63,13 +62,35 @@
 <script>
 $(function () {
     $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc'], [1, 'asc']] });
+    Dropdown.load({ element: '#batchId', entityType: 'Batch', defaultText: 'All Batches', includeDefault: true, selectedValue: $('#batchId').data('selected-value') });
     $(document).on("click", ".tt-delete-btn", function () {
         var id = $(this).data("id");
-        if (!confirm("Delete this timetable entry?")) return;
-        $.ajax({ url: "/Timetable/DeleteTimetable/" + id, type: "POST",
-            data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); $("#tt-row-" + id).fadeOut(300, function(){$(this).remove();}); } else { if (window.toastr) toastr.error(r.message); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); }
+        var row = $(this).closest("tr");
+        var subject = row.find("td:nth-child(3)").text().trim();
+        var day = row.find("td:first").text().trim();
+        var time = row.find("td:nth-child(2)").text().trim();
+        var label = subject ? `${subject} on ${day} (${time})` : "this timetable entry";
+
+        IMSConfirm.delete(`Are you sure you want to delete <strong>${label}</strong>? This action cannot be undone.`, function (done) {
+            $.ajax({ 
+                url: "/Timetable/DeleteTimetable/" + id, 
+                type: "POST",
+                data: { __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
+                success: function (r) { 
+                    if (r.success) { 
+                        if (window.toastr) toastr.success(r.message || "Deleted."); 
+                        $("#tt-row-" + id).fadeOut(300, function(){$(this).remove();}); 
+                    } else { 
+                        if (window.toastr) toastr.error(r.message || "Delete failed."); 
+                    } 
+                },
+                error: function () { 
+                    if (window.toastr) toastr.error("Request failed."); 
+                },
+                complete: function () {
+                    done();
+                }
+            });
         });
     });
 });

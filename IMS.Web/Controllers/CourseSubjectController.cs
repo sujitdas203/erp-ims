@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Web.Authorization;
 
 namespace IMS.Web.Controllers
 {
@@ -25,10 +29,11 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
+        [Permission(Permissions.ViewCourseSubject)]
         public async Task<IActionResult> Index(Guid? courseId)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -36,13 +41,38 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
-        public IActionResult Create(Guid? courseId)
+        [Permission(Permissions.AddCourseSubject)]
+        public async Task<IActionResult> Create(Guid? courseId)
         {
             var vm = new CourseSubjectFormViewModel { CS_CourseId = courseId ?? Guid.Empty };
+            if (courseId.HasValue && courseId.Value != Guid.Empty)
+            {
+                vm.CS_SequenceNo = await _service.GetNextSequenceNoAsync(courseId.Value, CurrentTenantId);
+            }
             _service.PopulateDropdowns(vm, CurrentTenantId);
             return View(vm);
         }
 
+        [HttpGet]
+        [Permission(Permissions.ViewCourseSubject)]
+        public async Task<IActionResult> GetNextSequence(Guid courseId)
+        {
+            if (CurrentTenantId == Guid.Empty || courseId == Guid.Empty)
+                return Json(new { success = false, nextSequence = 1 });
+
+            try
+            {
+                var seq = await _service.GetNextSequenceNoAsync(courseId, CurrentTenantId);
+                return Json(new { success = true, nextSequence = seq });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching next sequence for course {CourseId}", courseId);
+                return Json(new { success = false, nextSequence = 1 });
+            }
+        }
+
+        [Permission(Permissions.UpdateCourseSubject)]
         public async Task<IActionResult> Edit(Guid courseId, Guid subjectId)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -53,42 +83,115 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddCourseSubject)]
         public async Task<IActionResult> AddCourseSubject(CourseSubjectFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired." });
+                return Json(new { success = false, message = "Your session has expired. Please log in again." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        k => k.Key,
+                        v => v.Value!.Errors.First().ErrorMessage
+                    );
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
+
             try
             {
                 var result = await _service.CreateAsync(model, CurrentTenantId);
-                return Json(new { success = result.Success, message = result.Message });
+                if (!result.Success)
+                {
+                    var fieldErrors = new Dictionary<string, string>();
+                    if (result.Message != null && result.Message.Contains("Sequence number", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fieldErrors["CS_SequenceNo"] = result.Message;
+                    }
+                    else if (result.Message != null && result.Message.Contains("already assigned", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fieldErrors["CS_SubjectId"] = result.Message;
+                    }
+                    else if (result.Message != null && result.Message.Contains("Pass Marks", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fieldErrors["CS_PassMarks"] = result.Message;
+                    }
+                    return Json(new { success = false, message = result.Message, errors = fieldErrors });
+                }
+
+                return Json(new { success = true, message = result.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating course subject");
-                return Json(new { success = false, message = "Something went wrong." });
+                var msg = ex.Message ?? "An error occurred while saving the subject.";
+                var fieldErrors = new Dictionary<string, string>();
+                if (msg.Contains("UQ_CourseSubjects_CS_Course_SequenceNo", StringComparison.OrdinalIgnoreCase))
+                {
+                    msg = "This Sequence Number is already used for another subject in this course. Please choose a different sequence number.";
+                    fieldErrors["CS_SequenceNo"] = msg;
+                }
+                return Json(new { success = false, message = msg, errors = fieldErrors });
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateCourseSubject)]
         public async Task<IActionResult> EditCourseSubject(CourseSubjectFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
-                return Json(new { success = false, message = "Your session has expired." });
+                return Json(new { success = false, message = "Your session has expired. Please log in again." });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        k => k.Key,
+                        v => v.Value!.Errors.First().ErrorMessage
+                    );
+                return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+            }
+
             try
             {
                 var result = await _service.UpdateAsync(model, CurrentTenantId);
-                return Json(new { success = result.Success, message = result.Message });
+                if (!result.Success)
+                {
+                    var fieldErrors = new Dictionary<string, string>();
+                    if (result.Message != null && result.Message.Contains("Sequence number", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fieldErrors["CS_SequenceNo"] = result.Message;
+                    }
+                    else if (result.Message != null && result.Message.Contains("Pass Marks", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fieldErrors["CS_PassMarks"] = result.Message;
+                    }
+                    return Json(new { success = false, message = result.Message, errors = fieldErrors });
+                }
+
+                return Json(new { success = true, message = result.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating course subject");
-                return Json(new { success = false, message = "Something went wrong." });
+                var msg = ex.Message ?? "An error occurred while updating the subject.";
+                var fieldErrors = new Dictionary<string, string>();
+                if (msg.Contains("UQ_CourseSubjects_CS_Course_SequenceNo", StringComparison.OrdinalIgnoreCase))
+                {
+                    msg = "This Sequence Number is already used for another subject in this course. Please choose a different sequence number.";
+                    fieldErrors["CS_SequenceNo"] = msg;
+                }
+                return Json(new { success = false, message = msg, errors = fieldErrors });
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteCourseSubject)]
         public async Task<IActionResult> DeleteCourseSubject(Guid courseId, Guid subjectId)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -101,7 +204,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting course subject");
-                return Json(new { success = false, message = "Something went wrong." });
+                return Json(new { success = false, message = ex.Message ?? "Something went wrong." });
             }
         }
     }

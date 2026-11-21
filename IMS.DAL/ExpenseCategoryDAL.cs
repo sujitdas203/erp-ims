@@ -23,7 +23,7 @@ namespace IMS.DAL.Repositories
             using var conn = _dbHelper.GetConnection();
             using var cmd = _dbHelper.CreateCommand("USP_ExpenseCategories_EC", conn);
             cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 20).Value = "GetAll";
-            cmd.Parameters.Add("@EC_TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId != Guid.Empty ? (object)tenantId : DBNull.Value;
 
             await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();

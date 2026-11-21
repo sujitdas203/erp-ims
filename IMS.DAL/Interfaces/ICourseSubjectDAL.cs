@@ -9,8 +9,10 @@ namespace IMS.DAL.Interfaces
     {
         Task<List<CourseSubject>> GetAllAsync(Guid tenantId);
         Task<List<CourseSubject>> GetByCourseIdAsync(Guid courseId, Guid tenantId);
-        Task<CourseSubject> GetByIdAsync(Guid courseId, Guid subjectId, Guid tenantId);
+        Task<CourseSubject?> GetByIdAsync(Guid courseId, Guid subjectId, Guid tenantId);
         Task<bool> ExistsAsync(Guid courseId, Guid subjectId, Guid tenantId);
+        Task<bool> SequenceExistsAsync(Guid courseId, int sequenceNo, Guid? excludeSubjectId, Guid tenantId);
+        Task<int> GetNextSequenceNoAsync(Guid courseId, Guid tenantId);
         Task<bool> CreateAsync(CourseSubject cs);
         Task<bool> UpdateAsync(CourseSubject cs, Guid tenantId);
         Task<bool> DeleteAsync(Guid courseId, Guid subjectId, Guid tenantId);

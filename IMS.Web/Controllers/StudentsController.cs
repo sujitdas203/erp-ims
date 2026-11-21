@@ -33,7 +33,7 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
@@ -41,7 +41,7 @@ namespace IMS.Web.Controllers
         private string CurrentUserType => User.FindFirst("roles")?.Value;
         private bool IsAdmin => string.Equals(CurrentUserType, AppRoles.TenantAdmin, StringComparison.OrdinalIgnoreCase);
 
-        //[Permission(Permissions.ViewStudent)]
+        [Permission(Permissions.ViewStudent)]
         public async Task<IActionResult> Index(string searchTerm, string status, Guid? branchId, Guid? classId, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -51,7 +51,7 @@ namespace IMS.Web.Controllers
 
             return View(vm);
         }
-        //[Permission(Permissions.ViewStudent)]
+        [Permission(Permissions.ViewStudent)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -60,14 +60,14 @@ namespace IMS.Web.Controllers
             if (vm == null) return NotFound();
             return View(vm);
         }
-        //[Permission(Permissions.AddStudent)]
+        [Permission(Permissions.AddStudent)]
         public IActionResult Create()
         {
             var vm = new StudentFormViewModel();
             _studentService.PopulateDropdowns(vm);
             return View(vm);
         }
-        //[Permission(Permissions.UpdateStudent)]
+        [Permission(Permissions.UpdateStudent)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -80,7 +80,7 @@ namespace IMS.Web.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.AddStudent)]
+        [Permission(Permissions.AddStudent)]
         public async Task<IActionResult> AddStudent(StudentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -100,7 +100,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.UpdateStudent)]
+        [Permission(Permissions.UpdateStudent)]
         public async Task<IActionResult> EditStudent(StudentFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -120,7 +120,113 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.DeleteStudent)]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> QuickUpdate([FromBody] QuickStudentUpdateModel model)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (model == null || model.S_Id == Guid.Empty)
+                return Json(new { success = false, message = "Invalid student data." });
+
+            try
+            {
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message, id = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in QuickUpdate for student {StudentId}", model.S_Id);
+                return Json(new { success = false, message = "Something went wrong while updating the student." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> QuickUpdateForm(QuickStudentUpdateModel model)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (model == null || model.S_Id == Guid.Empty)
+                return Json(new { success = false, message = "Invalid student data." });
+
+            try
+            {
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message, id = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in QuickUpdateForm for student {StudentId}", model.S_Id);
+                return Json(new { success = false, message = "Something went wrong while updating the student." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> UpdateStatus(Guid id, string status)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (id == Guid.Empty || string.IsNullOrWhiteSpace(status))
+                return Json(new { success = false, message = "Invalid student or status." });
+
+            try
+            {
+                var model = new QuickStudentUpdateModel { S_Id = id, S_Status = status.Trim() };
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status for student {StudentId}", id);
+                return Json(new { success = false, message = "Something went wrong while updating status." });
+            }
+        }
+
+        [HttpGet]
+        [Permission(Permissions.ViewStudent)]
+        public async Task<IActionResult> GetQuickDetails(Guid id)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+
+            var vm = await _studentService.GetStudentDetailsAsync(id, CurrentTenantId);
+            if (vm == null) return NotFound();
+            return Json(new
+            {
+                s_Id = vm.S_Id,
+                fullName = vm.FullName,
+                studentCode = vm.S_StudentCode,
+                admissionNumber = vm.S_AdmissionNumber,
+                status = vm.S_Status,
+                branchName = vm.BranchName,
+                className = vm.ClassName,
+                sectionName = vm.SectionName,
+                batchName = vm.BatchName,
+                admissionDate = vm.S_AdmissionDate?.ToString("dd MMM yyyy"),
+                dateOfBirth = vm.S_DateOfBirth?.ToString("dd MMM yyyy"),
+                gender = vm.S_Gender,
+                bloodGroup = vm.S_BloodGroup,
+                email = vm.S_Email,
+                phone = vm.S_Phone,
+                fullAddress = vm.FullAddress,
+                totalFeeInvoiced = vm.TotalFeeInvoiced,
+                totalFeePaid = vm.TotalFeePaid,
+                totalFeeBalance = vm.TotalFeeBalance,
+                feeStatus = vm.FeeStatus,
+                attendancePercentage = vm.AttendancePercentage,
+                totalLeavesTaken = vm.TotalLeavesTaken,
+                guardiansCount = vm.Guardians.Count
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteStudent)]
         public async Task<IActionResult> DeleteStudent(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

@@ -33,7 +33,7 @@ namespace IMS.Controllers
         [HttpGet]
         public JsonResult GetDropdown(
             string entityType,
-            int? parentId = null,
+            string parentId = null,
             string search = null,
             bool activeOnly = true,
             int page = 1,

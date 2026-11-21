@@ -4,7 +4,10 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Leave Requests</h3>
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-calendar-xmark text-primary me-2"></i>Teacher Leave Requests</h4>
+        <p class="text-muted small mb-0">Manage teaching faculty leave applications and approvals.</p>
+    </div>
 </div>
 
 <div class="card shadow-sm mb-3">
@@ -13,7 +16,7 @@
         {
             <div class="col-md-3">
                 <label class="form-label">Status</label>
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary">Filter</button>
@@ -114,4 +117,9 @@
 @section Scripts {
     <link rel="stylesheet" href="~/css/teacherHr.css" />
     <script src="~/js/teacherLeave.js"></script>
+    <script>
+        $(function () {
+            Dropdown.load({ element: '#filterStatus', entityType: 'ActiveStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+        });
+    </script>
 }

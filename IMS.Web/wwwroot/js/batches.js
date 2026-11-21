@@ -58,9 +58,27 @@
 
         var startDate = $form.find("[name='BT_StartDate']").val();
         var endDate = $form.find("[name='BT_EndDate']").val();
-        if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-            $form.find(".field-error[data-for='BT_EndDate']").text("End date cannot be before start date.");
-            valid = false;
+        if (startDate && endDate) {
+            var parseDateVal = function (v) {
+                if (typeof IMSDatePicker !== "undefined" && IMSDatePicker.parseDate) {
+                    var p = IMSDatePicker.parseDate(v);
+                    if (p) return p.getTime();
+                }
+                var t = Date.parse(v);
+                if (!isNaN(t)) return t;
+                var parts = v.split(/[\/\-]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+                    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                }
+                return null;
+            };
+            var sTime = parseDateVal(startDate);
+            var eTime = parseDateVal(endDate);
+            if (sTime !== null && eTime !== null && eTime < sTime) {
+                $form.find(".field-error[data-for='BT_EndDate']").text("End date cannot be before start date.");
+                valid = false;
+            }
         }
 
         if (!valid && window.toastr) toastr.error("Please correct the highlighted fields.");

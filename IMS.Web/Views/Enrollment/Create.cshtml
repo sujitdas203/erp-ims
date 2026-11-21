@@ -1,13 +1,21 @@
 @model IMS.Models.ViewModels.EnrollmentFormViewModel
-@{ ViewData["Title"] = "New Enrollment"; }
+@{
+    ViewData["Title"] = "New Student Enrollment";
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-user-plus me-2"></i>New Enrollment</h3>
+    <div>
+        <h3 class="mb-0 text-primary fw-bold"><i class="fa-solid fa-user-plus me-2"></i>New Student Enrollment</h3>
+        <p class="text-muted mb-0 small">Enroll students into Classes (Nursery to 12th) or Higher Degree & Vocational Streams.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-list me-1"></i> Back to Enrollments
+    </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="enrollmentCreateForm" asp-controller="Enrollment" asp-action="AddEnrollment" method="post">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="enrollmentCreateForm" asp-controller="Enrollment" asp-action="AddEnrollment" method="post" novalidate>
             @Html.AntiForgeryToken()
             <partial name="_Form" model="Model" />
         </form>
@@ -18,25 +26,106 @@
 <script src="~/js/common/datepicker.js"></script>
 <script>
 $(function () {
-    IMSDatePicker.init({ input: '#E_EnrollmentDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
-    IMSDatePicker.init({ input: '#E_CompletionDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+    // Initialize datepickers
+    if (typeof IMSDatePicker !== 'undefined') {
+        IMSDatePicker.init({ input: '#E_EnrollmentDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+        IMSDatePicker.init({ input: '#E_CompletionDate', format: 'dd/MM/yyyy', valueFormat: 'yyyy-MM-dd', placeholder: 'DD/MM/YYYY' });
+    }
 
-    $('.select2-student').select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        placeholder: 'Type to search student...',
-        allowClear: true,
-        minimumInputLength: 0
+    // Initialize Select2 on student search
+    if ($.fn.select2) {
+        $('.select2-student').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Search & Select Student --',
+            allowClear: true
+        });
+    }
+
+    // Dynamic AJAX form submit with red-border validation feedback
+    $("#enrollmentCreateForm").on("submit", function (e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $("#btnSubmitEnrollment");
+
+        // Clear previous validation styling
+        $form.find(".is-invalid").removeClass("is-invalid");
+        $form.find(".field-error").empty();
+        $form.find(".invalid-feedback").remove();
+
+        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving Enrollment...');
+
+        $.ajax({
+            url: $form.attr("action"),
+            type: "POST",
+            data: $form.serialize(),
+            success: function (r) {
+                if (r.success) {
+                    if (window.toastr) {
+                        toastr.success(r.message || "Enrollment saved successfully!");
+                    } else {
+                        alert(r.message || "Enrollment saved successfully!");
+                    }
+                    setTimeout(function () {
+                        window.location.href = "/Enrollment/Index";
+                    }, 800);
+                } else {
+                    if (window.toastr) {
+                        toastr.error(r.message || "Failed to save enrollment. Please check the errors.");
+                    }
+
+                    if (r.errors) {
+                        var firstInvalid = null;
+                        $.each(r.errors, function (field, msg) {
+                            var cleanField = field.replace(/^model\./i, '');
+                            var $input = $form.find("[name='" + cleanField + "'], [name='Model." + cleanField + "'], #" + cleanField);
+                            if ($input.length) {
+                                $input.addClass("is-invalid");
+                                if ($input.hasClass("select2-student") && $input.next(".select2-container").length) {
+                                    $input.next(".select2-container").find(".select2-selection").addClass("border-danger");
+                                }
+                                var $errDiv = $form.find(".field-error[data-for='" + cleanField + "']");
+                                if ($errDiv.length) {
+                                    $errDiv.html(msg);
+                                } else {
+                                    $input.after('<div class="invalid-feedback d-block">' + msg + '</div>');
+                                }
+                                if (!firstInvalid) firstInvalid = $input;
+                            }
+                        });
+
+                        if (firstInvalid) {
+                            $('html, body').animate({
+                                scrollTop: firstInvalid.offset().top - 100
+                            }, 300);
+                            firstInvalid.focus();
+                        }
+                    }
+
+                    $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Enrollment');
+                }
+            },
+            error: function (xhr) {
+                if (window.toastr) {
+                    toastr.error("An unexpected error occurred while communicating with the server.");
+                } else {
+                    alert("An unexpected error occurred.");
+                }
+                $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Enrollment');
+            }
+        });
     });
 
-    $("form").on("submit", function (e) {
-        e.preventDefault();
-        var $form = $(this), $btn = $form.find("button[type='submit']");
-        $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-        $.ajax({ url: $form.attr("action"), type: "POST", data: $form.serialize(),
-            success: function (r) { if (r.success) { if (window.toastr) toastr.success(r.message); setTimeout(function(){window.location.href="/Enrollment/Index";},700); } else { if (window.toastr) toastr.error(r.message); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Enrollment'); } },
-            error: function () { if (window.toastr) toastr.error("Request failed."); $btn.prop("disabled", false).html('<i class="fa-solid fa-check me-1"></i> Save Enrollment'); }
-        });
+    // Clear validation error on change
+    $("input, select, textarea").on("change input", function () {
+        $(this).removeClass("is-invalid");
+        if ($(this).hasClass("select2-student")) {
+            $(this).next(".select2-container").find(".select2-selection").removeClass("border-danger");
+        }
+        var fieldName = $(this).attr("id") || $(this).attr("name");
+        if (fieldName) {
+            $(".field-error[data-for='" + fieldName + "']").empty();
+        }
     });
 });
 </script>

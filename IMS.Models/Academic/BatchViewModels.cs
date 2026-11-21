@@ -45,7 +45,7 @@ namespace IMS.Models.ViewModels
         public Guid BT_AcademicYearId { get; set; }
         public string BT_Name { get; set; }
         public string BT_Code { get; set; }
-        public DateTime BT_StartDate { get; set; } = DateTime.Today;
+        public DateTime? BT_StartDate { get; set; } = DateTime.Today;
         public DateTime? BT_EndDate { get; set; }
         public int? BT_Capacity { get; set; }
         public string BT_Status { get; set; } = "Active";

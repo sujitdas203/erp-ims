@@ -2,8 +2,21 @@
 @{ ViewData["Title"] = "Fee Invoices"; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-file-invoice me-2"></i>Fee Invoices</h3>
-    <a asp-controller="Fees" asp-action="CreateInvoice" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Create Invoice</a>
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Fee Invoices & Dues</h4>
+        <p class="text-muted small mb-0">Generate, view, and track student billing invoices, session fees, and dues.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Fees" asp-action="CollectFee" class="btn btn-success shadow-sm">
+            <i class="fa-solid fa-cash-register me-1"></i> POS Collect Fee
+        </a>
+        <a asp-controller="Fees" asp-action="GenerateBatchInvoices" class="btn btn-outline-primary shadow-sm">
+            <i class="fa-solid fa-layer-group me-1"></i> Scheduled Batch Billing
+        </a>
+        <a asp-controller="Fees" asp-action="CreateInvoice" class="btn btn-primary shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Single Invoice
+        </a>
+    </div>
 </div>
 
 <div class="card shadow-sm mb-3">
@@ -11,43 +24,121 @@
         @using (Html.BeginForm("Invoices", "Fees", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
         {
             <div class="col-md-4">
-                @Html.Label("searchTerm", "Search", new { @class = "form-label" })
-                @Html.TextBox("searchTerm", Model.SearchTerm, new { @class = "form-control", placeholder = "Invoice or student" })
+                @Html.Label("searchTerm", "Search Student / Invoice", new { @class = "form-label fw-semibold text-secondary small" })
+                @Html.TextBox("searchTerm", Model.SearchTerm, new { @class = "form-control", placeholder = "Invoice # or student code/name" })
             </div>
-            <div class="col-md-2">
-                @Html.Label("status", "Status", new { @class = "form-label" })
-                @Html.DropDownList("status", Model.StatusOptions, "All Statuses", new { @class = "form-select" })
+            <div class="col-md-3">
+                @Html.Label("status", "Payment Status", new { @class = "form-label fw-semibold text-secondary small" })
+                <select name="status" id="filterStatus" class="form-select" data-selected-value="@(Model.StatusFilter)"></select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
+            </div>
+            <div class="col-md-3 text-end">
+                <a asp-controller="Fees" asp-action="DailyScroll" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-calendar-day me-1"></i> Day-End Scroll
+                </a>
             </div>
         }
     </div>
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-                <tr><th>Invoice #</th><th>Student</th><th>Date</th><th>Due Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th class="text-end">Actions</th></tr>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Type / Period</th>
+                    <th>Student</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
+                    <th class="text-end">Total (₹)</th>
+                    <th class="text-end">Paid (₹)</th>
+                    <th class="text-end">Balance (₹)</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
             </thead>
             <tbody>
-                @if (!Model.Invoices.Any()) { <tr><td colspan="9" class="text-center text-muted py-4">No invoices found.</td></tr> }
-                else {
+                @if (!Model.Invoices.Any())
+                {
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-5">
+                            <i class="fa-solid fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
+                            No fee invoices found matching the search criteria.
+                        </td>
+                    </tr>
+                }
+                else
+                {
                     foreach (var inv in Model.Invoices)
                     {
                         <tr id="fi-row-@inv.FI_Id">
-                            <td>@inv.FI_InvoiceNumber</td><td>@inv.StudentCode - @inv.StudentName</td>
-                            <td>@inv.FI_InvoiceDate.ToString("dd-MMM-yyyy")</td><td>@inv.FI_DueDate.ToString("dd-MMM-yyyy")</td>
-                            <td>@inv.FI_TotalAmount.ToString("N2")</td><td>@inv.FI_PaidAmount.ToString("N2")</td><td>@inv.FI_BalanceAmount.ToString("N2")</td>
-                            <td><span class="badge @InvoiceStatusBadge(inv.FI_Status)">@inv.FI_Status</span></td>
+                            <td>
+                                <strong class="text-dark">@inv.FI_InvoiceNumber</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@(inv.FI_InvoiceType ?? "Standard")</span>
+                                @if (!string.IsNullOrEmpty(inv.FI_BillingPeriod))
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary ms-1">@inv.FI_BillingPeriod</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@inv.StudentName</div>
+                                <small class="text-muted">@inv.StudentCode</small>
+                            </td>
+                            <td>@inv.FI_InvoiceDate.ToString("dd-MMM-yyyy")</td>
+                            <td>
+                                <span class="@(inv.FI_BalanceAmount > 0 && inv.FI_DueDate < DateTime.Today ? "text-danger fw-bold" : "")">
+                                    @inv.FI_DueDate.ToString("dd-MMM-yyyy")
+                                </span>
+                            </td>
+                            <td class="text-end fw-semibold">₹@inv.FI_TotalAmount.ToString("N2")</td>
+                            <td class="text-end text-success">₹@inv.FI_PaidAmount.ToString("N2")</td>
+                            <td class="text-end fw-bold @(inv.FI_BalanceAmount > 0 ? "text-danger" : "text-muted")">
+                                ₹@inv.FI_BalanceAmount.ToString("N2")
+                            </td>
+                            <td class="text-center">
+                                <span class="badge @InvoiceStatusBadge(inv.FI_Status)">@inv.FI_Status</span>
+                            </td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn" data-id="@inv.FI_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@inv.FI_Id"><i class="fa-solid fa-trash"></i></button>
-                                <div class="modal fade" id="deleteModal-@inv.FI_Id" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-                                    <div class="modal-header"><h5 class="modal-title">Delete Invoice</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                    <div class="modal-body">Delete invoice <strong>@inv.FI_InvoiceNumber</strong>?</div>
-                                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-danger do-delete-btn">Delete</button></div>
-                                </div></div></div>
+                                <div class="btn-group btn-group-sm">
+                                    @if (inv.FI_BalanceAmount > 0)
+                                    {
+                                        <a asp-controller="Fees" asp-action="CollectFee" asp-route-studentId="@inv.StudentId" class="btn btn-outline-success" title="Collect Fee">
+                                            <i class="fa-solid fa-cash-register"></i>
+                                        </a>
+                                    }
+                                    @if (inv.StudentId != Guid.Empty)
+                                    {
+                                        <a asp-controller="Fees" asp-action="StudentLedger" asp-route-studentId="@inv.StudentId" class="btn btn-outline-info" title="Student Ledger">
+                                            <i class="fa-solid fa-book-bookmark"></i>
+                                        </a>
+                                    }
+                                    <button type="button" class="btn btn-outline-danger confirm-delete-btn" data-id="@inv.FI_Id" data-bs-toggle="modal" data-bs-target="#deleteModal-@inv.FI_Id" title="Delete Invoice">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div class="modal fade text-start" id="deleteModal-@inv.FI_Id" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Invoice</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete invoice <strong>@inv.FI_InvoiceNumber</strong> for <strong>@inv.StudentName</strong>?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-danger do-delete-btn">Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -58,10 +149,36 @@
 </div>
 
 @Html.AntiForgeryToken()
-@if (Model.TotalPages > 1) { <nav class="mt-3"><ul class="pagination justify-content-center">
-    @for (int p = 1; p <= Model.TotalPages; p++) { <li class="page-item @(p == Model.PageNumber ? "active" : "")"><a class="page-link" href="@Url.Action("Invoices", "Fees", new { searchTerm = Model.SearchTerm, status = Model.StatusFilter, page = p })">@p</a></li> }
-</ul></nav> }
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            @for (int p = 1; p <= Model.TotalPages; p++)
+            {
+                <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Invoices", "Fees", new { searchTerm = Model.SearchTerm, status = Model.StatusFilter, page = p })">@p</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
 
-@functions { string InvoiceStatusBadge(string s) => s switch { "Paid" => "bg-success", "Pending" => "bg-warning text-dark", "Partial" => "bg-info text-dark", "Overdue" => "bg-danger", _ => "bg-secondary" }; }
+@functions {
+    string InvoiceStatusBadge(string s) => s switch {
+        "Paid" => "bg-success",
+        "Pending" => "bg-warning text-dark",
+        "Partial" => "bg-info text-dark",
+        "partially_paid" => "bg-info text-dark",
+        "Overdue" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
 
-@section Scripts { <script src="~/js/fees.js"></script> }
+@section Scripts {
+    <script src="~/js/fees.js"></script>
+    <script>
+    $(function(){
+        Dropdown.load({ element: '#filterStatus', entityType: 'InvoiceStatus', defaultText: 'All Statuses', includeDefault: true, selectedValue: $('#filterStatus').data('selected-value') });
+    });
+    </script>
+}

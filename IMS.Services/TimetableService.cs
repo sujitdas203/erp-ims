@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using IMS.DAL.Interfaces;
 using IMS.Helpers.Constants;
+using IMS.Models.Common.Dropdown;
 using IMS.Models.Entities;
 using IMS.Models.ViewModels;
 using IMS.Services.Interfaces;
@@ -15,16 +17,24 @@ namespace IMS.Services
     {
         private readonly ITimetableDAL _repo;
         private readonly IMasterService _masterService;
-        public TimetableService(ITimetableDAL repo, IMasterService masterService) { _repo = repo; _masterService = masterService; }
+        private readonly IDropdownService _dropdownService;
+
+        public TimetableService(ITimetableDAL repo, IMasterService masterService, IDropdownService dropdownService)
+        {
+            _repo = repo;
+            _masterService = masterService;
+            _dropdownService = dropdownService;
+        }
 
         public async Task<TimetableIndexViewModel> GetListAsync(Guid tenantId, Guid? batchId, Guid? branchId)
         {
             var items = await _repo.GetAllAsync(tenantId, batchId, branchId);
+            var distinctItems = items?.GroupBy(t => t.TT_Id).Select(g => g.First()).ToList() ?? new List<Timetable>();
             return new TimetableIndexViewModel
             {
                 BatchFilter = batchId,
                 BranchFilter = branchId,
-                Entries = items.ConvertAll(t => new TimetableListItemViewModel
+                Entries = distinctItems.ConvertAll(t => new TimetableListItemViewModel
                 {
                     TT_Id = t.TT_Id,
                     TT_DayOfWeek = t.TT_DayOfWeek,
@@ -44,7 +54,7 @@ namespace IMS.Services
             return new TimetableDetailsViewModel
             {
                 TT_Id = t.TT_Id,
-                DayName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName((DayOfWeek)t.TT_DayOfWeek),
+                DayName = GetDayName(t.TT_DayOfWeek),
                 TT_StartTime = t.TT_StartTime,
                 TT_EndTime = t.TT_EndTime,
                 SubjectName = t.SubjectName ?? "-",
@@ -79,39 +89,88 @@ namespace IMS.Services
 
         public async Task<ServiceResult> CreateAsync(TimetableFormViewModel model, Guid tenantId)
         {
+            if (model == null) return ServiceResult.Fail("Form data is required.");
+            if (model.TT_BranchId == Guid.Empty) return ServiceResult.Fail("Please select a Branch.");
+            if (model.TT_BatchId == Guid.Empty) return ServiceResult.Fail("Please select a Batch.");
+            if (model.TT_SubjectId == Guid.Empty) return ServiceResult.Fail("Please select a Subject.");
+            if (model.TT_StaffId == Guid.Empty) return ServiceResult.Fail("Please select a Staff member.");
+            if (model.TT_DayOfWeek < 1 || model.TT_DayOfWeek > 7) return ServiceResult.Fail("Please select a valid Day of Week (Monday to Sunday).");
+
             if (!TimeSpan.TryParse(model.TT_StartTime, out var start) || !TimeSpan.TryParse(model.TT_EndTime, out var end))
                 return ServiceResult.Fail("Invalid time format.");
 
             if (end <= start)
                 return ServiceResult.Fail("End time must be after start time.");
 
+            if (model.TT_EffectiveFrom.HasValue && model.TT_EffectiveTo.HasValue && model.TT_EffectiveTo.Value < model.TT_EffectiveFrom.Value)
+                return ServiceResult.Fail("Effective To date must be on or after Effective From date.");
+
             if (await _repo.HasConflictAsync(tenantId, model.TT_BatchId, model.TT_DayOfWeek, start, end, null))
                 return ServiceResult.Fail("Time slot conflicts with an existing timetable entry.");
 
-            var entity = MapToEntity(model, tenantId, Guid.NewGuid(), start, end);
-            var id = await _repo.CreateAsync(entity);
-            return ServiceResult.Ok("Timetable entry created.", id);
+            try
+            {
+                var entity = MapToEntity(model, tenantId, Guid.NewGuid(), start, end);
+                var id = await _repo.CreateAsync(entity);
+                return ServiceResult.Ok("Timetable entry created successfully.", id);
+            }
+            catch (SqlException ex)
+            {
+                return ServiceResult.Fail(ex.Message);
+            }
+            catch (Exception)
+            {
+                return ServiceResult.Fail("Something went wrong while saving. Please try again.");
+            }
         }
 
         public async Task<ServiceResult> UpdateAsync(TimetableFormViewModel model, Guid tenantId)
         {
-            if (!model.TT_Id.HasValue) return ServiceResult.Fail("Id required.");
+            if (model == null || !model.TT_Id.HasValue) return ServiceResult.Fail("Timetable Id is required.");
+            if (model.TT_BranchId == Guid.Empty) return ServiceResult.Fail("Please select a Branch.");
+            if (model.TT_BatchId == Guid.Empty) return ServiceResult.Fail("Please select a Batch.");
+            if (model.TT_SubjectId == Guid.Empty) return ServiceResult.Fail("Please select a Subject.");
+            if (model.TT_StaffId == Guid.Empty) return ServiceResult.Fail("Please select a Staff member.");
+            if (model.TT_DayOfWeek < 1 || model.TT_DayOfWeek > 7) return ServiceResult.Fail("Please select a valid Day of Week (Monday to Sunday).");
+
             if (!TimeSpan.TryParse(model.TT_StartTime, out var start) || !TimeSpan.TryParse(model.TT_EndTime, out var end))
                 return ServiceResult.Fail("Invalid time format.");
+
             if (end <= start) return ServiceResult.Fail("End time must be after start time.");
 
-            if (await _repo.HasConflictAsync(tenantId, model.TT_BatchId, model.TT_DayOfWeek, start, end, model.TT_Id))
-                return ServiceResult.Fail("Time slot conflicts with an existing entry.");
+            if (model.TT_EffectiveFrom.HasValue && model.TT_EffectiveTo.HasValue && model.TT_EffectiveTo.Value < model.TT_EffectiveFrom.Value)
+                return ServiceResult.Fail("Effective To date must be on or after Effective From date.");
 
-            var entity = MapToEntity(model, tenantId, model.TT_Id.Value, start, end);
-            var success = await _repo.UpdateAsync(entity);
-            return success ? ServiceResult.Ok("Updated.", model.TT_Id) : ServiceResult.Fail("Not found.");
+            if (await _repo.HasConflictAsync(tenantId, model.TT_BatchId, model.TT_DayOfWeek, start, end, model.TT_Id))
+                return ServiceResult.Fail("Time slot conflicts with an existing timetable entry.");
+
+            try
+            {
+                var entity = MapToEntity(model, tenantId, model.TT_Id.Value, start, end);
+                var success = await _repo.UpdateAsync(entity);
+                return success ? ServiceResult.Ok("Timetable entry updated successfully.", model.TT_Id) : ServiceResult.Fail("Timetable record not found.");
+            }
+            catch (SqlException ex)
+            {
+                return ServiceResult.Fail(ex.Message);
+            }
+            catch (Exception)
+            {
+                return ServiceResult.Fail("Something went wrong while saving. Please try again.");
+            }
         }
 
         public async Task<ServiceResult> DeleteAsync(Guid id, Guid tenantId)
         {
-            var success = await _repo.DeleteAsync(id, tenantId);
-            return success ? ServiceResult.Ok("Deleted.") : ServiceResult.Fail("Unable to delete.");
+            try
+            {
+                var success = await _repo.DeleteAsync(id, tenantId);
+                return success ? ServiceResult.Ok("Timetable entry deleted.") : ServiceResult.Fail("Unable to delete timetable entry.");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.Fail(ex.Message ?? "Failed to delete.");
+            }
         }
 
         public async Task<bool> CheckConflictAsync(Guid tenantId, Guid batchId, int dayOfWeek, string startTime, string endTime, Guid? excludeId)
@@ -138,47 +197,100 @@ namespace IMS.Services
 
         public void PopulateDropdowns(TimetableFormViewModel vm)
         {
-            vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.TT_BranchId);
-            vm.BatchOptions = GetMasterSelectList("Batch", vm.TT_BatchId.ToString());
-            vm.SubjectOptions = GetMasterSelectList("Subject", vm.TT_SubjectId.ToString());
-            vm.StaffOptions = GetMasterSelectList("Staff", vm.TT_StaffId.ToString());
-            vm.ClassroomOptions = GetMasterSelectList("Classroom", vm.TT_ClassroomId?.ToString());
+            vm.BranchOptions = GetDropdownSelectList("Branch", vm.TT_BranchId != Guid.Empty ? vm.TT_BranchId.ToString() : null);
+            if (vm.BranchOptions.Count == 0)
+                vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.TT_BranchId);
+
+            vm.BatchOptions = GetDropdownSelectList("Batch", vm.TT_BatchId != Guid.Empty ? vm.TT_BatchId.ToString() : null);
+            vm.SubjectOptions = GetDropdownSelectList("Subject", vm.TT_SubjectId != Guid.Empty ? vm.TT_SubjectId.ToString() : null);
+            vm.StaffOptions = GetDropdownSelectList("Staff", vm.TT_StaffId != Guid.Empty ? vm.TT_StaffId.ToString() : null);
+            vm.ClassroomOptions = GetDropdownSelectList("Classroom", vm.TT_ClassroomId.HasValue && vm.TT_ClassroomId != Guid.Empty ? vm.TT_ClassroomId.ToString() : null);
             vm.DayOfWeekOptions = GetDayOfWeekSelectList(vm.TT_DayOfWeek);
         }
 
-        private List<SelectListItem> GetMasterSelectList(string entityType, string selectedValue = null)
+        private List<SelectListItem> GetDropdownSelectList(string entityType, string? selectedValue = null)
         {
-            var items = _masterService.GetAll(entityType);
-            var list = new List<SelectListItem>();
-            if (items == null) return list;
-            foreach (var item in items)
+            try
             {
-                var keyEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Id"));
-                var id = keyEntry.Value?.ToString() ?? "";
-
-                string displayName = null;
-                var nameEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Name"));
-                if (nameEntry.Value != null) displayName = nameEntry.Value.ToString();
-
-                if (string.IsNullOrEmpty(displayName))
+                var req = new DropdownRequestModel { EntityType = entityType, ActiveOnly = false };
+                var items = _dropdownService.GetDropdown(req);
+                if (items != null && items.Count > 0)
                 {
-                    var firstName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_FirstName")).Value?.ToString() ?? "";
-                    var lastName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_LastName")).Value?.ToString() ?? "";
-                    displayName = $"{firstName} {lastName}".Trim();
+                    return items.Select(i => new SelectListItem
+                    {
+                        Value = i.Value,
+                        Text = !string.IsNullOrWhiteSpace(i.Code) && !i.Text.Contains(i.Code) ? $"{i.Text} ({i.Code})" : i.Text,
+                        Selected = string.Equals(i.Value, selectedValue, StringComparison.OrdinalIgnoreCase)
+                    }).ToList();
                 }
-
-                if (string.IsNullOrEmpty(displayName))
-                    displayName = item.Values.ElementAtOrDefault(1)?.ToString() ?? id;
-
-                list.Add(new SelectListItem { Value = id, Text = displayName, Selected = id == selectedValue });
             }
-            return list;
+            catch { }
+
+            try
+            {
+                var masterItems = _masterService?.GetAll(entityType);
+                if (masterItems != null && masterItems.Count > 0)
+                {
+                    var list = new List<SelectListItem>();
+                    foreach (var item in masterItems)
+                    {
+                        var keyEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Id"));
+                        var id = keyEntry.Value?.ToString() ?? "";
+
+                        string? displayName = null;
+                        var nameEntry = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_Name"));
+                        if (nameEntry.Value != null) displayName = nameEntry.Value.ToString();
+
+                        if (string.IsNullOrEmpty(displayName))
+                        {
+                            var firstName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_FirstName")).Value?.ToString() ?? "";
+                            var lastName = item.FirstOrDefault(kvp => kvp.Key.EndsWith("_LastName")).Value?.ToString() ?? "";
+                            displayName = $"{firstName} {lastName}".Trim();
+                        }
+
+                        if (string.IsNullOrEmpty(displayName))
+                            displayName = item.Values.ElementAtOrDefault(1)?.ToString() ?? id;
+
+                        list.Add(new SelectListItem { Value = id, Text = displayName, Selected = string.Equals(id, selectedValue, StringComparison.OrdinalIgnoreCase) });
+                    }
+                    return list;
+                }
+            }
+            catch { }
+
+            return new List<SelectListItem>();
         }
 
-        private static List<SelectListItem> GetDayOfWeekSelectList(int selected = 0)
+        public static List<SelectListItem> GetDayOfWeekSelectList(int selected = 0)
         {
-            var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
-            return days.Select((d, i) => new SelectListItem { Value = i.ToString(), Text = d, Selected = i == selected }).ToList();
+            var days = new[]
+            {
+                new { Id = 1, Name = "Monday" },
+                new { Id = 2, Name = "Tuesday" },
+                new { Id = 3, Name = "Wednesday" },
+                new { Id = 4, Name = "Thursday" },
+                new { Id = 5, Name = "Friday" },
+                new { Id = 6, Name = "Saturday" },
+                new { Id = 7, Name = "Sunday" }
+            };
+            return days.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Name,
+                Selected = (selected == 0 && d.Id == 1) || d.Id == selected
+            }).ToList();
         }
+
+        public static string GetDayName(int dayOfWeek) => dayOfWeek switch
+        {
+            1 => "Monday",
+            2 => "Tuesday",
+            3 => "Wednesday",
+            4 => "Thursday",
+            5 => "Friday",
+            6 => "Saturday",
+            7 => "Sunday",
+            _ => "-"
+        };
     }
 }

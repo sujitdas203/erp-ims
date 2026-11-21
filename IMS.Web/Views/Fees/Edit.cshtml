@@ -1,3 +1,76 @@
 @model IMS.Models.ViewModels.FeeStructureFormViewModel
-@{ ViewData["Title"] = "Edit Fee Structure"; }
-<partial name="Create" model="Model" />
+@{ 
+    ViewData["Title"] = "Edit Fee Structure"; 
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Edit Fee Structure</h3>
+        <span class="text-muted small">Update fee structure details and item breakdown (@Model.FS_Name - @Model.FS_Code)</span>
+    </div>
+    <a asp-controller="Fees" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-list me-1"></i> Fee Structures List
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form id="feeStructureForm" asp-controller="Fees" asp-action="EditFeeStructure" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <partial name="_Form" model="Model" />
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/fees.js"></script>
+    <script>
+        $(function () {
+            // Initialize generic dropdowns
+            var selectedAY = $('#FS_AcademicYearId').data('selected-value');
+            var selectedCourse = $('#FS_CourseId').data('selected-value');
+            var selectedBatch = $('#FS_BatchId').data('selected-value');
+
+            if (typeof Dropdown !== 'undefined' && Dropdown.load) {
+                Dropdown.load({
+                    element: '#FS_AcademicYearId',
+                    entityType: 'AcademicYear',
+                    defaultText: '-- Select Academic Year --',
+                    includeDefault: true,
+                    selectedValue: selectedAY
+                });
+
+                Dropdown.load({
+                    element: '#FS_CourseId',
+                    entityType: 'Course',
+                    defaultText: '-- Select Course (Optional) --',
+                    includeDefault: true,
+                    selectedValue: selectedCourse
+                });
+
+                Dropdown.load({
+                    element: '#FS_BatchId',
+                    entityType: 'Batch',
+                    defaultText: '-- Select Batch (Optional) --',
+                    includeDefault: true,
+                    selectedValue: selectedBatch
+                });
+
+                $('.fee-category-select').each(function () {
+                    Dropdown.load({
+                        element: this,
+                        entityType: 'FeeCategory',
+                        defaultText: '-- Select Category --',
+                        includeDefault: true,
+                        selectedValue: $(this).data('selected-value')
+                    });
+                });
+            }
+
+            // Initialize form handlers, repeater and calculations
+            if (typeof IMSFeesForm !== 'undefined') {
+                IMSFeesForm.init('/Fees/EditFeeStructure');
+            }
+        });
+    </script>
+}

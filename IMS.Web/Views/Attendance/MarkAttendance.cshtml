@@ -48,13 +48,7 @@
                                 <td>@s.StudentCode</td>
                                 <td>@s.StudentName</td>
                                 <td>
-                                    <select name="Records[@i].Status" class="form-select form-select-sm">
-                                        <option value="present" selected="@(s.Status == "present")">Present</option>
-                                        <option value="absent" selected="@(s.Status == "absent")">Absent</option>
-                                        <option value="late" selected="@(s.Status == "late")">Late</option>
-                                        <option value="half_day" selected="@(s.Status == "half_day")">Half Day</option>
-                                        <option value="excused" selected="@(s.Status == "excused")">Excused</option>
-                                    </select>
+                                    <select name="Records[@i].Status" class="form-select form-select-sm attendance-status-select" data-selected-value="@(s.Status)"></select>
                                     <input type="hidden" name="Records[@i].StudentId" value="@s.StudentId" />
                                 </td>
                                 <td>
@@ -79,6 +73,9 @@
     <script>
         $(function () {
             IMSAttendanceMark.init('@Model.SessionId');
+            $('.attendance-status-select').each(function () {
+                Dropdown.load({ element: this, entityType: 'AttendanceStatus', defaultText: '-- Select --', includeDefault: false, selectedValue: $(this).data('selected-value') });
+            });
         });
     </script>
 }

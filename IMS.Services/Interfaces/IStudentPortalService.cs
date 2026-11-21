@@ -5,7 +5,7 @@ using IMS.Models.Portal;
 
 namespace IMS.Services.Interfaces
 {
-    public interface IStuddentPortalService
+    public interface IStudentPortalService
     {
         Task<PortalAuthResult> AuthenticateAsync(string email, string password);
         Task<PortalDashboardViewModel> GetDashboardAsync(Guid studentId, Guid tenantId);
@@ -22,7 +22,7 @@ namespace IMS.Services.Interfaces
         Task<PortalAdmitCardViewModel> GetAdmitCardAsync(Guid studentId, Guid tenantId);
         Task<PortalMarkSheetViewModel> GetMarkSheetAsync(Guid studentId, Guid tenantId);
         Task<PortalFeeTransactionViewModel> GetFeeTransactionsAsync(Guid studentId, Guid tenantId);
-        Task<PortalReceiptViewModel?> GetReceiptDetailsAsync(Guid paymentId, Guid tenantId);
+        Task<PortalReceiptViewModel?> GetReceiptDetailsAsync(Guid paymentId, Guid studentId, Guid tenantId);
         Task<(bool Success, string Message)> ApplyLeaveAsync(Guid tenantId, Guid studentId, DateTime fromDate, DateTime toDate, string leaveType, string reason, string appliedBy);
         Task<List<StudentLeaveDto>> GetLeavesAsync(Guid studentId, Guid tenantId);
         Task<PortalTransportViewModel> GetTransportDetailsAsync(Guid studentId, Guid tenantId);
@@ -32,7 +32,7 @@ namespace IMS.Services.Interfaces
         Task<(bool Success, string Message)> DeleteTCAsync(Guid tcId, Guid studentId, Guid tenantId);
         Task<TransferCertificatePrintViewModel?> GetTCForPrintAsync(Guid tcId, Guid studentId, Guid tenantId);
         Task<List<PortalNoticeDto>> GetNoticesAsync(Guid tenantId);
-        Task<(bool Success, string Message)> ChangePasswordAsync(Guid userId, string userType, string currentPassword, string newPassword);
+        Task<(bool Success, string Message)> ChangePasswordAsync(Guid userId, string userType, string email, string currentPassword, string newPassword);
         Task<bool> SetPasswordDirectAsync(Guid userId, string userType, string plainPassword);
         Task<(bool Success, string Message, string? DemoResetUrl)> ForgotPasswordAsync(string email, string baseUrl);
         Task<(bool Success, string Message)> ResetPasswordWithTokenAsync(string token, string newPassword);

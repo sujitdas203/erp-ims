@@ -1,0 +1,453 @@
+@model IMS.Models.ViewModels.BulkPromotionIndexViewModel
+@{
+    ViewData["Title"] = "Bulk Student Promotion & Transition";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a asp-controller="Enrollment" asp-action="Index">Enrollments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Bulk Class Promotion</li>
+            </ol>
+        </nav>
+        <h3 class="mb-0 fw-bold">
+            <i class="bi bi-mortarboard-fill text-primary me-2"></i>Bulk Student Promotion & Transition Wizard
+        </h3>
+        <p class="text-muted small mb-0">Mass promote passing students to the next grade or retain students for the upcoming academic session.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Enrollment" asp-action="Index" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Enrollments
+        </a>
+    </div>
+</div>
+
+<!-- Step 1 & 2: Source & Destination Setup Card -->
+<div class="card shadow-sm border-0 mb-4 bg-white overflow-hidden">
+    <div class="card-header bg-light py-3 border-bottom">
+        <h6 class="fw-bold text-dark mb-0">
+            <i class="bi bi-sliders me-2 text-primary"></i>Promotion Session & Class Parameters
+        </h6>
+    </div>
+    <div class="card-body p-4">
+        <form id="filterCandidatesForm" method="get" asp-action="Promote" class="row g-3">
+            <!-- Source Side -->
+            <div class="col-lg-6 border-end-lg pe-lg-4">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-secondary me-2 px-2 py-1">Step 1</span>
+                    <h6 class="fw-bold text-secondary mb-0">Source Class (Current Year)</h6>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Current Academic Year <span class="text-danger">*</span></label>
+                        <select name="academicYearId" id="sourceAcademicYearId" class="form-select form-select-sm" required>
+                            <option value="">-- Select Source Year --</option>
+                            @foreach (var y in Model.AcademicYearOptions)
+                            {
+                                <option value="@y.Value" selected="@(y.Selected ? "selected" : null)">@y.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Branch Campus</label>
+                        <select name="branchId" id="sourceBranchId" class="form-select form-select-sm">
+                            <option value="">All Branches</option>
+                            @foreach (var b in Model.BranchOptions)
+                            {
+                                <option value="@b.Value" selected="@(b.Selected ? "selected" : null)">@b.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Current Class / Grade <span class="text-danger">*</span></label>
+                        <select name="classId" id="sourceClassId" class="form-select form-select-sm" required>
+                            <option value="">-- Select Current Class --</option>
+                            @foreach (var c in Model.ClassOptions)
+                            {
+                                <option value="@c.Value" selected="@(c.Selected ? "selected" : null)">@c.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Current Section</label>
+                        <select name="sectionId" id="sourceSectionId" class="form-select form-select-sm">
+                            <option value="">All Sections</option>
+                            @foreach (var s in Model.SectionOptions)
+                            {
+                                <option value="@s.Value" selected="@(s.Selected ? "selected" : null)">Section @s.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm fw-semibold">
+                            <i class="bi bi-funnel me-1"></i> Load Students for Promotion
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Destination Side -->
+            <div class="col-lg-6 ps-lg-4 mt-4 mt-lg-0">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-success me-2 px-2 py-1">Step 2</span>
+                    <h6 class="fw-bold text-success mb-0">Destination Class (Upcoming Year)</h6>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Destination Academic Year <span class="text-danger">*</span></label>
+                        <select id="targetAcademicYearId" class="form-select form-select-sm" required>
+                            <option value="">-- Select Target Year --</option>
+                            @foreach (var y in Model.AcademicYearOptions)
+                            {
+                                <option value="@y.Value">@y.Text</option>
+                            }
+                        </select>
+                        <div class="form-text small">Session to enroll promoted students into</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Destination Class / Grade <span class="text-danger">*</span></label>
+                        <select id="targetClassId" class="form-select form-select-sm" required>
+                            <option value="">-- Select Target Class --</option>
+                            @foreach (var c in Model.ClassOptions)
+                            {
+                                <option value="@c.Value" selected="@(c.Value == Model.TargetClassId?.ToString() ? "selected" : null)">@c.Text</option>
+                            }
+                        </select>
+                        <div class="form-text small">Next higher grade for passing students</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Default Target Section</label>
+                        <select id="targetSectionId" class="form-select form-select-sm">
+                            <option value="">-- Keep Same / Auto --</option>
+                            @foreach (var s in Model.SectionOptions)
+                            {
+                                <option value="@s.Value">Section @s.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">New Session Fee Structure (Optional)</label>
+                        <select id="targetFeeStructureId" class="form-select form-select-sm">
+                            <option value="">-- Standard Class Fee --</option>
+                            @foreach (var f in Model.FeeStructureOptions)
+                            {
+                                <option value="@f.Value">@f.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="p-2 bg-light rounded text-muted small d-flex align-items-center">
+                            <i class="bi bi-info-circle text-primary me-2 fs-5"></i>
+                            <span>Students marked as <strong>Promote</strong> will move to Target Class. Students marked as <strong>Repeat</strong> will stay in Current Class.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Candidate Students Table Card -->
+<div class="card shadow-sm border-0 mb-4 bg-white">
+    <div class="card-header bg-white border-bottom py-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-people-fill text-primary me-2"></i>Eligible Students for Promotion
+                </h5>
+                <small class="text-muted">Review exam results, attendance, and fee balance before confirming promotion.</small>
+            </div>
+            @if (Model.Students != null && Model.Students.Count > 0)
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="input-group input-group-sm" style="max-width: 240px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="filterStudentInput" class="form-control border-start-0" placeholder="Filter list..." />
+                    </div>
+                    <button type="button" id="btnExecuteBulkPromotion" class="btn btn-success btn-sm px-4 shadow-sm fw-semibold">
+                        <i class="bi bi-check-circle-fill me-1"></i> Confirm & Execute Promotion
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Counters Ribbon -->
+    @if (Model.Students != null && Model.Students.Count > 0)
+    {
+        <div class="card-body border-bottom bg-light py-2 px-4">
+            <div class="row text-center g-2">
+                <div class="col-3">
+                    <span class="text-muted small">Total Found:</span>
+                    <strong class="text-dark ms-1" id="countTotal">@Model.Students.Count</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted small">Promoting:</span>
+                    <strong class="text-success ms-1" id="countPromote">@Model.Students.Count(s => s.Action == "Promote")</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted small">Retaining (Repeat):</span>
+                    <strong class="text-warning text-dark ms-1" id="countRepeat">0</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted small">Leaving / TC:</span>
+                    <strong class="text-danger ms-1" id="countLeave">0</strong>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="promotionCandidatesTable">
+                <thead class="table-light text-secondary small text-uppercase">
+                    <tr>
+                        <th style="width: 40px;" class="text-center">
+                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input" checked />
+                        </th>
+                        <th>Student Details</th>
+                        <th>Current Roll #</th>
+                        <th>Attendance Rate</th>
+                        <th>Fee Balance</th>
+                        <th>Promotion Action</th>
+                        <th>Target Section</th>
+                        <th>Next Roll #</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Students != null && Model.Students.Count > 0)
+                    {
+                        @for (int i = 0; i < Model.Students.Count; i++)
+                        {
+                            var s = Model.Students[i];
+                            var initials = string.IsNullOrWhiteSpace(s.FullName) ? "?" : s.FullName.Substring(0, 1).ToUpper();
+                            <tr class="student-row @(s.AlreadyEnrolledInNextYear ? "table-light opacity-50" : "")" data-student-id="@s.StudentId">
+                                <td class="text-center">
+                                    @if (!s.AlreadyEnrolledInNextYear)
+                                    {
+                                        <input type="checkbox" class="form-check-input student-select-chk" data-student-id="@s.StudentId" checked />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-lock-fill text-muted" title="Already enrolled in next year"></i>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px;">
+                                            @initials
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@s.FullName</div>
+                                            <div class="text-muted small">
+                                                Code: @s.StudentCode &bull; Adm: @s.AdmissionNumber
+                                                @if (s.AlreadyEnrolledInNextYear)
+                                                {
+                                                    <span class="badge bg-secondary ms-1">Already in Next Year</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@(string.IsNullOrWhiteSpace(s.CurrentRollNumber) ? "-" : s.CurrentRollNumber)</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2" style="max-width: 130px;">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar @(s.AttendancePercentage >= 75 ? "bg-success" : (s.AttendancePercentage >= 60 ? "bg-warning" : "bg-danger"))" style="width: @s.AttendancePercentage%;"></div>
+                                        </div>
+                                        <span class="small fw-semibold">@s.AttendancePercentage%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (s.PendingFeeBalance <= 0)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Cleared (₹0)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Due: ₹@s.PendingFeeBalance.ToString("N0")</span>
+                                    }
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm student-action-select" data-student-id="@s.StudentId" @(s.AlreadyEnrolledInNextYear ? "disabled" : "")>
+                                        <option value="Promote" selected>Promote to Next Class</option>
+                                        <option value="Repeat">Repeat Current Class</option>
+                                        <option value="Leave">Leaving / TC Issued</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm student-section-select" data-student-id="@s.StudentId" @(s.AlreadyEnrolledInNextYear ? "disabled" : "")>
+                                        <option value="">Default</option>
+                                        @foreach (var sec in Model.SectionOptions)
+                                        {
+                                            <option value="@sec.Value">Sec @sec.Text</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm student-roll-input" data-student-id="@s.StudentId" value="@s.CurrentRollNumber" placeholder="Roll #" style="max-width: 90px;" @(s.AlreadyEnrolledInNextYear ? "disabled" : "") />
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-mortarboard fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                <h6 class="fw-bold">No Students Loaded</h6>
+                                <p class="small mb-0">Select the Current Academic Year & Class above and click <strong>"Load Students for Promotion"</strong> to begin.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Select All / Deselect All
+        document.getElementById('selectAllCheckbox')?.addEventListener('change', function () {
+            const checked = this.checked;
+            document.querySelectorAll('.student-select-chk').forEach(c => c.checked = checked);
+            updateCounters();
+        });
+
+        // Filter search in table
+        document.getElementById('filterStudentInput')?.addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('#promotionCandidatesTable tbody tr.student-row').forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Recalculate counters on action change
+        document.querySelectorAll('.student-action-select').forEach(sel => {
+            sel.addEventListener('change', updateCounters);
+        });
+        document.querySelectorAll('.student-select-chk').forEach(chk => {
+            chk.addEventListener('change', updateCounters);
+        });
+
+        function updateCounters() {
+            let promote = 0, repeat = 0, leave = 0, total = 0;
+            document.querySelectorAll('#promotionCandidatesTable tbody tr.student-row').forEach(row => {
+                const chk = row.querySelector('.student-select-chk');
+                if (chk && chk.checked) {
+                    total++;
+                    const action = row.querySelector('.student-action-select')?.value;
+                    if (action === 'Promote') promote++;
+                    else if (action === 'Repeat') repeat++;
+                    else if (action === 'Leave') leave++;
+                }
+            });
+            const cTot = document.getElementById('countTotal');
+            const cProm = document.getElementById('countPromote');
+            const cRep = document.getElementById('countRepeat');
+            const cLeave = document.getElementById('countLeave');
+            if (cTot) cTot.innerText = total;
+            if (cProm) cProm.innerText = promote;
+            if (cRep) cRep.innerText = repeat;
+            if (cLeave) cLeave.innerText = leave;
+        }
+
+        // Execute Bulk Promotion
+        document.getElementById('btnExecuteBulkPromotion')?.addEventListener('click', function () {
+            const targetYear = document.getElementById('targetAcademicYearId').value;
+            const targetClass = document.getElementById('targetClassId').value;
+            const targetSection = document.getElementById('targetSectionId').value;
+            const targetFee = document.getElementById('targetFeeStructureId').value;
+            const sourceYear = document.getElementById('sourceAcademicYearId').value;
+            const sourceBranch = document.getElementById('sourceBranchId').value;
+
+            if (!sourceYear) {
+                alert("Please select the Source Academic Year.");
+                return;
+            }
+            if (!targetYear) {
+                alert("Please select the Destination Academic Year.");
+                document.getElementById('targetAcademicYearId').focus();
+                return;
+            }
+            if (!targetClass) {
+                alert("Please select the Destination Class / Grade.");
+                document.getElementById('targetClassId').focus();
+                return;
+            }
+
+            const payloadStudents = [];
+            document.querySelectorAll('#promotionCandidatesTable tbody tr.student-row').forEach(row => {
+                const chk = row.querySelector('.student-select-chk');
+                if (chk && chk.checked) {
+                    const studentId = row.getAttribute('data-student-id');
+                    const action = row.querySelector('.student-action-select')?.value || 'Promote';
+                    const sec = row.querySelector('.student-section-select')?.value || null;
+                    const roll = row.querySelector('.student-roll-input')?.value || null;
+
+                    payloadStudents.push({
+                        studentId: studentId,
+                        isSelected: true,
+                        action: action,
+                        targetSectionId: sec,
+                        nextRollNumber: roll
+                    });
+                }
+            });
+
+            if (payloadStudents.length === 0) {
+                alert("Please select at least one student to promote.");
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to process promotion for ${payloadStudents.length} student(s)?`)) {
+                return;
+            }
+
+            const btn = document.getElementById('btnExecuteBulkPromotion');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+            const payload = {
+                sourceAcademicYearId: sourceYear,
+                targetAcademicYearId: targetYear,
+                targetClassId: targetClass,
+                targetSectionId: targetSection || null,
+                targetBranchId: sourceBranch || null,
+                targetFeeStructureId: targetFee || null,
+                students: payloadStudents
+            };
+
+            fetch('/Enrollment/ProcessBulkPromotion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    alert("Bulk Promotion Successful!\n" + res.message);
+                    window.location.href = '/Enrollment/Index';
+                } else {
+                    alert("Promotion Failed:\n" + res.message);
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                }
+            })
+            .catch(err => {
+                alert("An error occurred during bulk promotion: " + err);
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            });
+        });
+    </script>
+}

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IMS.DAL.Interfaces;
+using IMS.Helpers.Constants;
+using IMS.Models.Common.Dropdown;
 using IMS.Models.HomeTask;
 using IMS.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,11 +15,13 @@ namespace IMS.Services
     {
         private readonly IHomeTaskDAL _repo;
         private readonly IMasterService _masterService;
+        private readonly IDropdownService _dropdownService;
 
-        public HomeTaskService(IHomeTaskDAL repo, IMasterService masterService)
+        public HomeTaskService(IHomeTaskDAL repo, IMasterService masterService, IDropdownService dropdownService)
         {
             _repo = repo;
             _masterService = masterService;
+            _dropdownService = dropdownService;
         }
 
         public async Task<HomeTaskIndexViewModel> GetListAsync(
@@ -37,8 +41,8 @@ namespace IMS.Services
                 PageNumber = page,
                 PageSize = pageSize,
                 TotalCount = total,
-                BatchOptions = GetMasterSelectList("Batch", batchId?.ToString()),
-                SubjectOptions = GetMasterSelectList("Subject", subjectId?.ToString()),
+                BatchOptions = GetDropdownSelectList("Batch", batchId?.ToString()),
+                SubjectOptions = GetDropdownSelectList("Subject", subjectId?.ToString()),
                 StatusOptions = new()
                 {
                     new() { Value = "Active", Text = "Active", Selected = status == "Active" },
@@ -169,14 +173,37 @@ namespace IMS.Services
 
         public void PopulateDropdowns(HomeTaskFormViewModel vm, Guid tenantId)
         {
-            vm.BatchOptions = GetMasterSelectList("Batch", vm.HT_BatchId.ToString());
-            vm.SubjectOptions = GetMasterSelectList("Subject", vm.HT_SubjectId.ToString());
-            //vm.TeacherOptions = GetMasterSelectList("Teacher", vm.HT_TeacherId?.ToString());
+            vm.BatchOptions = GetDropdownSelectList("Batch", vm.HT_BatchId.ToString());
+            vm.SubjectOptions = GetDropdownSelectList("Subject", vm.HT_SubjectId.ToString());
+            vm.TeacherOptions = GetDropdownSelectList("Staff", vm.HT_TeacherId?.ToString());
             vm.StatusOptions = new()
             {
                 new() { Value = "Active", Text = "Active", Selected = vm.HT_Status == "Active" },
                 new() { Value = "Closed", Text = "Closed", Selected = vm.HT_Status == "Closed" }
             };
+        }
+
+        private List<SelectListItem> GetDropdownSelectList(string entityType, string? selectedValue = null)
+        {
+            try
+            {
+                var req = new DropdownRequestModel { EntityType = entityType, ActiveOnly = false };
+                var items = _dropdownService.GetDropdown(req);
+                if (items != null && items.Count > 0)
+                {
+                    return items.Select(i => new SelectListItem
+                    {
+                        Value = i.Value,
+                        Text = !string.IsNullOrWhiteSpace(i.Code) && !i.Text.Contains(i.Code) ? $"{i.Text} ({i.Code})" : i.Text,
+                        Selected = string.Equals(i.Value, selectedValue, StringComparison.OrdinalIgnoreCase)
+                    }).ToList();
+                }
+            }
+            catch
+            {
+                // Fall back to MasterService
+            }
+            return GetMasterSelectList(entityType, selectedValue);
         }
 
         private List<SelectListItem> GetMasterSelectList(string entityType, string? selectedValue = null)

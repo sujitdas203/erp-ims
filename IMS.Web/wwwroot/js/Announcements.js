@@ -1,4 +1,4 @@
-﻿/* Announcements — client-side logic. Same toastr/fallback-toast pattern as every other module */
+/* Announcements — client-side logic. Same toastr/fallback-toast pattern as every other module */
 (function () {
     "use strict";
 
@@ -145,7 +145,59 @@
         });
     }
 
+    function initDropdowns() {
+        if (typeof Dropdown !== "undefined" && Dropdown.load) {
+            if ($("#BranchId").length) {
+                Dropdown.load({
+                    element: "#BranchId",
+                    entityType: "Branch",
+                    defaultText: "All Branches (tenant-wide)",
+                    includeDefault: true,
+                    selectedValue: $("#BranchId").data("selected-value")
+                });
+            }
+            if ($("#branchId").length) {
+                Dropdown.load({
+                    element: "#branchId",
+                    entityType: "Branch",
+                    defaultText: "All Branches",
+                    includeDefault: true,
+                    selectedValue: $("#branchId").data("selected-value")
+                });
+            }
+        }
+    }
+
+    function initDatePickers() {
+        if (typeof IMSDatePicker !== "undefined") {
+            if (IMSDatePicker.initAll) {
+                IMSDatePicker.initAll();
+            } else if (IMSDatePicker.init) {
+                if ($("#PublishedAt").length) {
+                    IMSDatePicker.init({
+                        input: "#PublishedAt",
+                        format: "dd/MM/yyyy HH:mm",
+                        valueFormat: "yyyy-MM-ddTHH:mm",
+                        placeholder: "DD/MM/YYYY HH:mm",
+                        showTime: true
+                    });
+                }
+                if ($("#ExpiresAt").length) {
+                    IMSDatePicker.init({
+                        input: "#ExpiresAt",
+                        format: "dd/MM/yyyy HH:mm",
+                        valueFormat: "yyyy-MM-ddTHH:mm",
+                        placeholder: "DD/MM/YYYY HH:mm",
+                        showTime: true
+                    });
+                }
+            }
+        }
+    }
+
     $(function () {
+        initDropdowns();
+        initDatePickers();
         wireFormSubmit();
         wireToggleActive();
         wireDelete();

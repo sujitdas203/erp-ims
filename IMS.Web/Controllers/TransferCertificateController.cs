@@ -29,11 +29,12 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
         [HttpGet]
+        [Permission(Permissions.ViewTransferCertificate)]
         public async Task<IActionResult> Index(string? status = null, string? search = null, int page = 1)
         {
             var tenantId = CurrentTenantId;
@@ -54,6 +55,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ViewTransferCertificate)]
         public async Task<IActionResult> Review(Guid tcId, bool libraryClearance, bool feeClearance, bool labClearance, string status, string? remarks)
         {
             var tenantId = CurrentTenantId;
@@ -65,6 +67,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.ViewTransferCertificate)]
         public async Task<IActionResult> Delete(Guid tcId)
         {
             var tenantId = CurrentTenantId;
@@ -75,6 +78,7 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
+        [Permission(Permissions.ViewTransferCertificate)]
         public async Task<IActionResult> Print(Guid id)
         {
             var tenantId = CurrentTenantId;

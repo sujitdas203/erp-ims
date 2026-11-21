@@ -22,12 +22,11 @@ namespace IMS.Models.Common.Dropdown
 
         /// <summary>
         /// Parent Id for cascading dropdowns.
-        /// Example:
-        /// Country -> State
-        /// State -> District
-        /// Category -> Product
+        /// Supports both INT and GUID values (stored as string).
+        /// Example (INT): "5"
+        /// Example (GUID): "22222222-2222-2222-2222-222222222201"
         /// </summary>
-        public int? ParentId { get; set; }
+        public string? ParentId { get; set; }
 
         /// <summary>
         /// Search text.

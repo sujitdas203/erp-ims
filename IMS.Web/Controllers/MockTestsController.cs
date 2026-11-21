@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using IMS.Helpers.Constants;
 using IMS.Models.MockTest;
 using IMS.Services.Interfaces;
+using IMS.Web.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -25,10 +27,11 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
+        [Permission(Permissions.ViewMockTests)]
         public async Task<IActionResult> Index(Guid? batchId, Guid? subjectId, string? status, string? search, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -37,6 +40,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.ViewMockTests)]
         public async Task<IActionResult> Details(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -46,6 +50,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.AddMockTests)]
         public async Task<IActionResult> Create()
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -54,6 +59,7 @@ namespace IMS.Web.Controllers
             return View(vm);
         }
 
+        [Permission(Permissions.UpdateMockTests)]
         public async Task<IActionResult> Edit(Guid id)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -65,6 +71,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.AddMockTests)]
         public async Task<IActionResult> CreateAjax(MockTestFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -84,6 +91,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateMockTests)]
         public async Task<IActionResult> EditAjax(MockTestFormViewModel model)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -103,6 +111,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateMockTests)]
         public async Task<IActionResult> ToggleActiveAjax(Guid id, bool isActive)
         {
             if (CurrentTenantId == Guid.Empty)
@@ -122,6 +131,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.DeleteMockTests)]
         public async Task<IActionResult> DeleteAjax(Guid id)
         {
             if (CurrentTenantId == Guid.Empty)

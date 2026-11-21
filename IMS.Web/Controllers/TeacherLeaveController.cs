@@ -28,7 +28,7 @@ namespace IMS.Web.Controllers
             get
             {
                 var raw = User.FindFirst("tenant_id")?.Value;
-                return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+                return Guid.TryParse(raw, out var id) && id != Guid.Empty ? id : HardcodedMasterData.CurrentTenantId;
             }
         }
 
@@ -45,7 +45,7 @@ namespace IMS.Web.Controllers
         // Admin: all teachers' requests
         // ============================================================
 
-        //[Permission(Permissions.ApproveTeacherLeave)]
+        [Permission(Permissions.ViewTeacherLeave)]
         public async Task<IActionResult> Index(string status, int page = 1)
         {
             if (CurrentTenantId == Guid.Empty) return Unauthorized();
@@ -56,7 +56,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.ApproveTeacherLeave)]
+        [Permission(Permissions.ApproveTeacherLeave)]
         public async Task<IActionResult> ApproveTeacherLeave(Guid id)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -76,7 +76,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.ApproveTeacherLeave)]
+        [Permission(Permissions.ApproveTeacherLeave)]
         public async Task<IActionResult> RejectTeacherLeave(Guid id, string rejectionReason)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -98,7 +98,7 @@ namespace IMS.Web.Controllers
         // Self-service: current user's own requests
         // ============================================================
 
-        //[Permission(Permissions.ApplyTeacherLeave)]
+        [Permission(Permissions.ApplyTeacherLeave)]
         public async Task<IActionResult> MyLeave(int page = 1)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty) return Unauthorized();
@@ -109,7 +109,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.ApplyTeacherLeave)]
+        [Permission(Permissions.ApplyTeacherLeave)]
         public async Task<IActionResult> ApplyTeacherLeave(TeacherLeaveApplyViewModel model)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -134,7 +134,7 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.ApplyTeacherLeave)]
+        [Permission(Permissions.ApplyTeacherLeave)]
         public async Task<IActionResult> CancelTeacherLeave(Guid id)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)
@@ -151,9 +151,10 @@ namespace IMS.Web.Controllers
                 return Json(new { success = false, message = "Something went wrong. Please try again." });
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[Permission(Permissions.ApplyTeacherLeave)]
+        [Permission(Permissions.ApplyTeacherLeave)]
         public async Task<IActionResult> EditTeacherLeave(Guid id, TeacherLeaveApplyViewModel model)
         {
             if (CurrentTenantId == Guid.Empty || CurrentUserId == Guid.Empty)

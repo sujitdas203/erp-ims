@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Common;
+using IMS.DAL.Common;
 using IMS.DAL.Interfaces;
 using IMS.Models.Teacher;
 using System;
@@ -97,22 +97,38 @@ namespace IMS.DAL
             cmd.Parameters.Add("@T_Status", SqlDbType.NVarChar, 20).Value = t.T_Status;
         }
 
-        private static Teacher MapTeacher(SqlDataReader r) => new()
+        private static Teacher MapTeacher(SqlDataReader r)
         {
-            T_Id = r.GetGuid(r.GetOrdinal("T_Id")),
-            T_TenantId = r.GetGuid(r.GetOrdinal("T_TenantId")),
-            T_BranchId = r.GetGuid(r.GetOrdinal("T_BranchId")),
-            T_EmployeeCode = r["T_EmployeeCode"] as string,
-            T_Designation = r["T_Designation"] as string,
-            T_Department = r["T_Department"] as string,
-            T_JoiningDate = r["T_JoiningDate"] as DateTime?,
-            T_Qualification = r["T_Qualification"] as string,
-            T_ExperienceYears = r["T_ExperienceYears"] as int?,
-            T_BloodGroup = r["T_BloodGroup"] as string,
-            T_Status = r["T_Status"] as string,
-            T_CreatedAt = r.GetDateTime(r.GetOrdinal("T_CreatedAt")),
-            T_UpdatedAt = r.GetDateTime(r.GetOrdinal("T_UpdatedAt")),
-            T_IsActive = r.GetBoolean(r.GetOrdinal("T_IsActive"))
-        };
+            var t = new Teacher
+            {
+                T_Id = r.GetGuid(r.GetOrdinal("T_Id")),
+                T_TenantId = r.GetGuid(r.GetOrdinal("T_TenantId")),
+                T_BranchId = r.GetGuid(r.GetOrdinal("T_BranchId")),
+                T_EmployeeCode = r["T_EmployeeCode"] as string,
+                T_Designation = r["T_Designation"] as string,
+                T_Department = r["T_Department"] as string,
+                T_JoiningDate = r["T_JoiningDate"] as DateTime?,
+                T_Qualification = r["T_Qualification"] as string,
+                T_ExperienceYears = r["T_ExperienceYears"] as int?,
+                T_BloodGroup = r["T_BloodGroup"] as string,
+                T_Status = r["T_Status"] as string,
+                T_CreatedAt = r.GetDateTime(r.GetOrdinal("T_CreatedAt")),
+                T_UpdatedAt = r.GetDateTime(r.GetOrdinal("T_UpdatedAt")),
+                T_IsActive = r.GetBoolean(r.GetOrdinal("T_IsActive")),
+                DesignationName = HasColumn(r, "DesignationName") ? r["DesignationName"] as string : null,
+                DepartmentName = HasColumn(r, "DepartmentName") ? r["DepartmentName"] as string : null
+            };
+            return t;
+        }
+
+        private static bool HasColumn(SqlDataReader r, string columnName)
+        {
+            for (int i = 0; i < r.FieldCount; i++)
+            {
+                if (string.Equals(r.GetName(i), columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
     }
 }

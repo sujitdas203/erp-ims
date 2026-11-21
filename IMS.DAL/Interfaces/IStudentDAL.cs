@@ -40,6 +40,17 @@ namespace IMS.DAL.Interfaces
         /// <summary>Updates the student row and replaces its guardian links in a single transaction.</summary>
         Task<bool> UpdateStudentWithGuardiansAsync(Student student, List<GuardianLinkInput> guardians);
 
+        /// <summary>Updates only student entity fields directly (in-place or quick edit).</summary>
+        Task<bool> QuickUpdateAsync(Student student);
+
+        Task<(decimal TotalInvoiced, decimal TotalPaid, decimal BalanceAmount, List<IMS.Models.ViewModels.StudentInvoiceSummaryViewModel> RecentInvoices)> GetFeeSummaryAsync(Guid studentId, Guid tenantId);
+
+        Task<(int TotalSessions, int PresentSessions, int AbsentSessions, double Percentage)> GetAttendanceSummaryAsync(Guid studentId, Guid tenantId);
+
+        Task<(int TotalLeaves, List<IMS.Models.ViewModels.StudentLeaveSummaryViewModel> RecentLeaves)> GetLeaveSummaryAsync(Guid studentId, Guid tenantId);
+
+        Task<List<IMS.Models.ViewModels.StudentEnrollmentHistoryViewModel>> GetEnrollmentHistoryAsync(Guid studentId, Guid tenantId);
+
         Task<bool> SoftDeleteAsync(Guid id, Guid tenantId);
     }
 }

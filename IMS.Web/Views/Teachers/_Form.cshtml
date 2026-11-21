@@ -57,7 +57,7 @@
 <div class="row g-3">
     <div class="col-md-4">
         <label for="T_BranchId" class="form-label">Branch</label>
-        @Html.DropDownListFor(m => m.T_BranchId, Model.BranchOptions, "Select Branch", new { @class = "form-select" })
+        <select id="T_BranchId" name="T_BranchId" class="form-select" data-selected-value="@(Model.T_BranchId.ToString())"></select>
         <div class="text-danger small field-error" data-for="T_BranchId"></div>
     </div>
     <div class="col-md-4">
@@ -66,12 +66,12 @@
     </div>
     <div class="col-md-4">
         <label for="T_JoiningDate" class="form-label">Joining Date</label>
-        @Html.TextBoxFor(m => m.T_JoiningDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        @Html.TextBoxFor(m => m.T_JoiningDate, "{0:yyyy-MM-dd}", new { @class = "form-control ims-datepicker-input" })
     </div>
 
     <div class="col-md-4">
         <label for="T_Designation" class="form-label">Designation</label>
-        @Html.DropDownListFor(m => m.T_Designation, Model.DesignationOptions, "Select Designation", new { @class = "form-select" })
+        <select id="T_Designation" name="T_Designation" class="form-select" data-selected-value="@Model.T_Designation"></select>
     </div>
     <div class="col-md-4">
         <label for="T_Department" class="form-label">Department</label>
@@ -79,7 +79,7 @@
     </div>
     <div class="col-md-4">
         <label for="T_Status" class="form-label">Status</label>
-        @Html.DropDownListFor(m => m.T_Status, Model.StatusOptions, new { @class = "form-select" })
+        <select id="T_Status" name="T_Status" class="form-select" data-selected-value="@(Model.T_Status)"></select>
         <div class="text-danger small field-error" data-for="T_Status"></div>
     </div>
 
@@ -93,7 +93,7 @@
     </div>
     <div class="col-md-4">
         <label for="T_BloodGroup" class="form-label">Blood Group</label>
-        @Html.DropDownListFor(m => m.T_BloodGroup, Model.BloodGroupOptions, "Select Blood Group", new { @class = "form-select" })
+        <select id="T_BloodGroup" name="T_BloodGroup" class="form-select" data-selected-value="@(Model.T_BloodGroup)"></select>
     </div>
 </div>
 

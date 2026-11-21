@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Common;
+using IMS.DAL.Common;
 using IMS.DAL.Interfaces;
 using IMS.Models.Announcement;
 using System;
@@ -135,7 +135,8 @@ namespace IMS.DAL
             ANN_IsActive = r.GetBoolean(r.GetOrdinal("ANN_IsActive")),
             ANN_CreatedAt = r.GetDateTime(r.GetOrdinal("ANN_CreatedAt")),
             ANN_UpdatedAt = r.GetDateTime(r.GetOrdinal("ANN_UpdatedAt")),
-            ComputedStatus = r["ComputedStatus"] as string ?? ""
+            ComputedStatus = r["ComputedStatus"] as string ?? "",
+            BranchName = r["BranchName"] as string
         };
     }
 }

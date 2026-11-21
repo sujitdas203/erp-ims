@@ -2,36 +2,77 @@
 
 <div class="row g-3">
     <div class="col-md-6">
-        <label for="CS_CourseId" class="form-label">Course <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.CS_CourseId, Model.CourseOptions, "Select Course", new { @class = "form-select" })
+        <label for="CS_CourseId" class="form-label fw-semibold">Course / Class <span class="text-danger">*</span></label>
+        <select id="CS_CourseId" name="CS_CourseId" class="form-select" data-selected-value="@(Model.CS_CourseId != Guid.Empty ? Model.CS_CourseId.ToString() : "")" required>
+            <option value="">-- Select Course / Class --</option>
+            @if (Model.CourseOptions != null && Model.CourseOptions.Any())
+            {
+                foreach (var opt in Model.CourseOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
         <div class="text-danger small field-error" data-for="CS_CourseId"></div>
     </div>
+
     <div class="col-md-6">
-        <label for="CS_SubjectId" class="form-label">Subject <span class="text-danger">*</span></label>
-        @Html.DropDownListFor(m => m.CS_SubjectId, Model.SubjectOptions, "Select Subject", new { @class = "form-select" })
+        <label for="CS_SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+        <select id="CS_SubjectId" name="CS_SubjectId" class="form-select" data-selected-value="@(Model.CS_SubjectId != Guid.Empty ? Model.CS_SubjectId.ToString() : "")" required>
+            <option value="">-- Select Subject --</option>
+            @if (Model.SubjectOptions != null && Model.SubjectOptions.Any())
+            {
+                foreach (var opt in Model.SubjectOptions)
+                {
+                    <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                }
+            }
+        </select>
         <div class="text-danger small field-error" data-for="CS_SubjectId"></div>
     </div>
+
     <div class="col-md-4">
-        <label for="CS_SequenceNo" class="form-label">Sequence No.</label>
-        @Html.TextBoxFor(m => m.CS_SequenceNo, new { @class = "form-control", type = "number", min = "1" })
-    </div>
-    <div class="col-md-4">
-        <label for="CS_MaxMarks" class="form-label">Max Marks</label>
-        @Html.TextBoxFor(m => m.CS_MaxMarks, new { @class = "form-control", type = "number", step = "0.01" })
-    </div>
-    <div class="col-md-4">
-        <label for="CS_PassMarks" class="form-label">Pass Marks</label>
-        @Html.TextBoxFor(m => m.CS_PassMarks, new { @class = "form-control", type = "number", step = "0.01" })
-    </div>
-    <div class="col-md-4 d-flex align-items-end">
-        <div class="form-check">
-            @Html.CheckBoxFor(m => m.CS_IsMandatory, new { @class = "form-check-input" })
-            <label class="form-check-label">Mandatory</label>
+        <label for="CS_SequenceNo" class="form-label fw-semibold">Sequence Number</label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-arrow-down-1-9"></i></span>
+            @Html.TextBoxFor(m => m.CS_SequenceNo, new { @class = "form-control", type = "number", min = "1", @id = "CS_SequenceNo", @placeholder = "Auto-assigned if left blank" })
         </div>
+        <small class="text-muted" style="font-size: 0.78rem;">Order in which this subject appears in the curriculum.</small>
+        <div class="text-danger small field-error" data-for="CS_SequenceNo"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="CS_MaxMarks" class="form-label fw-semibold">Maximum Marks</label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-award"></i></span>
+            @Html.TextBoxFor(m => m.CS_MaxMarks, new { @class = "form-control", type = "number", step = "0.01", min = "0", @id = "CS_MaxMarks", @placeholder = "e.g. 100" })
+        </div>
+        <div class="text-danger small field-error" data-for="CS_MaxMarks"></div>
+    </div>
+
+    <div class="col-md-4">
+        <label for="CS_PassMarks" class="form-label fw-semibold">Passing Marks</label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-circle-check"></i></span>
+            @Html.TextBoxFor(m => m.CS_PassMarks, new { @class = "form-control", type = "number", step = "0.01", min = "0", @id = "CS_PassMarks", @placeholder = "e.g. 33 or 40" })
+        </div>
+        <div class="text-danger small field-error" data-for="CS_PassMarks"></div>
+    </div>
+
+    <div class="col-12">
+        <div class="form-check form-switch mt-2">
+            @Html.CheckBoxFor(m => m.CS_IsMandatory, new { @class = "form-check-input", @id = "CS_IsMandatory" })
+            <label class="form-check-label fw-semibold" for="CS_IsMandatory">Mandatory / Compulsory Subject for this Course</label>
+        </div>
+        <small class="text-muted d-block ms-5" style="font-size: 0.8rem;">Uncheck if this is an optional or elective subject.</small>
     </div>
 </div>
 
 <div class="d-flex justify-content-end gap-2 mt-4">
-    <a asp-controller="CourseSubject" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i> Save</button>
+    <a asp-controller="CourseSubject" asp-action="Index" class="btn btn-outline-secondary px-4">
+        <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+    </a>
+    <button type="submit" id="btnSaveCourseSubject" class="btn btn-primary px-4">
+        <i class="fa-solid fa-check me-1"></i> Save Subject Mapping
+    </button>
 </div>

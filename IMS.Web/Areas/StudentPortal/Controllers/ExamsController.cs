@@ -7,11 +7,11 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
 {
     public class ExamsController : StudentPortalBaseController
     {
-        private readonly IStuddentPortalService _StuddentPortalService;
+        private readonly IStudentPortalService _portalService;
 
-        public ExamsController(IStuddentPortalService StuddentPortalService)
+        public ExamsController(IStudentPortalService portalService)
         {
-            _StuddentPortalService = StuddentPortalService;
+            _portalService = portalService;
         }
 
         [HttpGet]
@@ -20,7 +20,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
 
-            var vm = await _StuddentPortalService.GetAdmitCardAsync(studentId, CurrentTenantId);
+            var vm = await _portalService.GetAdmitCardAsync(studentId, CurrentTenantId);
             return View(vm);
         }
 
@@ -30,7 +30,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
 
-            var vm = await _StuddentPortalService.GetMarkSheetAsync(studentId, CurrentTenantId);
+            var vm = await _portalService.GetMarkSheetAsync(studentId, CurrentTenantId);
             return View(vm);
         }
     }

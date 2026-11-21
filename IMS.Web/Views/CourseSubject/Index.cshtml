@@ -4,8 +4,11 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="fa-solid fa-book me-2"></i>Course Subjects</h3>
-    <a asp-controller="CourseSubject" asp-action="Create" asp-route-courseId="@Model.CourseFilter" class="btn btn-primary">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>Course Subjects</h4>
+        <p class="text-muted small mb-0">Configure curriculum subjects, credits, and course structures.</p>
+    </div>
+    <a asp-controller="CourseSubject" asp-action="Create" asp-route-courseId="@Model.CourseFilter" class="btn btn-primary shadow-sm">
         <i class="fa-solid fa-plus me-1"></i> Add Subject
     </a>
 </div>
@@ -15,8 +18,17 @@
         @using (Html.BeginForm("Index", "CourseSubject", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
         {
             <div class="col-md-4">
-                @Html.Label("courseId", "Course", new { @class = "form-label" })
-                @Html.DropDownList("courseId", Model.CourseOptions, "All Courses", new { @class = "form-select" })
+                <label for="courseId" class="form-label">Course</label>
+                <select name="courseId" id="courseId" class="form-select" data-selected-value="@(Model.CourseFilter?.ToString())">
+                    <option value="">All Courses</option>
+                    @if (Model.CourseOptions != null && Model.CourseOptions.Any())
+                    {
+                        foreach (var opt in Model.CourseOptions)
+                        {
+                            <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                        }
+                    }
+                </select>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-search me-1"></i> Filter</button>
@@ -41,12 +53,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Items.Any())
-                {
-                    <tr><td colspan="8" class="text-center text-muted py-4">No subjects found.</td></tr>
-                }
-                else
-                {
+                @{
                     var idx = 0;
                     foreach (var item in Model.Items)
                     {
@@ -80,22 +87,24 @@
     <script>
         $(function () {
             $('#dataTable').DataTable({ pageLength: 10, lengthMenu: [10, 25, 50, 100], order: [[0, 'asc']] });
+            Dropdown.load({ element: '#courseId', entityType: 'Course', defaultText: 'All Courses', includeDefault: true, selectedValue: $('#courseId').data('selected-value') });
             $(document).on("click", ".cs-delete-btn", function () {
                 var courseId = $(this).data("course-id");
                 var subjectId = $(this).data("subject-id");
                 var name = $(this).data("name");
-                if (!confirm("Remove '" + name + "' from this course?")) return;
-                $.ajax({
-                    url: "/CourseSubject/DeleteCourseSubject",
-                    type: "POST",
-                    data: { courseId: courseId, subjectId: subjectId, __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
-                    success: function (r) {
-                        if (r.success) {
-                            if (window.toastr) toastr.success(r.message);
-                            $("#cs-row-" + courseId + "-" + subjectId).fadeOut(300, function () { $(this).remove(); });
-                        } else { if (window.toastr) toastr.error(r.message); }
-                    },
-                    error: function () { if (window.toastr) toastr.error("Request failed."); }
+                IMSConfirm.delete(name ? "Subject '" + name + "'" : "this subject mapping", function () {
+                    $.ajax({
+                        url: "/CourseSubject/DeleteCourseSubject",
+                        type: "POST",
+                        data: { courseId: courseId, subjectId: subjectId, __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val() },
+                        success: function (r) {
+                            if (r.success) {
+                                if (window.toastr) toastr.success(r.message);
+                                $("#cs-row-" + courseId + "-" + subjectId).fadeOut(300, function () { $(this).remove(); });
+                            } else { if (window.toastr) toastr.error(r.message); }
+                        },
+                        error: function () { if (window.toastr) toastr.error("Request failed."); }
+                    });
                 });
             });
         });

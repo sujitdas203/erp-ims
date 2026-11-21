@@ -20,6 +20,7 @@ namespace IMS.Models.Entities
 
         public string CourseName { get; set; }
         public string AcademicYearName { get; set; }
+        public string BranchName { get; set; }
         public int EnrolledCount { get; set; }
     }
 }
