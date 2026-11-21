@@ -120,6 +120,112 @@ namespace IMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> QuickUpdate([FromBody] QuickStudentUpdateModel model)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (model == null || model.S_Id == Guid.Empty)
+                return Json(new { success = false, message = "Invalid student data." });
+
+            try
+            {
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message, id = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in QuickUpdate for student {StudentId}", model.S_Id);
+                return Json(new { success = false, message = "Something went wrong while updating the student." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> QuickUpdateForm(QuickStudentUpdateModel model)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (model == null || model.S_Id == Guid.Empty)
+                return Json(new { success = false, message = "Invalid student data." });
+
+            try
+            {
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message, id = result.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in QuickUpdateForm for student {StudentId}", model.S_Id);
+                return Json(new { success = false, message = "Something went wrong while updating the student." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Permission(Permissions.UpdateStudent)]
+        public async Task<IActionResult> UpdateStatus(Guid id, string status)
+        {
+            if (CurrentTenantId == Guid.Empty)
+                return Json(new { success = false, message = "Your session has expired. Please sign in again." });
+
+            if (id == Guid.Empty || string.IsNullOrWhiteSpace(status))
+                return Json(new { success = false, message = "Invalid student or status." });
+
+            try
+            {
+                var model = new QuickStudentUpdateModel { S_Id = id, S_Status = status.Trim() };
+                var result = await _studentService.QuickUpdateStudentAsync(model, CurrentTenantId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status for student {StudentId}", id);
+                return Json(new { success = false, message = "Something went wrong while updating status." });
+            }
+        }
+
+        [HttpGet]
+        [Permission(Permissions.ViewStudent)]
+        public async Task<IActionResult> GetQuickDetails(Guid id)
+        {
+            if (CurrentTenantId == Guid.Empty) return Unauthorized();
+
+            var vm = await _studentService.GetStudentDetailsAsync(id, CurrentTenantId);
+            if (vm == null) return NotFound();
+            return Json(new
+            {
+                s_Id = vm.S_Id,
+                fullName = vm.FullName,
+                studentCode = vm.S_StudentCode,
+                admissionNumber = vm.S_AdmissionNumber,
+                status = vm.S_Status,
+                branchName = vm.BranchName,
+                className = vm.ClassName,
+                sectionName = vm.SectionName,
+                batchName = vm.BatchName,
+                admissionDate = vm.S_AdmissionDate?.ToString("dd MMM yyyy"),
+                dateOfBirth = vm.S_DateOfBirth?.ToString("dd MMM yyyy"),
+                gender = vm.S_Gender,
+                bloodGroup = vm.S_BloodGroup,
+                email = vm.S_Email,
+                phone = vm.S_Phone,
+                fullAddress = vm.FullAddress,
+                totalFeeInvoiced = vm.TotalFeeInvoiced,
+                totalFeePaid = vm.TotalFeePaid,
+                totalFeeBalance = vm.TotalFeeBalance,
+                feeStatus = vm.FeeStatus,
+                attendancePercentage = vm.AttendancePercentage,
+                totalLeavesTaken = vm.TotalLeavesTaken,
+                guardiansCount = vm.Guardians.Count
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Permission(Permissions.DeleteStudent)]
         public async Task<IActionResult> DeleteStudent(Guid id)
         {

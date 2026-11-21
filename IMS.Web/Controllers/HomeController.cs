@@ -278,5 +278,15 @@ namespace IMS.Web.Controllers
 
         [AllowAnonymous]
         public IActionResult Contact() => View();
+
+        [AllowAnonymous]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
+        }
     }
 }

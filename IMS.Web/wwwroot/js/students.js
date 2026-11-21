@@ -541,7 +541,17 @@ var StudentModule = (function () {
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold">Relation <span class="text-danger">*</span></label>
-                        <select name="Guardians[${index}].Relation" class="form-select form-select-sm relation-select"></select>
+                        <select name="Guardians[${index}].Relation" class="form-select form-select-sm relation-select">
+                            <option value="">Select Relation</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Guardian">Guardian</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Sister">Sister</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Aunt">Aunt</option>
+                            <option value="Other">Other</option>
+                        </select>
                         <div class="text-danger small field-error" data-for="Guardians[${index}].Relation"></div>
                     </div>
                     <div class="col-md-4 d-flex align-items-center">
@@ -840,6 +850,193 @@ var StudentModule = (function () {
     }
 
     // ------------------------------------------------------------------
+    // Quick Status Update, Quick Edit Modal, Quick View Modal
+    // ------------------------------------------------------------------
+
+    function getStatusBadgeClass(status) {
+        switch ((status || "").toLowerCase()) {
+            case "active":
+            case "admitted":
+                return "bg-success";
+            case "inactive":
+            case "suspended":
+                return "bg-secondary";
+            case "graduated":
+            case "alumni":
+                return "bg-primary";
+            case "transferred":
+                return "bg-warning text-dark";
+            case "withdrawn":
+            case "dropped":
+            case "expelled":
+                return "bg-danger";
+            default:
+                return "bg-info text-dark";
+        }
+    }
+
+    function wireQuickStatusUpdate() {
+        $(document).on("click", ".quick-status-item", function (e) {
+            e.preventDefault();
+            const $item = $(this);
+            const studentId = $item.data("student-id");
+            const newStatus = $item.data("status");
+            if (!studentId || !newStatus) return;
+
+            const token = $("input[name='__RequestVerificationToken']").first().val() || "";
+
+            $.ajax({
+                url: "/Students/UpdateStatus",
+                type: "POST",
+                data: {
+                    id: studentId,
+                    status: newStatus,
+                    __RequestVerificationToken: token
+                },
+                success: function (res) {
+                    if (res && res.success) {
+                        showSuccess(res.message || ("Status updated to " + newStatus));
+                        const badgeClass = getStatusBadgeClass(newStatus);
+                        $(`#status-badge-${studentId}, .student-status-badge[data-student-id='${studentId}']`)
+                            .attr("class", `badge ${badgeClass} student-status-badge`)
+                            .text(newStatus);
+
+                        const $heroBadge = $("#heroStatusBadge");
+                        if ($heroBadge.length) {
+                            $heroBadge.attr("class", `badge ${badgeClass}`).text(newStatus);
+                        }
+                    } else {
+                        showError(res ? (res.message || "Failed to update status.") : "Failed to update status.");
+                    }
+                },
+                error: function () {
+                    showError("Failed to update status. Please try again.");
+                }
+            });
+        });
+    }
+
+    function wireQuickEditModal() {
+        $(document).off("submit", "#quickStudentUpdateForm").on("submit", "#quickStudentUpdateForm", function (e) {
+            e.preventDefault();
+            const $form = $(this);
+            const $submitBtn = $form.find("button[type='submit']");
+            const origHtml = $submitBtn.html();
+
+            $submitBtn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+            const formData = {
+                S_Id: $form.find("[name='S_Id']").val(),
+                S_Status: $form.find("[name='S_Status']").val(),
+                S_Phone: $form.find("[name='S_Phone']").val(),
+                S_Email: $form.find("[name='S_Email']").val(),
+                S_BranchId: $form.find("[name='S_BranchId']").val() || null,
+                S_ClassId: $form.find("[name='S_ClassId']").val() || null,
+                S_SectionId: $form.find("[name='S_SectionId']").val() || null,
+                S_BatchId: $form.find("[name='S_BatchId']").val() || null,
+                S_BloodGroup: $form.find("[name='S_BloodGroup']").val(),
+                S_AddressLine1: $form.find("[name='S_AddressLine1']").val(),
+                S_AddressLine2: $form.find("[name='S_AddressLine2']").val(),
+                S_City: $form.find("[name='S_City']").val(),
+                S_State: $form.find("[name='S_State']").val(),
+                S_PostalCode: $form.find("[name='S_PostalCode']").val(),
+                S_Country: $form.find("[name='S_Country']").val()
+            };
+
+            const token = $form.find("input[name='__RequestVerificationToken']").val() ||
+                          $("input[name='__RequestVerificationToken']").first().val() || "";
+
+            $.ajax({
+                url: "/Students/QuickUpdate",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(formData),
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                success: function (res) {
+                    if (res && res.success) {
+                        showSuccess(res.message || "Student details updated successfully.");
+                        $("#quickEditModal").modal("hide");
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 600);
+                    } else {
+                        showError(res ? (res.message || "Failed to update student.") : "Failed to update student.");
+                        $submitBtn.prop("disabled", false).html(origHtml);
+                    }
+                },
+                error: function (xhr) {
+                    let msg = "Failed to update student details.";
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    showError(msg);
+                    $submitBtn.prop("disabled", false).html(origHtml);
+                }
+            });
+        });
+    }
+
+    function wireQuickViewModal() {
+        $(document).on("click", ".quick-view-btn", function (e) {
+            e.preventDefault();
+            const studentId = $(this).data("id");
+            if (!studentId) return;
+
+            const $modal = $("#quickViewModal");
+            $modal.find("#quickViewLoading").show();
+            $modal.find("#quickViewContent").hide();
+            $modal.modal("show");
+
+            $.get("/Students/GetQuickDetails/" + studentId)
+                .done(function (data) {
+                    if (!data) {
+                        showError("Student details could not be found.");
+                        $modal.modal("hide");
+                        return;
+                    }
+
+                    $modal.find("#qvFullName").text(data.fullName || "-");
+                    $modal.find("#qvCode").text(data.studentCode || "-");
+                    $modal.find("#qvAdmNo").text(data.admissionNumber || "-");
+                    $modal.find("#qvBranch").text(data.branchName || "-");
+                    $modal.find("#qvClass").text(data.className + (data.sectionName && data.sectionName !== "-" ? " - " + data.sectionName : ""));
+                    $modal.find("#qvBatch").text(data.batchName || "-");
+                    $modal.find("#qvAdmDate").text(data.admissionDate || "-");
+                    $modal.find("#qvDob").text(data.dateOfBirth || "-");
+                    $modal.find("#qvGender").text(data.gender || "-");
+                    $modal.find("#qvBloodGroup").text(data.bloodGroup || "-");
+                    $modal.find("#qvPhone").text(data.phone || "-");
+                    $modal.find("#qvEmail").text(data.email || "-");
+                    $modal.find("#qvAddress").text(data.fullAddress || "-");
+
+                    const badgeClass = getStatusBadgeClass(data.status);
+                    $modal.find("#qvStatus").attr("class", `badge ${badgeClass}`).text(data.status || "-");
+
+                    $modal.find("#qvFeeInvoiced").text("₹" + (data.totalFeeInvoiced || 0).toLocaleString());
+                    $modal.find("#qvFeePaid").text("₹" + (data.totalFeePaid || 0).toLocaleString());
+                    $modal.find("#qvFeeBalance").text("₹" + (data.totalFeeBalance || 0).toLocaleString());
+                    $modal.find("#qvFeeStatus").text(data.feeStatus || "No Invoices");
+
+                    $modal.find("#qvAttendancePct").text((data.attendancePercentage || 0) + "%");
+                    $modal.find("#qvAttendanceBar").css("width", (data.attendancePercentage || 0) + "%");
+                    $modal.find("#qvLeavesCount").text(data.totalLeavesTaken || 0);
+                    $modal.find("#qvGuardiansCount").text(data.guardiansCount || 0);
+
+                    $modal.find("#qvEditLink").attr("href", "/Students/Edit/" + data.s_Id);
+                    $modal.find("#qvDetailsLink").attr("href", "/Students/Details/" + data.s_Id);
+
+                    $modal.find("#quickViewLoading").hide();
+                    $modal.find("#quickViewContent").fadeIn(200);
+                })
+                .fail(function () {
+                    showError("Failed to load student details.");
+                    $modal.modal("hide");
+                });
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Initialization
     // ------------------------------------------------------------------
 
@@ -854,6 +1051,9 @@ var StudentModule = (function () {
         wireAjaxFormSubmit("#studentCreateForm", "/Students/AddStudent");
         wireAjaxFormSubmit("#studentEditForm", "/Students/EditStudent");
         wireAjaxDelete();
+        wireQuickStatusUpdate();
+        wireQuickEditModal();
+        wireQuickViewModal();
     }
 
     $(function () {
@@ -864,6 +1064,7 @@ var StudentModule = (function () {
         init: init,
         addGuardianRow: addGuardianRow,
         reindexGuardianRows: reindexGuardianRows,
-        validateStudentForm: validateStudentForm
+        validateStudentForm: validateStudentForm,
+        getStatusBadgeClass: getStatusBadgeClass
     };
 })();

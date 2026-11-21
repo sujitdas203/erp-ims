@@ -7,11 +7,11 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
 {
     public class FinanceController : StudentPortalBaseController
     {
-        private readonly IStuddentPortalService _StuddentPortalService;
+        private readonly IStudentPortalService _portalService;
 
-        public FinanceController(IStuddentPortalService StuddentPortalService)
+        public FinanceController(IStudentPortalService portalService)
         {
-            _StuddentPortalService = StuddentPortalService;
+            _portalService = portalService;
         }
 
         [HttpGet]
@@ -20,7 +20,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             var studentId = CurrentStudentId;
             if (studentId == Guid.Empty) return View("NoStudentLinked");
 
-            var vm = await _StuddentPortalService.GetFeeTransactionsAsync(studentId, CurrentTenantId);
+            var vm = await _portalService.GetFeeTransactionsAsync(studentId, CurrentTenantId);
             return View(vm);
         }
 
@@ -29,7 +29,10 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
         {
             if (id == Guid.Empty) return BadRequest("Payment ID is required.");
 
-            var vm = await _StuddentPortalService.GetReceiptDetailsAsync(id, CurrentTenantId);
+            var studentId = CurrentStudentId;
+            if (studentId == Guid.Empty) return View("NoStudentLinked");
+
+            var vm = await _portalService.GetReceiptDetailsAsync(id, studentId, CurrentTenantId);
             if (vm == null) return NotFound("Receipt not found or inaccessible.");
 
             return View(vm);

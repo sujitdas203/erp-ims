@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using IMS.Models.ViewModels;
 
@@ -16,5 +17,13 @@ namespace IMS.Services.Interfaces
         Task<ServiceResult> DeleteAsync(Guid id, Guid tenantId);
 
         void PopulateDropdowns(EnrollmentFormViewModel vm);
+
+        // Promotion & History
+        Task<StudentPromotionRequestViewModel?> GetPromotionFormForStudentAsync(Guid studentId, Guid tenantId);
+        Task<ServiceResult> PromoteStudentAsync(StudentPromotionRequestViewModel model, Guid tenantId);
+        Task<List<StudentEnrollmentHistoryViewModel>> GetEnrollmentHistoryAsync(Guid studentId, Guid tenantId);
+        Task<BulkPromotionIndexViewModel> GetBulkPromotionViewModelAsync(Guid tenantId, Guid? sourceBranchId, Guid? sourceAcademicYearId, Guid? sourceClassId, Guid? sourceSectionId);
+        Task<List<BulkPromotionStudentItemViewModel>> GetStudentsForPromotionAsync(Guid tenantId, Guid? branchId, Guid academicYearId, Guid classId, Guid? sectionId);
+        Task<BulkPromotionResultViewModel> ProcessBulkPromotionAsync(BulkPromotionSubmitViewModel model, Guid tenantId);
     }
 }

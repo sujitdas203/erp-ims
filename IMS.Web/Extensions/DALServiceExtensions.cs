@@ -39,7 +39,7 @@ namespace IMS.Web.Extensions
             services.AddScoped<ITeacherLeaveDAL, TeacherLeaveDAL>();
             services.AddScoped<IStudentLeaveDAL, StudentLeaveDAL>();
             services.AddScoped<ITransferCertificateDAL, TransferCertificateDAL>();
-            services.AddScoped<IStudentPortalDAL, StudentStudentPortalDAL>();
+            services.AddScoped<IStudentPortalDAL, StudentPortalDAL>();
             services.AddScoped<IAnnouncementDAL, AnnouncementDAL>();
             services.AddScoped<ISubjectSyllabusDAL, SubjectSyllabusDAL>();
             services.AddScoped<IHomeTaskDAL, HomeTaskDAL>();

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using IMS.DAL.Common;
 using IMS.DAL.Interfaces;
 using IMS.Models.Entities;
+using IMS.Models.ViewModels;
+using IMS.Helpers.Constants;
 
 namespace IMS.DAL.Repositories
 {
@@ -199,6 +201,148 @@ namespace IMS.DAL.Repositories
                 e.AcademicYearName = r.GetString(r.GetOrdinal("AcademicYearName"));
 
             return e;
+        }
+
+        public async Task<List<StudentEnrollmentHistoryViewModel>> GetEnrollmentHistoryByStudentIdAsync(Guid studentId, Guid tenantId)
+        {
+            using var conn = _dbHelper.GetConnection();
+            using var cmd = _dbHelper.CreateCommand("USP_Enrollments_E", conn);
+            cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 30).Value = "GetByStudentId";
+            cmd.Parameters.Add("@E_StudentId", SqlDbType.UniqueIdentifier).Value = studentId;
+            cmd.Parameters.Add("@E_TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            var history = new List<StudentEnrollmentHistoryViewModel>();
+            while (await reader.ReadAsync())
+            {
+                history.Add(MapHistoryItem(reader));
+            }
+            return history;
+        }
+
+        public async Task<Enrollment?> GetActiveEnrollmentByStudentAsync(Guid studentId, Guid tenantId)
+        {
+            using var conn = _dbHelper.GetConnection();
+            using var cmd = _dbHelper.CreateCommand("USP_Enrollments_E", conn);
+            cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 30).Value = "GetActiveByStudentId";
+            cmd.Parameters.Add("@E_StudentId", SqlDbType.UniqueIdentifier).Value = studentId;
+            cmd.Parameters.Add("@E_TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            return await reader.ReadAsync() ? Map(reader) : null;
+        }
+
+        public async Task<List<BulkPromotionStudentItemViewModel>> GetStudentsForPromotionAsync(
+            Guid tenantId, Guid? branchId, Guid academicYearId, Guid classId, Guid? sectionId)
+        {
+            using var conn = _dbHelper.GetConnection();
+            using var cmd = _dbHelper.CreateCommand("USP_StudentPromotion_P", conn);
+            cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 40).Value = "GetCandidates";
+            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+            cmd.Parameters.Add("@CurrentAcademicYearId", SqlDbType.UniqueIdentifier).Value = academicYearId;
+            cmd.Parameters.Add("@ClassId", SqlDbType.UniqueIdentifier).Value = classId;
+            cmd.Parameters.Add("@SectionId", SqlDbType.UniqueIdentifier).Value = (object?)sectionId ?? DBNull.Value;
+            cmd.Parameters.Add("@BranchId", SqlDbType.UniqueIdentifier).Value = (object?)branchId ?? DBNull.Value;
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            var list = new List<BulkPromotionStudentItemViewModel>();
+            while (await reader.ReadAsync())
+            {
+                list.Add(new BulkPromotionStudentItemViewModel
+                {
+                    StudentId = reader.GetGuid(reader.GetOrdinal("StudentId")),
+                    StudentCode = reader["StudentCode"] as string ?? "-",
+                    AdmissionNumber = reader["AdmissionNumber"] as string ?? "-",
+                    FullName = reader["FullName"] as string ?? "-",
+                    CurrentRollNumber = reader["CurrentRollNumber"] as string ?? "-",
+                    CurrentStatus = reader["StudentStatus"] as string ?? "Active",
+                    TotalAttendanceSessions = reader.IsDBNull(reader.GetOrdinal("TotalAttendanceSessions")) ? 0 : reader.GetInt32(reader.GetOrdinal("TotalAttendanceSessions")),
+                    PresentSessions = reader.IsDBNull(reader.GetOrdinal("PresentSessions")) ? 0 : reader.GetInt32(reader.GetOrdinal("PresentSessions")),
+                    PendingFeeBalance = reader.IsDBNull(reader.GetOrdinal("PendingFeeBalance")) ? 0 : reader.GetDecimal(reader.GetOrdinal("PendingFeeBalance")),
+                    AlreadyEnrolledInNextYear = !reader.IsDBNull(reader.GetOrdinal("AlreadyEnrolledInNextYear")) && Convert.ToInt32(reader["AlreadyEnrolledInNextYear"]) == 1,
+                    IsSelected = true,
+                    Action = "Promote"
+                });
+            }
+
+            return list;
+        }
+
+        public async Task<(bool Success, string Message, Guid? NewEnrollmentId)> PromoteSingleStudentAsync(
+            Guid tenantId, Guid studentId, Guid currentAcademicYearId, Guid nextAcademicYearId,
+            Guid nextClassId, Guid? nextSectionId, string? newRollNumber, string enrollmentType,
+            Guid? nextFeeStructureId, string? remarks, Guid? branchId)
+        {
+            using var conn = _dbHelper.GetConnection();
+            using var cmd = _dbHelper.CreateCommand("USP_StudentPromotion_P", conn);
+            cmd.Parameters.Add("@Action", SqlDbType.NVarChar, 40).Value = "PromoteSingleStudent";
+            cmd.Parameters.Add("@TenantId", SqlDbType.UniqueIdentifier).Value = tenantId;
+            cmd.Parameters.Add("@StudentId", SqlDbType.UniqueIdentifier).Value = studentId;
+            cmd.Parameters.Add("@CurrentAcademicYearId", SqlDbType.UniqueIdentifier).Value = currentAcademicYearId;
+            cmd.Parameters.Add("@NextAcademicYearId", SqlDbType.UniqueIdentifier).Value = nextAcademicYearId;
+            cmd.Parameters.Add("@NextClassId", SqlDbType.UniqueIdentifier).Value = nextClassId;
+            cmd.Parameters.Add("@NextSectionId", SqlDbType.UniqueIdentifier).Value = (object?)nextSectionId ?? DBNull.Value;
+            cmd.Parameters.Add("@NewRollNumber", SqlDbType.NVarChar, 50).Value = (object?)newRollNumber ?? DBNull.Value;
+            cmd.Parameters.Add("@EnrollmentType", SqlDbType.NVarChar, 50).Value = string.IsNullOrWhiteSpace(enrollmentType) ? "Promotion" : enrollmentType;
+            cmd.Parameters.Add("@NextFeeStructureId", SqlDbType.UniqueIdentifier).Value = (object?)nextFeeStructureId ?? DBNull.Value;
+            cmd.Parameters.Add("@Remarks", SqlDbType.NVarChar, -1).Value = (object?)remarks ?? DBNull.Value;
+            cmd.Parameters.Add("@BranchId", SqlDbType.UniqueIdentifier).Value = (object?)branchId ?? DBNull.Value;
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                bool success = Convert.ToInt32(reader["Success"]) == 1;
+                string msg = reader["Message"] as string ?? "Promotion executed.";
+                Guid? newId = reader["NewEnrollmentId"] != DBNull.Value ? (Guid)reader["NewEnrollmentId"] : null;
+                return (success, msg, newId);
+            }
+
+            return (false, "Promotion failed: No response from stored procedure.", null);
+        }
+
+        private static StudentEnrollmentHistoryViewModel MapHistoryItem(SqlDataReader r)
+        {
+            var item = new StudentEnrollmentHistoryViewModel
+            {
+                EnrollmentId = r.GetGuid(r.GetOrdinal("E_Id")),
+                AcademicYearId = r.GetGuid(r.GetOrdinal("E_AcademicYearId")),
+                AcademicYearName = HasColumn(r, "AcademicYearName") && !r.IsDBNull(r.GetOrdinal("AcademicYearName")) ? r.GetString(r.GetOrdinal("AcademicYearName")) : "-",
+                AcademicYearCode = HasColumn(r, "AcademicYearCode") && !r.IsDBNull(r.GetOrdinal("AcademicYearCode")) ? r.GetString(r.GetOrdinal("AcademicYearCode")) : null,
+                AcademicYearStartDate = HasColumn(r, "AY_StartDate") && !r.IsDBNull(r.GetOrdinal("AY_StartDate")) ? r.GetDateTime(r.GetOrdinal("AY_StartDate")) : null,
+                AcademicYearEndDate = HasColumn(r, "AY_EndDate") && !r.IsDBNull(r.GetOrdinal("AY_EndDate")) ? r.GetDateTime(r.GetOrdinal("AY_EndDate")) : null,
+                IsCurrentYear = HasColumn(r, "AY_IsCurrent") && !r.IsDBNull(r.GetOrdinal("AY_IsCurrent")) && r.GetBoolean(r.GetOrdinal("AY_IsCurrent")),
+                BranchName = HasColumn(r, "BranchName") && !r.IsDBNull(r.GetOrdinal("BranchName")) ? r.GetString(r.GetOrdinal("BranchName")) : null,
+                CourseName = HasColumn(r, "CourseName") && !r.IsDBNull(r.GetOrdinal("CourseName")) ? r.GetString(r.GetOrdinal("CourseName")) : null,
+                BatchName = HasColumn(r, "BatchName") && !r.IsDBNull(r.GetOrdinal("BatchName")) ? r.GetString(r.GetOrdinal("BatchName")) : null,
+                EnrollmentNumber = HasColumn(r, "E_EnrollmentNumber") && !r.IsDBNull(r.GetOrdinal("E_EnrollmentNumber")) ? r.GetString(r.GetOrdinal("E_EnrollmentNumber")) : null,
+                RollNumber = HasColumn(r, "E_RollNumber") && !r.IsDBNull(r.GetOrdinal("E_RollNumber")) ? r.GetString(r.GetOrdinal("E_RollNumber")) : "-",
+                EnrollmentType = HasColumn(r, "E_EnrollmentType") && !r.IsDBNull(r.GetOrdinal("E_EnrollmentType")) ? r.GetString(r.GetOrdinal("E_EnrollmentType")) : "New Admission",
+                Status = HasColumn(r, "E_Status") && !r.IsDBNull(r.GetOrdinal("E_Status")) ? r.GetString(r.GetOrdinal("E_Status")) : "Active",
+                EnrollmentDate = r.GetDateTime(r.GetOrdinal("E_EnrollmentDate")),
+                CompletionDate = HasColumn(r, "E_CompletionDate") && !r.IsDBNull(r.GetOrdinal("E_CompletionDate")) ? r.GetDateTime(r.GetOrdinal("E_CompletionDate")) : null,
+                Remarks = HasColumn(r, "E_Remarks") && !r.IsDBNull(r.GetOrdinal("E_Remarks")) ? r.GetString(r.GetOrdinal("E_Remarks")) : null
+            };
+
+            if (HasColumn(r, "E_BranchId") && !r.IsDBNull(r.GetOrdinal("E_BranchId")))
+                item.BranchId = r.GetGuid(r.GetOrdinal("E_BranchId"));
+
+            if (HasColumn(r, "E_ClassId") && !r.IsDBNull(r.GetOrdinal("E_ClassId")))
+            {
+                item.ClassId = r.GetGuid(r.GetOrdinal("E_ClassId"));
+                item.ClassName = HardcodedMasterData.GetClassName(item.ClassId);
+            }
+
+            if (HasColumn(r, "E_SectionId") && !r.IsDBNull(r.GetOrdinal("E_SectionId")))
+            {
+                item.SectionId = r.GetGuid(r.GetOrdinal("E_SectionId"));
+                item.SectionName = HardcodedMasterData.GetSectionName(item.SectionId);
+            }
+
+            return item;
         }
 
         private static bool HasColumn(SqlDataReader reader, string columnName)

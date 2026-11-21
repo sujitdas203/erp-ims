@@ -139,4 +139,167 @@ namespace IMS.Models.ViewModels
         public DateTime E_CreatedAt { get; set; }
         public DateTime E_UpdatedAt { get; set; }
     }
+
+    public class StudentPromotionRequestViewModel
+    {
+        [Required(ErrorMessage = "Student is required.")]
+        public Guid StudentId { get; set; }
+        public string? StudentName { get; set; }
+        public string? StudentCode { get; set; }
+        public string? AdmissionNumber { get; set; }
+
+        public Guid? CurrentBranchId { get; set; }
+        public string? CurrentBranchName { get; set; }
+
+        public Guid? CurrentAcademicYearId { get; set; }
+        public string? CurrentAcademicYearName { get; set; }
+
+        public Guid? CurrentClassId { get; set; }
+        public string? CurrentClassName { get; set; }
+
+        public Guid? CurrentSectionId { get; set; }
+        public string? CurrentSectionName { get; set; }
+
+        public string? CurrentRollNumber { get; set; }
+
+        [Required(ErrorMessage = "Destination academic year is required.")]
+        [Display(Name = "Destination Academic Year")]
+        public Guid NextAcademicYearId { get; set; }
+
+        [Required(ErrorMessage = "Destination class is required.")]
+        [Display(Name = "Destination Class / Grade")]
+        public Guid NextClassId { get; set; }
+
+        [Display(Name = "Destination Section")]
+        public Guid? NextSectionId { get; set; }
+
+        [Display(Name = "New Roll Number")]
+        public string? NewRollNumber { get; set; }
+
+        [Required(ErrorMessage = "Enrollment type is required.")]
+        [Display(Name = "Enrollment Type")]
+        public string EnrollmentType { get; set; } = "Promotion"; // Promotion, Repeat, Transfer
+
+        [Display(Name = "Fee Structure")]
+        public Guid? NextFeeStructureId { get; set; }
+
+        [Display(Name = "Promotion Remarks / Performance Notes")]
+        public string? Remarks { get; set; }
+
+        // Dropdowns
+        public List<SelectListItem> AcademicYearOptions { get; set; } = new();
+        public List<SelectListItem> ClassOptions { get; set; } = new();
+        public List<SelectListItem> SectionOptions { get; set; } = new();
+        public List<SelectListItem> EnrollmentTypeOptions { get; set; } = new();
+        public List<SelectListItem> FeeStructureOptions { get; set; } = new();
+    }
+
+    public class StudentEnrollmentHistoryViewModel
+    {
+        public Guid EnrollmentId { get; set; }
+        public Guid AcademicYearId { get; set; }
+        public string AcademicYearName { get; set; } = "-";
+        public string? AcademicYearCode { get; set; }
+        public DateTime? AcademicYearStartDate { get; set; }
+        public DateTime? AcademicYearEndDate { get; set; }
+        public bool IsCurrentYear { get; set; }
+
+        public Guid? BranchId { get; set; }
+        public string? BranchName { get; set; }
+
+        public Guid? ClassId { get; set; }
+        public string ClassName { get; set; } = "-";
+
+        public Guid? SectionId { get; set; }
+        public string SectionName { get; set; } = "-";
+
+        public string? CourseName { get; set; }
+        public string? BatchName { get; set; }
+
+        public string? EnrollmentNumber { get; set; }
+        public string? RollNumber { get; set; }
+        public string EnrollmentType { get; set; } = "New Admission"; // Promotion, Repeat, New Admission, Transfer
+        public string Status { get; set; } = "Active"; // Active, Promoted, Retained, Completed, Withdrawn, Alumni
+        public DateTime EnrollmentDate { get; set; }
+        public DateTime? CompletionDate { get; set; }
+        public string? Remarks { get; set; }
+    }
+
+    public class BulkPromotionStudentItemViewModel
+    {
+        public Guid StudentId { get; set; }
+        public string FullName { get; set; } = "";
+        public string StudentCode { get; set; } = "";
+        public string AdmissionNumber { get; set; } = "";
+        public string? CurrentRollNumber { get; set; }
+        public string CurrentStatus { get; set; } = "Active";
+        public int TotalAttendanceSessions { get; set; }
+        public int PresentSessions { get; set; }
+        public double AttendancePercentage => TotalAttendanceSessions > 0
+            ? Math.Round((double)PresentSessions / TotalAttendanceSessions * 100, 1)
+            : 100.0;
+        public decimal PendingFeeBalance { get; set; }
+        public bool AlreadyEnrolledInNextYear { get; set; }
+
+        // Promotion decision for this student
+        public bool IsSelected { get; set; } = true;
+        public string Action { get; set; } = "Promote"; // Promote, Repeat, Leave
+        public Guid? TargetSectionId { get; set; }
+        public string? NextRollNumber { get; set; }
+    }
+
+    public class BulkPromotionIndexViewModel
+    {
+        // Source Selection
+        public Guid? SourceBranchId { get; set; }
+        public Guid? SourceAcademicYearId { get; set; }
+        public Guid? SourceClassId { get; set; }
+        public Guid? SourceSectionId { get; set; }
+
+        // Target Selection
+        public Guid? TargetAcademicYearId { get; set; }
+        public Guid? TargetClassId { get; set; }
+        public Guid? TargetSectionId { get; set; }
+        public Guid? TargetFeeStructureId { get; set; }
+        public string DefaultEnrollmentType { get; set; } = "Promotion";
+
+        // Students Grid
+        public List<BulkPromotionStudentItemViewModel> Students { get; set; } = new();
+
+        // Dropdown collections
+        public List<SelectListItem> BranchOptions { get; set; } = new();
+        public List<SelectListItem> AcademicYearOptions { get; set; } = new();
+        public List<SelectListItem> ClassOptions { get; set; } = new();
+        public List<SelectListItem> SectionOptions { get; set; } = new();
+        public List<SelectListItem> FeeStructureOptions { get; set; } = new();
+    }
+
+    public class BulkPromotionSubmitViewModel
+    {
+        [Required(ErrorMessage = "Source Academic Year is required.")]
+        public Guid SourceAcademicYearId { get; set; }
+
+        [Required(ErrorMessage = "Target Academic Year is required.")]
+        public Guid TargetAcademicYearId { get; set; }
+
+        [Required(ErrorMessage = "Target Class is required.")]
+        public Guid TargetClassId { get; set; }
+
+        public Guid? TargetSectionId { get; set; }
+        public Guid? TargetBranchId { get; set; }
+        public Guid? TargetFeeStructureId { get; set; }
+
+        public List<BulkPromotionStudentItemViewModel> Students { get; set; } = new();
+    }
+
+    public class BulkPromotionResultViewModel
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public int TotalCount { get; set; }
+        public int PromotedCount { get; set; }
+        public int RetainedCount { get; set; }
+        public int SkippedCount { get; set; }
+        public List<string> Errors { get; set; } = new();
+    }
 }

@@ -1,0 +1,358 @@
+@model IMS.Models.ViewModels.FeeReceiptPrintViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Money Receipt - " + Model.ReceiptNumber;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Money Receipt - @Model.ReceiptNumber</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #212529;
+            margin: 0;
+            padding: 20px;
+        }
+        .receipt-container {
+            max-width: 840px;
+            margin: 0 auto;
+        }
+        .receipt-card {
+            background: #fff;
+            border: 2px solid #2b3a4a;
+            border-radius: 6px;
+            padding: 24px;
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .receipt-badge {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            border: 1px solid #198754;
+            color: #198754;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 3px;
+        }
+        .school-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a252f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .school-subtitle {
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 2px;
+        }
+        .receipt-heading {
+            display: inline-block;
+            background-color: #2b3a4a;
+            color: #fff;
+            padding: 3px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        .meta-table td {
+            padding: 3px 6px;
+            font-size: 12px;
+            border: none;
+        }
+        .meta-label {
+            font-weight: 700;
+            color: #444;
+            width: 140px;
+        }
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .fee-table th, .fee-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 10px;
+        }
+        .fee-table th {
+            background-color: #f1f3f5;
+            font-weight: 700;
+            color: #333;
+        }
+        .amount-in-words {
+            font-size: 12px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ced4da;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .signature-box {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 11px;
+            color: #444;
+        }
+        .signature-line {
+            width: 180px;
+            border-top: 1px solid #444;
+            text-align: center;
+            padding-top: 4px;
+            font-weight: 600;
+        }
+        .scissor-line {
+            border-top: 2px dashed #999;
+            margin: 25px 0;
+            position: relative;
+            text-align: center;
+        }
+        .scissor-line i {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #f8f9fa;
+            padding: 0 5px;
+            color: #666;
+        }
+        .scissor-line span {
+            background: #f8f9fa;
+            padding: 0 10px;
+            color: #888;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .no-print-bar {
+            margin-bottom: 20px;
+        }
+        @@media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .no-print-bar {
+                display: none !important;
+            }
+            .receipt-card {
+                border: 1px solid #000;
+                margin-bottom: 15px;
+                padding: 15px;
+                page-break-inside: avoid;
+            }
+            .receipt-badge {
+                border-color: #000;
+                color: #000;
+            }
+            .receipt-heading {
+                background-color: #000 !important;
+                color: #fff !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .fee-table th {
+                background-color: #eee !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        <!-- Floating Actions for Screen View -->
+        <div class="no-print-bar d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border">
+            <div>
+                <span class="badge bg-primary me-2 fs-6">Receipt #@Model.ReceiptNumber</span>
+                <span class="text-muted small">Generated on @Model.PaymentDate.ToString("dd-MMM-yyyy hh:mm tt")</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fa-solid fa-print me-1"></i> Print Receipt (মানি রসিদ প্রিন্ট)
+                </button>
+                <a href="javascript:window.close()" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-xmark me-1"></i> Close
+                </a>
+            </div>
+        </div>
+
+        <!-- COPY 1: STUDENT COPY (ছাত্র/ছাত্রী কপি) -->
+        <div class="receipt-card">
+            <div class="receipt-badge">STUDENT COPY / ছাত্র কপি</div>
+
+            <div class="text-center">
+                <div class="school-title">@Model.OrganizationName</div>
+                <div class="school-subtitle">
+                    @(Model.BranchAddress ?? "West Bengal, India") | Phone: @(Model.BranchPhone ?? "-")
+                </div>
+                <div class="school-subtitle fw-semibold text-secondary">
+                    @Model.AffiliationInfo | @(string.IsNullOrEmpty(Model.UDISECode) ? "" : "U-DISE: " + Model.UDISECode)
+                </div>
+                <div>
+                    <span class="receipt-heading">MONEY RECEIPT / ফি আদায়ের রসিদ</span>
+                </div>
+            </div>
+
+            <table class="meta-table w-100 mt-2">
+                <tr>
+                    <td class="meta-label">Receipt No:</td>
+                    <td><strong class="text-primary">@Model.ReceiptNumber</strong></td>
+                    <td class="meta-label">Date & Time:</td>
+                    <td>@Model.PaymentDate.ToString("dd-MMM-yyyy hh:mm tt")</td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Student Name:</td>
+                    <td><strong>@Model.StudentName</strong></td>
+                    <td class="meta-label">Student Code / ID:</td>
+                    <td><strong>@Model.StudentCode</strong></td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Class & Section:</td>
+                    <td>@(Model.CourseName ?? "-") @(string.IsNullOrEmpty(Model.BatchName) ? "" : "(" + Model.BatchName + ")")</td>
+                    <td class="meta-label">Admission No:</td>
+                    <td>@(Model.AdmissionNumber ?? "-")</td>
+                </tr>
+            </table>
+
+            <table class="fee-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;" class="text-center">SL</th>
+                        <th>Particulars / ফি-এর বিবরণ</th>
+                        <th>Period</th>
+                        <th class="text-end" style="width: 140px;">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.FeeHeads.Count == 0)
+                    {
+                        <tr>
+                            <td class="text-center">1</td>
+                            <td>Fee Collection & Settle</td>
+                            <td>Session</td>
+                            <td class="text-end">₹@Model.PaidAmount.ToString("N2")</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.FeeHeads)
+                        {
+                            <tr>
+                                <td class="text-center">@item.SlNo</td>
+                                <td>@item.FeeHeadName</td>
+                                <td>@(item.Period ?? "Current")</td>
+                                <td class="text-end">₹@item.NetAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">TOTAL AMOUNT PAID / গৃহীত মোট অর্থ:</td>
+                        <td class="text-end fw-bold text-success fs-6">₹@Model.PaidAmount.ToString("N2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="amount-in-words">
+                <strong>Amount in Words:</strong> @Model.AmountInWords
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                <div>
+                    <strong>Payment Mode:</strong> @Model.PaymentMode
+                    @if (!string.IsNullOrEmpty(Model.TransactionRef))
+                    {
+                        <span> | <strong>Ref/UTR:</strong> @Model.TransactionRef</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ChequeNumber))
+                    {
+                        <span> | <strong>Cheque No:</strong> @Model.ChequeNumber (@(Model.BankName ?? ""))</span>
+                    }
+                </div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-line">
+                    Verified By (Cashier)
+                </div>
+                <div class="text-center small text-muted">
+                    * Computer generated receipt. Duplicate not valid without seal.
+                </div>
+                <div class="signature-line">
+                    Headmaster / TIC / Seal
+                </div>
+            </div>
+        </div>
+
+        <!-- Cutting Perforation Separator -->
+        <div class="scissor-line">
+            <i class="fa-solid fa-scissors"></i>
+            <span>Cut Here for Office Counterfoil / ডুপ্লিকেট অফিস কপি</span>
+        </div>
+
+        <!-- COPY 2: OFFICE / SCHOOL COUNTERFOIL (বিদ্যালয় কপি) -->
+        <div class="receipt-card">
+            <div class="receipt-badge" style="border-color: #6c757d; color: #6c757d;">OFFICE COPY / অফিস কপি</div>
+
+            <div class="text-center">
+                <div class="school-title" style="font-size: 16px;">@Model.OrganizationName</div>
+                <div class="school-subtitle">
+                    MONEY RECEIPT (OFFICE COUNTERFOIL) | @Model.AffiliationInfo
+                </div>
+            </div>
+
+            <table class="meta-table w-100 mt-2">
+                <tr>
+                    <td class="meta-label">Receipt No:</td>
+                    <td><strong>@Model.ReceiptNumber</strong></td>
+                    <td class="meta-label">Date:</td>
+                    <td>@Model.PaymentDate.ToString("dd-MMM-yyyy")</td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Student:</td>
+                    <td><strong>@Model.StudentName</strong> (@Model.StudentCode)</td>
+                    <td class="meta-label">Class & Adm No:</td>
+                    <td>@(Model.CourseName ?? "-") | @(Model.AdmissionNumber ?? "-")</td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Amount Paid:</td>
+                    <td><strong class="text-success fs-6">₹@Model.PaidAmount.ToString("N2")</strong></td>
+                    <td class="meta-label">Mode / Ref:</td>
+                    <td>@Model.PaymentMode @(string.IsNullOrEmpty(Model.TransactionRef) ? "" : "[" + Model.TransactionRef + "]")</td>
+                </tr>
+            </table>
+
+            <div class="amount-in-words py-1 small">
+                <strong>Words:</strong> @Model.AmountInWords
+            </div>
+
+            <div class="signature-box" style="margin-top: 30px;">
+                <div class="signature-line">
+                    Cashier / Accounts Clerk
+                </div>
+                <div class="signature-line">
+                    Depositor / Parent Signature
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -64,6 +64,11 @@ namespace IMS.Services
                     S_AdmissionNumber = s.S_AdmissionNumber,
                     FullName = JoinName(s.S_FirstName, s.S_MiddleName, s.S_LastName),
                     S_Gender = s.S_Gender,
+                    S_Email = s.S_Email,
+                    S_Phone = s.S_Phone,
+                    S_DateOfBirth = s.S_DateOfBirth,
+                    S_BloodGroup = s.S_BloodGroup,
+                    FullAddress = JoinAddress(s),
                     BranchName = HardcodedMasterData.GetBranchName(s.S_BranchId),
                     ClassName = HardcodedMasterData.GetClassName(s.S_ClassId),
                     SectionName = HardcodedMasterData.GetSectionName(s.S_SectionId),
@@ -82,6 +87,10 @@ namespace IMS.Services
             if (s == null) return null;
 
             var guardianRecords = await _repo.GetGuardiansByStudentIdAsync(id);
+            var feeSummary = await _repo.GetFeeSummaryAsync(id, tenantId);
+            var attendanceSummary = await _repo.GetAttendanceSummaryAsync(id, tenantId);
+            var leaveSummary = await _repo.GetLeaveSummaryAsync(id, tenantId);
+            var enrollmentHistory = await _repo.GetEnrollmentHistoryAsync(id, tenantId);
 
             string batchName = "-";
             if (s.S_BatchId.HasValue)
@@ -91,29 +100,73 @@ namespace IMS.Services
                     batchName = bName.ToString();
             }
 
-            return new StudentDetailsViewModel
+            string feeStatus = "No Invoices";
+            if (feeSummary.TotalInvoiced > 0)
+            {
+                if (feeSummary.BalanceAmount <= 0) feeStatus = "Paid";
+                else if (feeSummary.TotalPaid > 0) feeStatus = "Partial";
+                else feeStatus = "Unpaid";
+            }
+
+            var vm = new StudentDetailsViewModel
             {
                 S_Id = s.S_Id,
+                S_TenantId = s.S_TenantId,
                 S_StudentCode = s.S_StudentCode,
                 S_AdmissionNumber = s.S_AdmissionNumber,
                 FullName = JoinName(s.S_FirstName, s.S_MiddleName, s.S_LastName),
+                S_FirstName = s.S_FirstName,
+                S_MiddleName = s.S_MiddleName,
+                S_LastName = s.S_LastName,
                 S_DateOfBirth = s.S_DateOfBirth,
                 S_Gender = s.S_Gender,
                 S_Email = s.S_Email,
                 S_Phone = s.S_Phone,
+                S_BranchId = s.S_BranchId,
                 BranchName = HardcodedMasterData.GetBranchName(s.S_BranchId),
+                S_ClassId = s.S_ClassId,
                 ClassName = HardcodedMasterData.GetClassName(s.S_ClassId),
+                S_SectionId = s.S_SectionId,
                 SectionName = HardcodedMasterData.GetSectionName(s.S_SectionId),
                 S_BatchId = s.S_BatchId,
                 BatchName = batchName,
                 S_BloodGroup = s.S_BloodGroup,
                 FullAddress = JoinAddress(s),
+                S_AddressLine1 = s.S_AddressLine1,
+                S_AddressLine2 = s.S_AddressLine2,
+                S_City = s.S_City,
+                S_State = s.S_State,
+                S_PostalCode = s.S_PostalCode,
+                S_Country = s.S_Country,
                 S_AdmissionDate = s.S_AdmissionDate,
                 S_Status = s.S_Status,
                 S_CreatedAt = s.S_CreatedAt,
                 S_UpdatedAt = s.S_UpdatedAt,
-                Guardians = guardianRecords.Select(MapGuardianRecordToRow).ToList()
+                Guardians = guardianRecords.Select(MapGuardianRecordToRow).ToList(),
+
+                // Financial
+                TotalFeeInvoiced = feeSummary.TotalInvoiced,
+                TotalFeePaid = feeSummary.TotalPaid,
+                TotalFeeBalance = feeSummary.BalanceAmount,
+                FeeStatus = feeStatus,
+                RecentInvoices = feeSummary.RecentInvoices,
+
+                // Attendance
+                TotalAttendanceSessions = attendanceSummary.TotalSessions,
+                PresentSessions = attendanceSummary.PresentSessions,
+                AbsentSessions = attendanceSummary.AbsentSessions,
+                AttendancePercentage = attendanceSummary.Percentage,
+
+                // Leaves
+                TotalLeavesTaken = leaveSummary.TotalLeaves,
+                RecentLeaves = leaveSummary.RecentLeaves,
+
+                // Academic History
+                EnrollmentHistory = enrollmentHistory
             };
+
+            PopulateDetailsDropdowns(vm);
+            return vm;
         }
 
         public async Task<StudentFormViewModel> GetStudentForEditAsync(Guid id, Guid tenantId)
@@ -184,19 +237,71 @@ namespace IMS.Services
             if (!model.S_Id.HasValue)
                 return ServiceResult.Fail("Student Id is required for update.");
 
-            if (await _repo.IsAdmissionNumberTakenAsync(tenantId, model.S_AdmissionNumber, model.S_Id))
+            var existing = await _repo.GetByIdAsync(model.S_Id.Value, tenantId);
+            if (existing == null)
+                return ServiceResult.Fail("Student not found or already removed.");
+
+            var effectiveTenantId = existing.S_TenantId != Guid.Empty ? existing.S_TenantId : tenantId;
+
+            // Preserve student code and admission number if not provided
+            var studentCode = string.IsNullOrWhiteSpace(model.S_StudentCode) ? existing.S_StudentCode : model.S_StudentCode;
+            var admissionNumber = string.IsNullOrWhiteSpace(model.S_AdmissionNumber) ? existing.S_AdmissionNumber : model.S_AdmissionNumber;
+
+            if (!string.IsNullOrWhiteSpace(admissionNumber) &&
+                await _repo.IsAdmissionNumberTakenAsync(effectiveTenantId, admissionNumber, model.S_Id))
                 return ServiceResult.Fail("This admission number is already in use.");
 
-            if (await _repo.IsStudentCodeTakenAsync(tenantId, model.S_StudentCode, model.S_Id))
+            if (!string.IsNullOrWhiteSpace(studentCode) &&
+                await _repo.IsStudentCodeTakenAsync(effectiveTenantId, studentCode, model.S_Id))
                 return ServiceResult.Fail("This student code is already in use.");
 
-            var entity = MapToEntity(model, tenantId, model.S_Id.Value);
+            model.S_StudentCode = studentCode;
+            model.S_AdmissionNumber = admissionNumber;
+
+            var entity = MapToEntity(model, effectiveTenantId, model.S_Id.Value);
             var guardianInputs = MapGuardians(model.Guardians);
 
             var success = await _repo.UpdateStudentWithGuardiansAsync(entity, guardianInputs);
             return success
                 ? ServiceResult.Ok("Student updated successfully.", model.S_Id)
-                : ServiceResult.Fail("Student not found or already removed.");
+                : ServiceResult.Fail("Unable to update student. Please check your details and try again.");
+        }
+
+        public async Task<ServiceResult> QuickUpdateStudentAsync(QuickStudentUpdateModel model, Guid tenantId)
+        {
+            if (model == null || model.S_Id == Guid.Empty)
+                return ServiceResult.Fail("Student Id is required.");
+
+            var existing = await _repo.GetByIdAsync(model.S_Id, tenantId);
+            if (existing == null)
+                return ServiceResult.Fail("Student not found or already removed.");
+
+            // Update only the supplied fields
+            if (!string.IsNullOrWhiteSpace(model.S_FirstName)) existing.S_FirstName = model.S_FirstName.Trim();
+            if (model.S_MiddleName != null) existing.S_MiddleName = model.S_MiddleName.Trim();
+            if (!string.IsNullOrWhiteSpace(model.S_LastName)) existing.S_LastName = model.S_LastName.Trim();
+            if (!string.IsNullOrWhiteSpace(model.S_Status)) existing.S_Status = model.S_Status.Trim();
+            if (model.S_Phone != null) existing.S_Phone = model.S_Phone.Trim();
+            if (model.S_Email != null) existing.S_Email = model.S_Email.Trim();
+            if (model.S_DateOfBirth.HasValue) existing.S_DateOfBirth = model.S_DateOfBirth;
+            if (!string.IsNullOrWhiteSpace(model.S_Gender)) existing.S_Gender = model.S_Gender.Trim();
+            if (!string.IsNullOrWhiteSpace(model.S_BloodGroup)) existing.S_BloodGroup = model.S_BloodGroup.Trim();
+            if (model.S_BranchId.HasValue && model.S_BranchId != Guid.Empty) existing.S_BranchId = model.S_BranchId.Value;
+            if (model.S_ClassId.HasValue) existing.S_ClassId = model.S_ClassId.Value != Guid.Empty ? model.S_ClassId : null;
+            if (model.S_SectionId.HasValue) existing.S_SectionId = model.S_SectionId.Value != Guid.Empty ? model.S_SectionId : null;
+            if (model.S_BatchId.HasValue) existing.S_BatchId = model.S_BatchId.Value != Guid.Empty ? model.S_BatchId : null;
+            if (model.S_AdmissionDate.HasValue) existing.S_AdmissionDate = model.S_AdmissionDate;
+            if (model.S_AddressLine1 != null) existing.S_AddressLine1 = model.S_AddressLine1.Trim();
+            if (model.S_AddressLine2 != null) existing.S_AddressLine2 = model.S_AddressLine2.Trim();
+            if (model.S_City != null) existing.S_City = model.S_City.Trim();
+            if (model.S_State != null) existing.S_State = model.S_State.Trim();
+            if (model.S_PostalCode != null) existing.S_PostalCode = model.S_PostalCode.Trim();
+            if (model.S_Country != null) existing.S_Country = model.S_Country.Trim();
+
+            var success = await _repo.QuickUpdateAsync(existing);
+            return success
+                ? ServiceResult.Ok("Student updated successfully.", existing.S_Id)
+                : ServiceResult.Fail("Unable to update student.");
         }
 
         public async Task<ServiceResult> DeleteStudentAsync(Guid id, Guid tenantId)
@@ -205,6 +310,17 @@ namespace IMS.Services
             return success
                 ? ServiceResult.Ok("Student removed successfully.")
                 : ServiceResult.Fail("Unable to remove student.");
+        }
+
+        public void PopulateDetailsDropdowns(StudentDetailsViewModel vm)
+        {
+            vm.BranchOptions = HardcodedMasterData.GetBranchSelectList(vm.S_BranchId);
+            vm.ClassOptions = HardcodedMasterData.GetClassSelectList(vm.S_ClassId);
+            vm.SectionOptions = HardcodedMasterData.GetSectionSelectList(vm.S_SectionId);
+            vm.BatchOptions = GetMasterSelectList("Batch", vm.S_BatchId?.ToString());
+            vm.StatusOptions = HardcodedMasterData.GetStatusSelectList(vm.S_Status);
+            vm.GenderOptions = HardcodedMasterData.GetGenderSelectList(vm.S_Gender);
+            vm.BloodGroupOptions = HardcodedMasterData.GetBloodGroupSelectList(vm.S_BloodGroup);
         }
 
         // ---------- helpers ----------

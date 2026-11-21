@@ -1,0 +1,180 @@
+@model IMS.Models.ViewModels.BatchInvoiceGenerateViewModel
+@{
+    ViewData["Title"] = "Generate Batch Fee Invoices";
+}
+
+<div class="container-fluid px-3 py-2">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a asp-controller="Fees" asp-action="Invoices">Fees</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Batch Invoicing</li>
+                </ol>
+            </nav>
+            <h4 class="mb-0 fw-bold text-dark">
+                <i class="fa-solid fa-layer-group text-primary me-2"></i>Scheduled Batch Fee Billing
+                <span class="badge bg-light text-secondary border ms-2 fs-6">এককালীন শ্রেণীভিত্তিক বিলিং</span>
+            </h4>
+            <p class="text-muted small mb-0">Generate monthly, quarterly, or session fee invoices for all active students in a Class/Section in one step.</p>
+        </div>
+        <div>
+            <a asp-controller="Fees" asp-action="Invoices" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Invoices
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fa-solid fa-calendar-check me-2"></i>Class-Wise Invoice Generation Parameters
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div id="batchAlertArea"></div>
+
+                    <form id="batchInvoiceForm">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Target Scope -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Academic Session / Year <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="AcademicYearId" asp-items="Model.AcademicYearOptions" class="form-select" required>
+                                    <option value="">-- Select Academic Year --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Class / Course <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="CourseId" asp-items="Model.CourseOptions" class="form-select" id="courseDropdown" required>
+                                    <option value="">-- Select Class / Course --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Section / Batch (ঐচ্ছিক - খালি রাখলে পুরো শ্রেণী)
+                                </label>
+                                <select asp-for="BatchId" asp-items="Model.BatchOptions" class="form-select" id="batchDropdown">
+                                    <option value="">-- All Sections / Batches --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Applicable Fee Structure <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="FeeStructureId" asp-items="Model.FeeStructureOptions" class="form-select" required>
+                                    <option value="">-- Select Fee Structure Template --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-3 text-muted" />
+
+                        <!-- Billing Cycle & Schedule Dates -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Billing Period <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="BillingPeriod" class="form-control" placeholder="e.g. 2026-04 or April-2026" required />
+                                <small class="text-muted">Month or cycle tag (e.g., Apr-2026, Q1-2026)</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Invoice Date <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="InvoiceDate" type="date" class="form-control" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">
+                                    Due Date <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="DueDate" type="date" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <!-- Info Banner -->
+                        <div class="alert alert-info border-0 rounded-3 mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-circle-info fs-3 text-info me-3"></i>
+                                <div class="small">
+                                    <strong>Automatic Duplicate Prevention:</strong> The system automatically verifies student records. If an invoice for this class and billing cycle has already been generated for any student, it skips re-billing them to prevent duplicate liabilities.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Submit -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-controller="Fees" asp-action="Invoices" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" id="btnSubmitBatch" class="btn btn-primary px-4 shadow-sm">
+                                <i class="fa-solid fa-bolt me-1"></i> Generate Invoices Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+$(function(){
+    $('#batchInvoiceForm').on('submit', function(e){
+        e.preventDefault();
+        
+        var $btn = $('#btnSubmitBatch');
+        var originalText = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Generating Invoices...');
+        $('#batchAlertArea').empty();
+
+        $.ajax({
+            url: '@Url.Action("ProcessBatchInvoices", "Fees")',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(res){
+                $btn.prop('disabled', false).html(originalText);
+                if(res.success){
+                    $('#batchAlertArea').html(
+                        '<div class="alert alert-success alert-dismissible fade show">' +
+                        '<i class="fa-solid fa-circle-check me-2"></i>' + res.message +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                        '</div>'
+                    );
+                    setTimeout(function(){
+                        window.location.href = '@Url.Action("Invoices", "Fees")';
+                    }, 2000);
+                } else {
+                    $('#batchAlertArea').html(
+                        '<div class="alert alert-danger alert-dismissible fade show">' +
+                        '<i class="fa-solid fa-triangle-exclamation me-2"></i>' + res.message +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                        '</div>'
+                    );
+                }
+            },
+            error: function(){
+                $btn.prop('disabled', false).html(originalText);
+                $('#batchAlertArea').html(
+                    '<div class="alert alert-danger alert-dismissible fade show">' +
+                    '<i class="fa-solid fa-triangle-exclamation me-2"></i>Failed to process batch invoice generation request.' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>'
+                );
+            }
+        });
+    });
+});
+</script>
+}

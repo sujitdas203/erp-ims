@@ -33,7 +33,7 @@ namespace IMS.Web.Extensions
             services.AddScoped<ITeacherDirectoryLookup, TeacherApiDirectoryLookup>();
             services.AddScoped<IStudentLeaveService, StudentLeaveService>();
             services.AddScoped<ITransferCertificateService, TransferCertificateService>();
-            services.AddScoped<IStuddentPortalService, StuddentStuddentPortalService>();
+            services.AddScoped<IStudentPortalService, StudentPortalService>();
             services.AddScoped<IAnnouncementService, AnnouncementService>();
             services.AddScoped<ISubjectSyllabusService, SubjectSyllabusService>();
             services.AddScoped<IHomeTaskService, HomeTaskService>();

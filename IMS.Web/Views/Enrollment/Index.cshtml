@@ -8,9 +8,14 @@
         <h4 class="mb-0 fw-bold"><i class="fa-solid fa-user-plus text-primary me-2"></i>Student Enrollments</h4>
         <p class="text-muted mb-0 small">Manage school (Nursery to 12th grade) & higher education stream admissions and class allocations.</p>
     </div>
-    <a asp-controller="Enrollment" asp-action="Create" class="btn btn-primary px-3 shadow-sm">
-        <i class="fa-solid fa-plus me-1"></i> New Enrollment
-    </a>
+    <div class="d-flex gap-2">
+        <a asp-controller="Enrollment" asp-action="Promote" class="btn btn-success px-3 shadow-sm">
+            <i class="bi bi-mortarboard-fill me-1"></i> Bulk Class Promotion
+        </a>
+        <a asp-controller="Enrollment" asp-action="Create" class="btn btn-primary px-3 shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> New Enrollment
+        </a>
+    </div>
 </div>
 
 <!-- Filter Bar -->

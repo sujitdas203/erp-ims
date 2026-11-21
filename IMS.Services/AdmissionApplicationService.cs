@@ -767,26 +767,48 @@ namespace IMS.Services
 
                     if (paidAmount > 0)
                     {
-                        var payment = new Payment
+                        Guid methodId = Guid.Empty;
+                        try
                         {
-                            PAY_Id = Guid.NewGuid(),
-                            PAY_TenantId = tenantId,
-                            PAY_StudentId = studentId,
-                            PAY_PaymentNumber = receiptNumber,
-                            PAY_PaymentDate = model.PaymentDate ?? DateTime.Today,
-                            PAY_Amount = paidAmount,
-                            PAY_PaymentMethodId = Guid.Empty,
-                            PAY_Status = "Completed",
-                            PAY_TransactionReference = !string.IsNullOrWhiteSpace(model.TransactionReference) 
-                                ? model.TransactionReference 
-                                : ("TXN-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999)),
-                            PAY_Notes = $"Admission enrollment payment ({model.PaymentMethod ?? "Cash"}) - {model.PaymentRemarks}",
-                            PAY_CreatedBy = currentUserId,
-                            PAY_CreatedAt = DateTime.UtcNow,
-                            PAY_UpdatedAt = DateTime.UtcNow
-                        };
+                            var methods = _masterService.GetAll("PaymentMethod");
+                            if (methods != null && methods.Count > 0)
+                            {
+                                var matched = methods.FirstOrDefault(m => 
+                                    (m.TryGetValue("PM_Name", out var n) && n?.ToString()?.IndexOf(model.PaymentMethod ?? "Cash", StringComparison.OrdinalIgnoreCase) >= 0) ||
+                                    (m.TryGetValue("PM_Type", out var t) && t?.ToString()?.IndexOf(model.PaymentMethod ?? "cash", StringComparison.OrdinalIgnoreCase) >= 0));
+                                
+                                var targetEntry = matched ?? methods.FirstOrDefault();
+                                if (targetEntry != null && targetEntry.TryGetValue("PM_Id", out var idObj) && Guid.TryParse(idObj?.ToString(), out var parsedId))
+                                {
+                                    methodId = parsedId;
+                                }
+                            }
+                        }
+                        catch { }
 
-                        await _paymentDAL.CreateAsync(payment);
+                        if (methodId != Guid.Empty)
+                        {
+                            var payment = new Payment
+                            {
+                                PAY_Id = Guid.NewGuid(),
+                                PAY_TenantId = tenantId,
+                                PAY_StudentId = studentId,
+                                PAY_PaymentNumber = receiptNumber,
+                                PAY_PaymentDate = model.PaymentDate ?? DateTime.Today,
+                                PAY_Amount = paidAmount,
+                                PAY_PaymentMethodId = methodId,
+                                PAY_Status = "completed",
+                                PAY_TransactionReference = !string.IsNullOrWhiteSpace(model.TransactionReference) 
+                                    ? model.TransactionReference 
+                                    : ("TXN-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999)),
+                                PAY_Notes = $"Admission enrollment payment ({model.PaymentMethod ?? "Cash"}) - {model.PaymentRemarks}",
+                                PAY_CreatedBy = currentUserId,
+                                PAY_CreatedAt = DateTime.UtcNow,
+                                PAY_UpdatedAt = DateTime.UtcNow
+                            };
+
+                            await _paymentDAL.CreateAsync(payment);
+                        }
                     }
                 }
                 catch (Exception feeEx)

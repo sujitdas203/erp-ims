@@ -16,9 +16,12 @@
                 If you are a parent or student who recently joined, please contact the institution's administrative office to link your student admission file to your email address.
             </p>
             <div class="mt-4">
-                <a asp-area="StudentPortal" asp-controller="Auth" asp-action="Logout" class="btn btn-outline-danger btn-sm px-4 rounded-pill">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Sign Out
-                </a>
+                <form asp-area="StudentPortal" asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm px-4 rounded-pill">
+                        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Sign Out
+                    </button>
+                </form>
             </div>
         </div>
     </div>

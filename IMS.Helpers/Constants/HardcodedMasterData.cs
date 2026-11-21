@@ -7,10 +7,14 @@ namespace IMS.Helpers.Constants
     public static class HardcodedMasterData
     {
         // TODO: replace with real tenant resolution (auth claims / session)
-        public static readonly Guid CurrentTenantId = new("11111111-1111-1111-1111-111111111111");
+        public static readonly Guid CurrentTenantId = new("4150d676-e932-49af-a9d3-dc673fc1891d");
 
         public static readonly List<(Guid Id, string Name)> Branches = new()
         {
+            (new Guid("3e3252b0-15a5-4f57-a92a-a7b13b930119"), "Kolkata Main Campus"),
+            (new Guid("639bcca1-9b58-4eae-bf06-5e1db8614e3b"), "Cooch Behar Branch"),
+            (new Guid("b25e166c-9943-4298-af94-d18a9e52c4a8"), "Durgapur Town Branch"),
+            (new Guid("aa1470f2-acf4-49a8-ac09-fb1f2c0910d7"), "Siliguri City Campus"),
             (new Guid("22222222-2222-2222-2222-222222222201"), "Main Campus"),
             (new Guid("22222222-2222-2222-2222-222222222202"), "North Branch"),
             (new Guid("22222222-2222-2222-2222-222222222203"), "South Branch"),

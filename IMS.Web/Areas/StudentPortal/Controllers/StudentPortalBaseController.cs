@@ -11,7 +11,7 @@ using IMS.Models.Portal;
 namespace IMS.Web.Areas.StudentPortal.Controllers
 {
     [Area("StudentPortal")]
-    [Authorize(AuthenticationSchemes = "StudentPortalAuth")]
+    [Authorize(AuthenticationSchemes = "StudentPortalAuth", Roles = "STUDENT,GUARDIAN")]
     public abstract class StudentPortalBaseController : Controller
     {
         public Guid CurrentUserId

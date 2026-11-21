@@ -140,12 +140,30 @@
             </div>
             <div class="col-md-4">
                 <label for="S_Gender" class="form-label fw-semibold">Gender</label>
-                <select id="S_Gender" name="S_Gender" class="form-select" data-selected-value="@(Model.S_Gender)"></select>
+                <select id="S_Gender" name="S_Gender" class="form-select" data-selected-value="@(Model.S_Gender)">
+                    <option value="">Select Gender</option>
+                    @if (Model.GenderOptions != null)
+                    {
+                        foreach (var opt in Model.GenderOptions)
+                        {
+                            <option value="@opt.Value" selected="@(opt.Selected || opt.Value == Model.S_Gender)">@opt.Text</option>
+                        }
+                    }
+                </select>
                 <div class="text-danger small field-error" data-for="S_Gender"></div>
             </div>
             <div class="col-md-4">
                 <label for="S_BloodGroup" class="form-label fw-semibold">Blood Group</label>
-                <select id="S_BloodGroup" name="S_BloodGroup" class="form-select" data-selected-value="@(Model.S_BloodGroup)"></select>
+                <select id="S_BloodGroup" name="S_BloodGroup" class="form-select" data-selected-value="@(Model.S_BloodGroup)">
+                    <option value="">Select Blood Group</option>
+                    @if (Model.BloodGroupOptions != null)
+                    {
+                        foreach (var opt in Model.BloodGroupOptions)
+                        {
+                            <option value="@opt.Value" selected="@(opt.Selected || opt.Value == Model.S_BloodGroup)">@opt.Text</option>
+                        }
+                    }
+                </select>
                 <div class="text-danger small field-error" data-for="S_BloodGroup"></div>
             </div>
         </div>
@@ -290,7 +308,27 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small fw-semibold">Relation <span class="text-danger">*</span></label>
-                                <select name="Guardians[@gIndex].Relation" class="form-select form-select-sm relation-select" data-selected-value="@(g.Relation)"></select>
+                                <select name="Guardians[@gIndex].Relation" class="form-select form-select-sm relation-select" data-selected-value="@(g.Relation)">
+                                    <option value="">Select Relation</option>
+                                    @if (Model.RelationOptions != null && Model.RelationOptions.Any())
+                                    {
+                                        foreach (var opt in Model.RelationOptions)
+                                        {
+                                            <option value="@opt.Value" selected="@(opt.Selected || opt.Value == g.Relation)">@opt.Text</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="Father" selected="@(g.Relation == "Father")">Father</option>
+                                        <option value="Mother" selected="@(g.Relation == "Mother")">Mother</option>
+                                        <option value="Guardian" selected="@(g.Relation == "Guardian")">Guardian</option>
+                                        <option value="Brother" selected="@(g.Relation == "Brother")">Brother</option>
+                                        <option value="Sister" selected="@(g.Relation == "Sister")">Sister</option>
+                                        <option value="Uncle" selected="@(g.Relation == "Uncle")">Uncle</option>
+                                        <option value="Aunt" selected="@(g.Relation == "Aunt")">Aunt</option>
+                                        <option value="Other" selected="@(g.Relation == "Other")">Other</option>
+                                    }
+                                </select>
                                 <div class="text-danger small field-error" data-for="Guardians[@gIndex].Relation"></div>
                             </div>
                             <div class="col-md-4 d-flex align-items-center">

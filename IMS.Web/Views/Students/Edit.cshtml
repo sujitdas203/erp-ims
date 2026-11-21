@@ -27,74 +27,12 @@
     <script src="~/js/students.js"></script>
     <script>
         $(function () {
-            var branchId = $('#S_BranchId').data('selected-value') || '';
-            var classId = $('#S_ClassId').data('selected-value') || '';
-            var sectionId = $('#S_SectionId').data('selected-value') || '';
-
-            Dropdown.load({
-                element: '#S_BranchId',
-                entityType: 'Branch',
-                defaultText: 'Select Branch',
-                includeDefault: true,
-                selectedValue: branchId
-            });
-
-            Dropdown.load({
-                element: '#S_ClassId',
-                entityType: 'Class',
-                defaultText: 'Select Class',
-                includeDefault: true,
-                selectedValue: classId
-            });
-
-            Dropdown.load({
-                element: '#S_SectionId',
-                entityType: 'Section',
-                defaultText: 'Select Section',
-                includeDefault: true,
-                selectedValue: sectionId
-            });
-
-            Dropdown.load({
-                element: '#S_BatchId',
-                entityType: 'Batch',
-                defaultText: 'Select Batch',
-                includeDefault: true,
-                selectedValue: $('#S_BatchId').data('selected-value')
-            });
-
-            Dropdown.load({
-                element: '#S_Gender',
-                entityType: 'Gender',
-                defaultText: 'Select Gender',
-                includeDefault: true,
-                selectedValue: $('#S_Gender').data('selected-value')
-            });
-
-            Dropdown.load({
-                element: '#S_BloodGroup',
-                entityType: 'BloodGroup',
-                defaultText: 'Select Blood Group',
-                includeDefault: true,
-                selectedValue: $('#S_BloodGroup').data('selected-value')
-            });
-
-            Dropdown.load({
-                element: '#S_Status',
-                entityType: 'StudentStatus',
-                defaultText: 'Select Status',
-                includeDefault: false,
-                selectedValue: $('#S_Status').data('selected-value') || 'Admitted'
-            });
-
-            $('.relation-select').each(function () {
-                Dropdown.load({
-                    element: this,
-                    entityType: 'Relation',
-                    defaultText: 'Select Relation',
-                    includeDefault: true,
-                    selectedValue: $(this).data('selected-value')
-                });
+            // Ensure select elements match data-selected-value if specified
+            $('select[data-selected-value]').each(function () {
+                var selVal = $(this).attr('data-selected-value');
+                if (selVal && !$(this).val()) {
+                    $(this).val(selVal);
+                }
             });
 
             if (typeof IMSDatePicker !== 'undefined') {

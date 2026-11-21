@@ -17,12 +17,14 @@ namespace IMS.Services
         private readonly IEnrollmentDAL _repo;
         private readonly IMasterService _masterService;
         private readonly IDropdownService _dropdownService;
+        private readonly IStudentDAL _studentDal;
 
-        public EnrollmentService(IEnrollmentDAL repo, IMasterService masterService, IDropdownService dropdownService)
+        public EnrollmentService(IEnrollmentDAL repo, IMasterService masterService, IDropdownService dropdownService, IStudentDAL studentDal)
         {
             _repo = repo;
             _masterService = masterService;
             _dropdownService = dropdownService;
+            _studentDal = studentDal;
         }
 
         public async Task<EnrollmentIndexViewModel> GetListAsync(Guid tenantId, string? searchTerm, Guid? academicYearId,
@@ -286,5 +288,217 @@ namespace IMS.Services
             E_FeeStructureId = m.E_FeeStructureId,
             E_Remarks = string.IsNullOrWhiteSpace(m.E_Remarks) ? null : m.E_Remarks.Trim()
         };
+
+        public async Task<StudentPromotionRequestViewModel?> GetPromotionFormForStudentAsync(Guid studentId, Guid tenantId)
+        {
+            var student = await _studentDal.GetByIdAsync(studentId, tenantId);
+            if (student == null) return null;
+
+            var activeEnrollment = await _repo.GetActiveEnrollmentByStudentAsync(studentId, tenantId);
+            var nextClassId = GetNextClassIdInSequence(student.S_ClassId) ?? student.S_ClassId ?? Guid.Empty;
+
+            var vm = new StudentPromotionRequestViewModel
+            {
+                StudentId = student.S_Id,
+                StudentName = $"{student.S_FirstName} {student.S_LastName}".Trim(),
+                StudentCode = student.S_StudentCode,
+                AdmissionNumber = student.S_AdmissionNumber,
+                CurrentBranchId = student.S_BranchId,
+                CurrentBranchName = HardcodedMasterData.GetBranchName(student.S_BranchId),
+                CurrentAcademicYearId = activeEnrollment?.E_AcademicYearId,
+                CurrentAcademicYearName = activeEnrollment?.AcademicYearName ?? "-",
+                CurrentClassId = student.S_ClassId,
+                CurrentClassName = HardcodedMasterData.GetClassName(student.S_ClassId),
+                CurrentSectionId = student.S_SectionId,
+                CurrentSectionName = HardcodedMasterData.GetSectionName(student.S_SectionId),
+                CurrentRollNumber = activeEnrollment?.E_RollNumber ?? "-",
+                NextClassId = nextClassId,
+                NextSectionId = student.S_SectionId,
+                NewRollNumber = activeEnrollment?.E_RollNumber,
+                EnrollmentType = "Promotion",
+                AcademicYearOptions = GetDropdownSelectList("AcademicYear"),
+                ClassOptions = HardcodedMasterData.GetClassSelectList(nextClassId),
+                SectionOptions = HardcodedMasterData.GetSectionSelectList(student.S_SectionId),
+                EnrollmentTypeOptions = HardcodedMasterData.GetEnrollmentTypeSelectList("Promotion"),
+                FeeStructureOptions = GetDropdownSelectList("FeeStructure")
+            };
+
+            return vm;
+        }
+
+        public async Task<ServiceResult> PromoteStudentAsync(StudentPromotionRequestViewModel model, Guid tenantId)
+        {
+            if (model.StudentId == Guid.Empty)
+                return ServiceResult.Fail("Student is required.");
+
+            if (model.NextAcademicYearId == Guid.Empty)
+                return ServiceResult.Fail("Please select the destination academic year.");
+
+            if (model.NextClassId == Guid.Empty)
+                return ServiceResult.Fail("Please select the destination class / grade.");
+
+            var currentYearId = model.CurrentAcademicYearId ?? Guid.Empty;
+            if (currentYearId == Guid.Empty)
+            {
+                var active = await _repo.GetActiveEnrollmentByStudentAsync(model.StudentId, tenantId);
+                if (active != null) currentYearId = active.E_AcademicYearId;
+            }
+
+            var (success, message, newId) = await _repo.PromoteSingleStudentAsync(
+                tenantId,
+                model.StudentId,
+                currentYearId,
+                model.NextAcademicYearId,
+                model.NextClassId,
+                model.NextSectionId,
+                model.NewRollNumber,
+                model.EnrollmentType,
+                model.NextFeeStructureId,
+                model.Remarks,
+                model.CurrentBranchId
+            );
+
+            return success
+                ? ServiceResult.Ok(message, newId)
+                : ServiceResult.Fail(message);
+        }
+
+        public async Task<List<StudentEnrollmentHistoryViewModel>> GetEnrollmentHistoryAsync(Guid studentId, Guid tenantId)
+        {
+            return await _repo.GetEnrollmentHistoryByStudentIdAsync(studentId, tenantId);
+        }
+
+        public async Task<BulkPromotionIndexViewModel> GetBulkPromotionViewModelAsync(
+            Guid tenantId, Guid? sourceBranchId, Guid? sourceAcademicYearId, Guid? sourceClassId, Guid? sourceSectionId)
+        {
+            var vm = new BulkPromotionIndexViewModel
+            {
+                SourceBranchId = sourceBranchId,
+                SourceAcademicYearId = sourceAcademicYearId,
+                SourceClassId = sourceClassId,
+                SourceSectionId = sourceSectionId,
+                BranchOptions = HardcodedMasterData.GetBranchSelectList(sourceBranchId),
+                AcademicYearOptions = GetDropdownSelectList("AcademicYear", sourceAcademicYearId?.ToString()),
+                ClassOptions = HardcodedMasterData.GetClassSelectList(sourceClassId),
+                SectionOptions = HardcodedMasterData.GetSectionSelectList(sourceSectionId),
+                FeeStructureOptions = GetDropdownSelectList("FeeStructure"),
+                DefaultEnrollmentType = "Promotion"
+            };
+
+            if (sourceClassId.HasValue)
+            {
+                var nextClass = GetNextClassIdInSequence(sourceClassId.Value);
+                vm.TargetClassId = nextClass ?? sourceClassId.Value;
+                vm.TargetSectionId = sourceSectionId;
+            }
+
+            if (sourceAcademicYearId.HasValue && sourceClassId.HasValue)
+            {
+                vm.Students = await _repo.GetStudentsForPromotionAsync(
+                    tenantId, sourceBranchId, sourceAcademicYearId.Value, sourceClassId.Value, sourceSectionId);
+            }
+
+            return vm;
+        }
+
+        public async Task<List<BulkPromotionStudentItemViewModel>> GetStudentsForPromotionAsync(
+            Guid tenantId, Guid? branchId, Guid academicYearId, Guid classId, Guid? sectionId)
+        {
+            return await _repo.GetStudentsForPromotionAsync(tenantId, branchId, academicYearId, classId, sectionId);
+        }
+
+        public async Task<BulkPromotionResultViewModel> ProcessBulkPromotionAsync(BulkPromotionSubmitViewModel model, Guid tenantId)
+        {
+            var res = new BulkPromotionResultViewModel();
+            if (model.Students == null || model.Students.Count == 0)
+            {
+                res.Success = false;
+                res.Message = "No students selected for promotion.";
+                return res;
+            }
+
+            var selected = model.Students.Where(s => s.IsSelected).ToList();
+            if (selected.Count == 0)
+            {
+                res.Success = false;
+                res.Message = "Please select at least one student.";
+                return res;
+            }
+
+            res.TotalCount = selected.Count;
+
+            foreach (var student in selected)
+            {
+                if (student.AlreadyEnrolledInNextYear)
+                {
+                    res.SkippedCount++;
+                    res.Errors.Add($"{student.FullName} is already enrolled in the destination year.");
+                    continue;
+                }
+
+                Guid targetClassId = model.TargetClassId;
+                string enrollmentType = "Promotion";
+
+                if (string.Equals(student.Action, "Repeat", StringComparison.OrdinalIgnoreCase))
+                {
+                    enrollmentType = "Repeat";
+                    var st = await _studentDal.GetByIdAsync(student.StudentId, tenantId);
+                    if (st?.S_ClassId != null) targetClassId = st.S_ClassId.Value;
+                }
+                else if (string.Equals(student.Action, "Leave", StringComparison.OrdinalIgnoreCase))
+                {
+                    var current = await _repo.GetActiveEnrollmentByStudentAsync(student.StudentId, tenantId);
+                    if (current != null)
+                    {
+                        current.E_Status = "Withdrawn";
+                        current.E_CompletionDate = DateTime.Today;
+                        await _repo.UpdateAsync(current);
+                    }
+                    res.RetainedCount++;
+                    continue;
+                }
+
+                var (success, msg, _) = await _repo.PromoteSingleStudentAsync(
+                    tenantId,
+                    student.StudentId,
+                    model.SourceAcademicYearId,
+                    model.TargetAcademicYearId,
+                    targetClassId,
+                    student.TargetSectionId ?? model.TargetSectionId,
+                    student.NextRollNumber ?? student.CurrentRollNumber,
+                    enrollmentType,
+                    model.TargetFeeStructureId,
+                    $"Bulk {enrollmentType} processed on {DateTime.Today:dd-MMM-yyyy}",
+                    model.TargetBranchId
+                );
+
+                if (success)
+                {
+                    if (enrollmentType == "Promotion") res.PromotedCount++;
+                    else res.RetainedCount++;
+                }
+                else
+                {
+                    res.SkippedCount++;
+                    res.Errors.Add($"{student.FullName}: {msg}");
+                }
+            }
+
+            res.Success = res.PromotedCount > 0 || res.RetainedCount > 0;
+            res.Message = $"Promotion completed. {res.PromotedCount} promoted, {res.RetainedCount} retained, {res.SkippedCount} skipped.";
+            return res;
+        }
+
+        private static Guid? GetNextClassIdInSequence(Guid? currentClassId)
+        {
+            if (!currentClassId.HasValue) return null;
+            var classes = HardcodedMasterData.Classes;
+            var idx = classes.FindIndex(c => c.Id == currentClassId.Value);
+            if (idx >= 0 && idx < classes.Count - 1)
+            {
+                return classes[idx + 1].Id;
+            }
+            return null;
+        }
     }
 }

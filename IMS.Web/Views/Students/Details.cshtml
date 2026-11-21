@@ -1,6 +1,6 @@
 @model IMS.Models.ViewModels.StudentDetailsViewModel
 @{
-    ViewData["Title"] = "Student Details";
+    ViewData["Title"] = $"{Model.FullName} — Student Details";
 
     string InitialsOf(string name) =>
         string.IsNullOrWhiteSpace(name) ? "?" : name.Trim().Substring(0, 1).ToUpper();
@@ -19,40 +19,89 @@
     {
         "active" or "admitted" => "bg-success",
         "inactive" or "suspended" => "bg-secondary",
-        "graduated" => "bg-primary",
-        "withdrawn" or "expelled" => "bg-danger",
+        "graduated" or "alumni" => "bg-primary",
+        "transferred" => "bg-warning text-dark",
+        "withdrawn" or "dropped" or "expelled" => "bg-danger",
         _ => "bg-info text-dark"
+    };
+
+    string FeeStatusBadgeClass(string status) => (status ?? "").ToLower() switch
+    {
+        "paid" => "bg-success",
+        "partial" => "bg-warning text-dark",
+        "unpaid" => "bg-danger",
+        _ => "bg-secondary"
     };
 }
 
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0"><i class="bi bi-person-badge-fill me-2"></i>Student Details</h3>
-    <div class="d-flex gap-2">
-        <a asp-controller="Students" asp-action="Edit" asp-route-id="@Model.S_Id" class="btn btn-primary">
-            <i class="bi bi-pencil me-1"></i> Edit
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a asp-controller="Students" asp-action="Index">Students</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.FullName</li>
+            </ol>
+        </nav>
+        <h3 class="mb-0 fw-bold">
+            <i class="bi bi-person-badge-fill text-primary me-2"></i>Student 360° Profile
+        </h3>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-success shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#promoteStudentModal" onclick="openStudentPromotionModal('@Model.S_Id')">
+            <i class="bi bi-mortarboard-fill me-1"></i> Promote / Next Class
+        </button>
+        <button type="button" class="btn btn-warning shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#quickEditModal">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Quick Edit
+        </button>
+        <a asp-controller="Students" asp-action="Edit" asp-route-id="@Model.S_Id" class="btn btn-primary shadow-sm">
+            <i class="bi bi-pencil me-1"></i> Edit Full Profile
         </a>
-        <a asp-controller="Students" asp-action="Index" class="btn btn-outline-secondary">
+        <a asp-controller="Fees" asp-action="Index" class="btn btn-outline-success shadow-sm">
+            <i class="bi bi-cash-stack me-1"></i> Fees Ledger
+        </a>
+        <button type="button" class="btn btn-outline-secondary shadow-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> Print
+        </button>
+        <a asp-controller="Students" asp-action="Index" class="btn btn-outline-secondary shadow-sm">
             <i class="bi bi-arrow-left me-1"></i> Back to List
         </a>
     </div>
 </div>
 
-<!-- Hero -->
-<div class="card shadow-sm mb-3">
+<!-- Hero Card -->
+<div class="card shadow-sm border-0 mb-4 bg-white overflow-hidden">
     <div class="card-body p-4">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <div class="sd-avatar">@InitialsOf(Model.FullName)</div>
-            <div class="flex-grow-1">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                <div class="sd-avatar shadow-sm">@InitialsOf(Model.FullName)</div>
+            </div>
+            <div class="col-md">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <h4 class="mb-0">@Model.FullName</h4>
-                    <span class="badge @StatusBadgeClass(Model.S_Status)">@Model.S_Status</span>
+                    <h4 class="mb-0 fw-bold text-dark">@Model.FullName</h4>
+                    <span id="heroStatusBadge" class="badge @StatusBadgeClass(Model.S_Status) fs-6 px-3 py-1">@Model.S_Status</span>
+                    
+                    <!-- Quick Status Dropdown Menu -->
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" id="statusDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Change status instantly">
+                            <i class="bi bi-arrow-repeat me-1"></i>Status
+                        </button>
+                        <ul class="dropdown-menu shadow-sm" aria-labelledby="statusDropdownBtn">
+                            <li><h6 class="dropdown-header">Quick Change Status</h6></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Admitted"><i class="bi bi-check-circle text-info me-2"></i>Admitted</a></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Active"><i class="bi bi-check-circle text-success me-2"></i>Active</a></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Inactive"><i class="bi bi-slash-circle text-secondary me-2"></i>Inactive</a></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Transferred"><i class="bi bi-arrow-left-right text-warning me-2"></i>Transferred</a></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Alumni"><i class="bi bi-mortarboard text-primary me-2"></i>Alumni</a></li>
+                            <li><a class="dropdown-item quick-status-item" href="#" data-student-id="@Model.S_Id" data-status="Dropped"><i class="bi bi-x-circle text-danger me-2"></i>Dropped</a></li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="text-muted small mb-2">
-                    @Model.S_StudentCode &middot; Admission No. @Model.S_AdmissionNumber
+                    <span class="fw-semibold text-secondary">Student Code:</span> @Model.S_StudentCode &nbsp;&bull;&nbsp; 
+                    <span class="fw-semibold text-secondary">Admission No:</span> @Model.S_AdmissionNumber
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <span class="sd-chip"><i class="bi bi-diagram-3"></i>@Model.BranchName</span>
+                    <span class="sd-chip"><i class="bi bi-building"></i>@Model.BranchName</span>
                     <span class="sd-chip">
                         <i class="bi bi-mortarboard"></i>
                         @Model.ClassName@(Model.SectionName != "-" ? $" - {Model.SectionName}" : "")
@@ -69,186 +118,1005 @@
                     {
                         <span class="sd-chip"><i class="bi bi-cake2"></i>@age yrs old</span>
                     }
+                    @if (!string.IsNullOrWhiteSpace(Model.S_BloodGroup) && Model.S_BloodGroup != "-")
+                    {
+                        <span class="sd-chip"><i class="bi bi-droplet-half text-danger"></i>@Model.S_BloodGroup</span>
+                    }
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Info grid -->
-<div class="row g-3 mb-3">
-    <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="sd-section-title">Personal</div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-calendar3"></i></div>
-                    <div>
-                        <div class="sd-field-label">Date of Birth</div>
-                        <div class="sd-field-value">@(Model.S_DateOfBirth?.ToString("dd MMM yyyy") ?? "-")@(age.HasValue ? $" ({age} yrs)" : "")</div>
-                    </div>
-                </div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-gender-ambiguous"></i></div>
-                    <div>
-                        <div class="sd-field-label">Gender</div>
-                        <div class="sd-field-value">@(Model.S_Gender ?? "-")</div>
-                    </div>
-                </div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-droplet-half"></i></div>
-                    <div>
-                        <div class="sd-field-label">Blood Group</div>
-                        <div class="sd-field-value">@(Model.S_BloodGroup ?? "-")</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="sd-section-title">Contact</div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-envelope"></i></div>
-                    <div>
-                        <div class="sd-field-label">Email</div>
-                        <div class="sd-field-value">
-                            @if (!string.IsNullOrWhiteSpace(Model.S_Email))
-                            {
-                                <a href="mailto:@Model.S_Email" class="text-decoration-none">@Model.S_Email</a>
-                            }
-                            else
-                            {
-
-                                <text>-</text>
-                            }
-                        </div>
-                    </div>
-                </div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-telephone"></i></div>
-                    <div>
-                        <div class="sd-field-label">Phone</div>
-                        <div class="sd-field-value">
-                            @if (!string.IsNullOrWhiteSpace(Model.S_Phone))
-                            {
-                                <a href="tel:@Model.S_Phone" class="text-decoration-none">@Model.S_Phone</a>
-                            }
-                            else
-                            {
-
-                                <text>-</text>
-                            }
-                        </div>
-                    </div>
-                </div>
-                <div class="sd-field">
-                    <div class="sd-field-icon"><i class="bi bi-geo-alt"></i></div>
-                    <div>
-                        <div class="sd-field-label">Address</div>
-                        <div class="sd-field-value">@Model.FullAddress</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="sd-section-title">Record</div>
-                <div class="row">
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="sd-field">
-                            <div class="sd-field-icon"><i class="bi bi-diagram-3"></i></div>
-                            <div>
-                                <div class="sd-field-label">Branch</div>
-                                <div class="sd-field-value">@Model.BranchName</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="sd-field">
-                            <div class="sd-field-icon"><i class="bi bi-mortarboard"></i></div>
-                            <div>
-                                <div class="sd-field-label">Class / Section</div>
-                                <div class="sd-field-value">@Model.ClassName@(Model.SectionName != "-" ? $" - {Model.SectionName}" : "")</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="sd-field">
-                            <div class="sd-field-icon"><i class="bi bi-clock-history"></i></div>
-                            <div>
-                                <div class="sd-field-label">Created</div>
-                                <div class="sd-field-value">@Model.S_CreatedAt.ToString("dd MMM yyyy, HH:mm")</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="sd-field">
-                            <div class="sd-field-icon"><i class="bi bi-arrow-repeat"></i></div>
-                            <div>
-                                <div class="sd-field-label">Last Updated</div>
-                                <div class="sd-field-value">@Model.S_UpdatedAt.ToString("dd MMM yyyy, HH:mm")</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Guardians -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white d-flex align-items-center">
-        <h6 class="mb-0"><i class="bi bi-people me-1"></i>Guardians</h6>
-        <span class="badge bg-light text-secondary ms-2">@Model.Guardians.Count()</span>
-    </div>
-    <div class="card-body">
-        @if (!Model.Guardians.Any())
-        {
-            <p class="text-muted mb-0">No guardians linked to this student.</p>
-        }
-        else
-        {
-            <div class="row g-3">
-                @foreach (var g in Model.Guardians)
+            <div class="col-12 col-lg-auto text-lg-end mt-2 mt-lg-0 border-start-lg ps-lg-4">
+                <div class="text-muted small mb-1">Quick Contact</div>
+                @if (!string.IsNullOrWhiteSpace(Model.S_Phone))
                 {
-                    <div class="col-md-6 col-lg-4">
-                        <div class="guardian-card @(g.IsPrimary ? "is-primary" : "")">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="guardian-avatar">@InitialsOf(g.FirstName)</div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">@g.FirstName @g.LastName</div>
-                                    <div class="text-muted small">@g.Relation</div>
+                    <div class="fw-bold"><a href="tel:@Model.S_Phone" class="text-decoration-none text-dark"><i class="bi bi-telephone me-1 text-primary"></i>@Model.S_Phone</a></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.S_Email))
+                {
+                    <div class="small"><a href="mailto:@Model.S_Email" class="text-decoration-none text-muted"><i class="bi bi-envelope me-1 text-primary"></i>@Model.S_Email</a></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4 Key Metric Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-bold">Enrollment Status</span>
+                    <div class="p-2 rounded-3 bg-light text-primary">
+                        <i class="bi bi-shield-check fs-5"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-1">@Model.S_Status</h5>
+                <div class="text-muted small">
+                    Admitted: @(Model.S_AdmissionDate?.ToString("dd MMM yyyy") ?? "-")
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-bold">Attendance Rate</span>
+                    <div class="p-2 rounded-3 bg-light text-success">
+                        <i class="bi bi-calendar-check fs-5"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-1 text-success">@Model.AttendancePercentage%</h5>
+                <div class="progress mb-1" style="height: 6px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.AttendancePercentage%;" aria-valuenow="@Model.AttendancePercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-muted small d-flex justify-content-between">
+                    <span>@Model.PresentSessions Present</span>
+                    <span>@Model.AbsentSessions Absent</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-bold">Fee Balance</span>
+                    <div class="p-2 rounded-3 bg-light text-warning">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-1 @(Model.TotalFeeBalance > 0 ? "text-danger" : "text-success")">
+                    ₹@Model.TotalFeeBalance.ToString("N0")
+                </h5>
+                <div class="text-muted small d-flex justify-content-between">
+                    <span>Paid: ₹@Model.TotalFeePaid.ToString("N0")</span>
+                    <span class="badge @FeeStatusBadgeClass(Model.FeeStatus)">@Model.FeeStatus</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-bold">Guardians & Family</span>
+                    <div class="p-2 rounded-3 bg-light text-info">
+                        <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-1">@Model.Guardians.Count Contact(s)</h5>
+                <div class="text-muted small">
+                    @{
+                        var primary = Model.Guardians.FirstOrDefault(g => g.IsPrimary) ?? Model.Guardians.FirstOrDefault();
+                    }
+                    @(primary != null ? $"{primary.FirstName} ({primary.Relation})" : "None linked")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation for In-Depth A-Z Data -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white border-bottom p-0">
+        <ul class="nav nav-tabs card-header-tabs m-0 border-0" id="studentDetailsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active py-3 px-4 fw-semibold" id="tab-personal-btn" data-bs-toggle="tab" data-bs-target="#tab-personal" type="button" role="tab">
+                    <i class="bi bi-person me-2"></i>Personal & Contact
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-3 px-4 fw-semibold" id="tab-academic-btn" data-bs-toggle="tab" data-bs-target="#tab-academic" type="button" role="tab">
+                    <i class="bi bi-mortarboard me-2"></i>Academic & History (@(Model.EnrollmentHistory?.Count ?? 0))
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-3 px-4 fw-semibold" id="tab-guardians-btn" data-bs-toggle="tab" data-bs-target="#tab-guardians" type="button" role="tab">
+                    <i class="bi bi-people me-2"></i>Guardians (@Model.Guardians.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-3 px-4 fw-semibold" id="tab-fees-btn" data-bs-toggle="tab" data-bs-target="#tab-fees" type="button" role="tab">
+                    <i class="bi bi-receipt me-2"></i>Fee Ledger (@Model.RecentInvoices.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-3 px-4 fw-semibold" id="tab-attendance-btn" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button" role="tab">
+                    <i class="bi bi-check2-all me-2"></i>Attendance & Leaves
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-4">
+        <div class="tab-content" id="studentDetailsTabsContent">
+            
+            <!-- TAB 1: Personal & Contact -->
+            <div class="tab-pane fade show active" id="tab-personal" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-person-lines-fill me-2"></i>Personal Bio-Data
+                            </h6>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-person"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Full Name</div>
+                                    <div class="sd-field-value">@Model.FullName</div>
                                 </div>
-                                @if (g.IsPrimary)
-                                {
-                                    <span class="badge bg-success"><i class="bi bi-star-fill me-1"></i>Primary</span>
-                                }
                             </div>
-                            <div class="small">
-                                @if (!string.IsNullOrWhiteSpace(g.Phone))
-                                {
-                                    <div class="mb-1"><i class="bi bi-telephone text-muted me-1"></i><a href="tel:@g.Phone" class="text-decoration-none">@g.Phone</a></div>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(g.Email))
-                                {
-                                    <div class="mb-1"><i class="bi bi-envelope text-muted me-1"></i><a href="mailto:@g.Email" class="text-decoration-none">@g.Email</a></div>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(g.Occupation))
-                                {
-                                    <div><i class="bi bi-briefcase text-muted me-1"></i>@g.Occupation</div>
-                                }
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-calendar3"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Date of Birth</div>
+                                    <div class="sd-field-value">
+                                        @(Model.S_DateOfBirth?.ToString("dd MMMM yyyy") ?? "-")
+                                        @if (age.HasValue)
+                                        {
+                                            <span class="badge bg-secondary ms-1">@age years old</span>
+                                        }
+                                    </div>
+                                </div>
                             </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-gender-ambiguous"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Gender</div>
+                                    <div class="sd-field-value">@(string.IsNullOrWhiteSpace(Model.S_Gender) ? "-" : Model.S_Gender)</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-droplet-half"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Blood Group</div>
+                                    <div class="sd-field-value">@(string.IsNullOrWhiteSpace(Model.S_BloodGroup) ? "-" : Model.S_BloodGroup)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-geo-alt-fill me-2"></i>Contact & Full Address
+                            </h6>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-telephone"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Phone Number</div>
+                                    <div class="sd-field-value">
+                                        @if (!string.IsNullOrWhiteSpace(Model.S_Phone))
+                                        {
+                                            <a href="tel:@Model.S_Phone" class="text-decoration-none">@Model.S_Phone</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-envelope"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Email Address</div>
+                                    <div class="sd-field-value">
+                                        @if (!string.IsNullOrWhiteSpace(Model.S_Email))
+                                        {
+                                            <a href="mailto:@Model.S_Email" class="text-decoration-none">@Model.S_Email</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-house-door"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Residential Address</div>
+                                    <div class="sd-field-value">@Model.FullAddress</div>
+                                </div>
+                            </div>
+                            <div class="row g-2 mt-2 pt-2 border-top">
+                                <div class="col-6 col-sm-3">
+                                    <div class="text-muted small">City</div>
+                                    <div class="fw-semibold small">@(Model.S_City ?? "-")</div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="text-muted small">State</div>
+                                    <div class="fw-semibold small">@(Model.S_State ?? "-")</div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="text-muted small">Postal Code</div>
+                                    <div class="fw-semibold small">@(Model.S_PostalCode ?? "-")</div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="text-muted small">Country</div>
+                                    <div class="fw-semibold small">@(Model.S_Country ?? "-")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Academic & Institutional -->
+            <div class="tab-pane fade" id="tab-academic" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-building me-2"></i>Institutional Enrollment
+                            </h6>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-diagram-3"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Branch Campus</div>
+                                    <div class="sd-field-value">@Model.BranchName</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-mortarboard"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Class</div>
+                                    <div class="sd-field-value">@Model.ClassName</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-grid-3x3"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Section</div>
+                                    <div class="sd-field-value">@Model.SectionName</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-collection"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Academic Batch</div>
+                                    <div class="sd-field-value">@Model.BatchName</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-file-earmark-text me-2"></i>Registration & System Identifiers
+                            </h6>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-upc-scan"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Student Code</div>
+                                    <div class="sd-field-value">@Model.S_StudentCode</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-card-checklist"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Admission Number</div>
+                                    <div class="sd-field-value">@Model.S_AdmissionNumber</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-calendar-event"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Admission Date</div>
+                                    <div class="sd-field-value">@(Model.S_AdmissionDate?.ToString("dd MMMM yyyy") ?? "-")</div>
+                                </div>
+                            </div>
+                            <div class="sd-field">
+                                <div class="sd-field-icon"><i class="bi bi-clock-history"></i></div>
+                                <div>
+                                    <div class="sd-field-label">Record Created / Updated</div>
+                                    <div class="sd-field-value small">
+                                        Created: @Model.S_CreatedAt.ToString("dd MMM yyyy, hh:mm tt") <br />
+                                        Updated: @Model.S_UpdatedAt.ToString("dd MMM yyyy, hh:mm tt")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Academic Progression & Class Enrollment History Timeline -->
+                    <div class="col-12 mt-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold text-primary mb-0">
+                                        <i class="bi bi-clock-history me-2"></i>Academic Progression & Class History Tracking
+                                    </h6>
+                                    <small class="text-muted">Permanent chronological record of all classes, sections, roll numbers, and promotion outcomes.</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary rounded-pill">@(Model.EnrollmentHistory?.Count ?? 0) Academic Record(s)</span>
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#promoteStudentModal" onclick="openStudentPromotionModal('@Model.S_Id')">
+                                        <i class="bi bi-plus-circle me-1"></i> Promote / Enroll Next
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-secondary small text-uppercase">
+                                            <tr>
+                                                <th>Academic Session</th>
+                                                <th>Class & Section</th>
+                                                <th>Enrollment # / Roll</th>
+                                                <th>Enrollment Type</th>
+                                                <th>Status</th>
+                                                <th>Enrollment Date</th>
+                                                <th>Completion Date</th>
+                                                <th>Remarks / Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.EnrollmentHistory != null && Model.EnrollmentHistory.Count > 0)
+                                            {
+                                                @foreach (var h in Model.EnrollmentHistory)
+                                                {
+                                                    var isCurrent = (h.Status ?? "").Equals("Active", StringComparison.OrdinalIgnoreCase);
+                                                    <tr class="@(isCurrent ? "table-success bg-opacity-10 fw-semibold" : "")">
+                                                        <td>
+                                                            @if (isCurrent)
+                                                            {
+                                                                <span class="badge bg-success me-1"><i class="bi bi-check-circle-fill me-1"></i>Current</span>
+                                                            }
+                                                            <strong>@h.AcademicYearName</strong>
+                                                            @if (!string.IsNullOrWhiteSpace(h.BranchName))
+                                                            {
+                                                                <div class="text-muted small"><i class="bi bi-building me-1"></i>@h.BranchName</div>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark border px-2 py-1 fs-6">
+                                                                <i class="bi bi-mortarboard me-1 text-primary"></i>@h.ClassName
+                                                            </span>
+                                                            @if (!string.IsNullOrWhiteSpace(h.SectionName) && h.SectionName != "-")
+                                                            {
+                                                                <span class="badge bg-secondary ms-1">Sec @h.SectionName</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <div class="small fw-semibold">@(h.EnrollmentNumber ?? "-")</div>
+                                                            <div class="text-muted small">Roll: @(h.RollNumber ?? "-")</div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge @(h.EnrollmentType == "Promotion" ? "bg-info text-dark" : (h.EnrollmentType == "Repeat" ? "bg-warning text-dark" : "bg-light text-secondary border"))">
+                                                                @h.EnrollmentType
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge @(h.Status == "Active" ? "bg-success" : (h.Status == "Promoted" ? "bg-primary" : (h.Status == "Retained" ? "bg-warning text-dark" : "bg-secondary")))">
+                                                                @h.Status
+                                                            </span>
+                                                        </td>
+                                                        <td class="small text-muted">
+                                                            @h.EnrollmentDate.ToString("dd MMM yyyy")
+                                                        </td>
+                                                        <td class="small text-muted">
+                                                            @(h.CompletionDate.HasValue ? h.CompletionDate.Value.ToString("dd MMM yyyy") : "-")
+                                                        </td>
+                                                        <td class="small text-muted">
+                                                            @(string.IsNullOrWhiteSpace(h.Remarks) ? "-" : h.Remarks)
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">
+                                                        <i class="bi bi-info-circle me-1"></i> No prior enrollment session records found for this student. Use <strong>Promote / Enroll Next Class</strong> to create one.
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Guardians -->
+            <div class="tab-pane fade" id="tab-guardians" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-primary mb-0">
+                        <i class="bi bi-people-fill me-2"></i>Family & Guardian Contacts
+                    </h6>
+                    <a asp-controller="Students" asp-action="Edit" asp-route-id="@Model.S_Id" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Manage Guardians
+                    </a>
+                </div>
+
+                @if (!Model.Guardians.Any())
+                {
+                    <div class="alert alert-light border text-center py-4 text-muted">
+                        <i class="bi bi-people fs-2 d-block mb-2"></i>
+                        No guardian contacts have been linked to this student yet.
+                        <div class="mt-2">
+                            <a asp-controller="Students" asp-action="Edit" asp-route-id="@Model.S_Id" class="btn btn-sm btn-primary">
+                                Add Guardian
+                            </a>
                         </div>
                     </div>
                 }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var g in Model.Guardians)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="guardian-card @(g.IsPrimary ? "is-primary" : "") p-3 border rounded-3 bg-white h-100 shadow-sm">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="guardian-avatar">@InitialsOf(g.FirstName)</div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold text-dark">@g.FirstName @g.LastName</div>
+                                            <div class="badge bg-light text-secondary">@g.Relation</div>
+                                        </div>
+                                        @if (g.IsPrimary)
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-star-fill me-1"></i>Primary</span>
+                                        }
+                                    </div>
+                                    <div class="small">
+                                        @if (!string.IsNullOrWhiteSpace(g.Phone))
+                                        {
+                                            <div class="mb-2">
+                                                <i class="bi bi-telephone text-primary me-2"></i>
+                                                <a href="tel:@g.Phone" class="text-decoration-none fw-semibold">@g.Phone</a>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(g.Email))
+                                        {
+                                            <div class="mb-2">
+                                                <i class="bi bi-envelope text-primary me-2"></i>
+                                                <a href="mailto:@g.Email" class="text-decoration-none">@g.Email</a>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(g.Occupation))
+                                        {
+                                            <div class="text-muted">
+                                                <i class="bi bi-briefcase text-secondary me-2"></i>@g.Occupation
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
-        }
+
+            <!-- TAB 4: Fee Ledger -->
+            <div class="tab-pane fade" id="tab-fees" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-primary mb-0">
+                        <i class="bi bi-receipt me-2"></i>Fee Summary & Recent Invoices
+                    </h6>
+                    <a asp-controller="Fees" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Fee Management
+                    </a>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Invoiced</div>
+                            <h4 class="fw-bold mb-0 text-dark">₹@Model.TotalFeeInvoiced.ToString("N2")</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Paid</div>
+                            <h4 class="fw-bold mb-0 text-success">₹@Model.TotalFeePaid.ToString("N2")</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Outstanding Balance</div>
+                            <h4 class="fw-bold mb-0 @(Model.TotalFeeBalance > 0 ? "text-danger" : "text-success")">
+                                ₹@Model.TotalFeeBalance.ToString("N2")
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!Model.RecentInvoices.Any())
+                {
+                    <div class="alert alert-light border text-center py-4 text-muted">
+                        <i class="bi bi-receipt fs-2 d-block mb-2"></i>
+                        No fee invoices found for this student.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date</th>
+                                    <th>Due Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Paid Amount</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var inv in Model.RecentInvoices)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@inv.InvoiceNumber</td>
+                                        <td>@inv.InvoiceDate.ToString("dd MMM yyyy")</td>
+                                        <td>@(inv.DueDate?.ToString("dd MMM yyyy") ?? "-")</td>
+                                        <td>₹@inv.TotalAmount.ToString("N2")</td>
+                                        <td class="text-success">₹@inv.PaidAmount.ToString("N2")</td>
+                                        <td class="@(inv.BalanceAmount > 0 ? "text-danger fw-semibold" : "text-success")">
+                                            ₹@inv.BalanceAmount.ToString("N2")
+                                        </td>
+                                        <td>
+                                            <span class="badge @FeeStatusBadgeClass(inv.Status)">@inv.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <!-- TAB 5: Attendance & Leaves -->
+            <div class="tab-pane fade" id="tab-attendance" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-primary mb-0">
+                        <i class="bi bi-calendar2-check-fill me-2"></i>Attendance Performance & Leaves
+                    </h6>
+                    <a asp-controller="Attendance" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Attendance
+                    </a>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Attendance Rate</div>
+                            <h4 class="fw-bold mb-0 text-success">@Model.AttendancePercentage%</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Sessions</div>
+                            <h4 class="fw-bold mb-0 text-dark">@Model.TotalAttendanceSessions</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Present Sessions</div>
+                            <h4 class="fw-bold mb-0 text-success">@Model.PresentSessions</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded-3 bg-light text-center">
+                            <div class="text-muted small text-uppercase fw-semibold">Absent Sessions</div>
+                            <h4 class="fw-bold mb-0 text-danger">@Model.AbsentSessions</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-semibold text-secondary mb-2">Recent Leave Requests</h6>
+                @if (!Model.RecentLeaves.Any())
+                {
+                    <div class="alert alert-light border text-center py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                        No leave records found for this student.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Leave Type</th>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lv in Model.RecentLeaves)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@lv.LeaveType</td>
+                                        <td>@lv.FromDate.ToString("dd MMM yyyy")</td>
+                                        <td>@lv.ToDate.ToString("dd MMM yyyy")</td>
+                                        <td>@(string.IsNullOrWhiteSpace(lv.Reason) ? "-" : lv.Reason)</td>
+                                        <td>
+                                            <span class="badge @(lv.Status == "Approved" ? "bg-success" : (lv.Status == "Rejected" ? "bg-danger" : "bg-warning text-dark"))">
+                                                @lv.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+        </div>
     </div>
 </div>
+
+<!-- ============================================================== -->
+<!-- Quick Edit Modal                                               -->
+<!-- Allows immediate editing of essential student fields from Details view -->
+<!-- ============================================================== -->
+<div class="modal fade" id="quickEditModal" tabindex="-1" aria-labelledby="quickEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="quickEditModalLabel">
+                    <i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Quick Edit Student: @Model.FullName
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickStudentUpdateForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="S_Id" value="@Model.S_Id" />
+
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
+                            <select name="S_Status" class="form-select">
+                                @if (Model.StatusOptions != null && Model.StatusOptions.Any())
+                                {
+                                    foreach (var opt in Model.StatusOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_Status)">@opt.Text</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="Admitted" selected="@(Model.S_Status == "Admitted")">Admitted</option>
+                                    <option value="Active" selected="@(Model.S_Status == "Active")">Active</option>
+                                    <option value="Inactive" selected="@(Model.S_Status == "Inactive")">Inactive</option>
+                                    <option value="Transferred" selected="@(Model.S_Status == "Transferred")">Transferred</option>
+                                    <option value="Alumni" selected="@(Model.S_Status == "Alumni")">Alumni</option>
+                                    <option value="Dropped" selected="@(Model.S_Status == "Dropped")">Dropped</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <input type="text" name="S_Phone" class="form-control" value="@Model.S_Phone" placeholder="e.g. +1 234 567 8900" maxlength="30" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <input type="email" name="S_Email" class="form-control" value="@Model.S_Email" placeholder="student@example.com" maxlength="255" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Blood Group</label>
+                            <select name="S_BloodGroup" class="form-select">
+                                <option value="">Select Blood Group</option>
+                                @if (Model.BloodGroupOptions != null)
+                                {
+                                    foreach (var opt in Model.BloodGroupOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_BloodGroup)">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Branch Campus</label>
+                            <select name="S_BranchId" class="form-select">
+                                <option value="">Select Branch</option>
+                                @if (Model.BranchOptions != null)
+                                {
+                                    foreach (var opt in Model.BranchOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_BranchId.ToString())">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Class</label>
+                            <select name="S_ClassId" class="form-select">
+                                <option value="">Select Class</option>
+                                @if (Model.ClassOptions != null)
+                                {
+                                    foreach (var opt in Model.ClassOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_ClassId?.ToString())">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Section</label>
+                            <select name="S_SectionId" class="form-select">
+                                <option value="">Select Section</option>
+                                @if (Model.SectionOptions != null)
+                                {
+                                    foreach (var opt in Model.SectionOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_SectionId?.ToString())">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Batch</label>
+                            <select name="S_BatchId" class="form-select">
+                                <option value="">Select Batch</option>
+                                @if (Model.BatchOptions != null)
+                                {
+                                    foreach (var opt in Model.BatchOptions)
+                                    {
+                                        <option value="@opt.Value" selected="@(opt.Value == Model.S_BatchId?.ToString())">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Address Line 1</label>
+                            <input type="text" name="S_AddressLine1" class="form-control" value="@Model.S_AddressLine1" placeholder="Street address" maxlength="255" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Address Line 2</label>
+                            <input type="text" name="S_AddressLine2" class="form-control" value="@Model.S_AddressLine2" placeholder="Suite, floor, etc." maxlength="255" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">City</label>
+                            <input type="text" name="S_City" class="form-control" value="@Model.S_City" maxlength="100" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">State</label>
+                            <input type="text" name="S_State" class="form-control" value="@Model.S_State" maxlength="100" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Postal Code</label>
+                            <input type="text" name="S_PostalCode" class="form-control" value="@Model.S_PostalCode" maxlength="20" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Country</label>
+                            <input type="text" name="S_Country" class="form-control" value="@Model.S_Country" maxlength="100" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Promote Student to Next Class -->
+<div class="modal fade" id="promoteStudentModal" tabindex="-1" aria-labelledby="promoteStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="promoteStudentModalLabel">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Promote Student & Enroll in Next Class
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="promoteStudentForm" method="post" asp-controller="Enrollment" asp-action="PromoteStudent">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="StudentId" id="promStudentId" value="@Model.S_Id" />
+                <input type="hidden" name="CurrentAcademicYearId" id="promCurrentAcademicYearId" value="" />
+                <input type="hidden" name="CurrentBranchId" id="promCurrentBranchId" value="@Model.S_BranchId" />
+
+                <div class="modal-body p-4">
+                    <!-- Current Status Banner -->
+                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
+                        <i class="bi bi-info-circle-fill fs-3 text-info me-3"></i>
+                        <div>
+                            <div class="fw-bold">Currently Enrolled: <span id="promCurrentStudentName">@Model.FullName</span> (<span id="promCurrentStudentCode">@Model.S_StudentCode</span>)</div>
+                            <div class="small text-muted">
+                                Current Class: <span class="fw-semibold text-dark" id="promCurrentClassName">@Model.ClassName</span> | 
+                                Section: <span class="fw-semibold text-dark" id="promCurrentSectionName">@Model.SectionName</span> | 
+                                Roll No: <span class="fw-semibold text-dark" id="promCurrentRollNo">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Destination Academic Year <span class="text-danger">*</span></label>
+                            <select name="NextAcademicYearId" id="promNextAcademicYearId" class="form-select form-select-lg" required>
+                                <option value="">-- Select Destination Academic Year --</option>
+                            </select>
+                            <div class="form-text">e.g. Upcoming session (2026–2027)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Destination Class / Grade <span class="text-danger">*</span></label>
+                            <select name="NextClassId" id="promNextClassId" class="form-select form-select-lg" required>
+                                <option value="">-- Select Destination Class --</option>
+                                @foreach (var c in Model.ClassOptions)
+                                {
+                                    <option value="@c.Value">@c.Text</option>
+                                }
+                            </select>
+                            <div class="form-text">Auto-advanced to next higher grade</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase">Destination Section</label>
+                            <select name="NextSectionId" id="promNextSectionId" class="form-select">
+                                <option value="">-- Unassigned / Default --</option>
+                                @foreach (var s in Model.SectionOptions)
+                                {
+                                    <option value="@s.Value">Section @s.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase">New Roll Number</label>
+                            <input type="text" name="NewRollNumber" id="promNewRollNumber" class="form-control" placeholder="e.g. 01, 14" maxlength="50" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase">Enrollment Action <span class="text-danger">*</span></label>
+                            <select name="EnrollmentType" id="promEnrollmentType" class="form-select" required>
+                                <option value="Promotion" selected>Promotion (Passed Class)</option>
+                                <option value="Repeat">Repeat (Retained in Same Class)</option>
+                                <option value="Transfer">Transfer / Re-admission</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-uppercase">Applicable Fee Structure (Optional)</label>
+                            <select name="NextFeeStructureId" id="promNextFeeStructureId" class="form-select">
+                                <option value="">-- Select Fee Structure (Standard / Class Default) --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-uppercase">Promotion Remarks & Performance Notes</label>
+                            <textarea name="Remarks" id="promRemarks" class="form-control" rows="2" placeholder="e.g. Passed final exams with Grade A. Promoted to Class 6th."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnSubmitPromotion" class="btn btn-success px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-mortarboard me-1"></i> Complete Promotion
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/students.js"></script>
+    <script>
+        function openStudentPromotionModal(studentId) {
+            // Load promotion defaults via AJAX
+            fetch('/Enrollment/GetStudentPromotionForm?studentId=' + studentId)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        const d = res.data;
+                        document.getElementById('promStudentId').value = d.studentId;
+                        document.getElementById('promCurrentAcademicYearId').value = d.currentAcademicYearId || '';
+                        document.getElementById('promCurrentBranchId').value = d.currentBranchId || '';
+                        document.getElementById('promCurrentStudentName').innerText = d.studentName || '-';
+                        document.getElementById('promCurrentStudentCode').innerText = d.studentCode || '-';
+                        document.getElementById('promCurrentClassName').innerText = d.currentClassName || '-';
+                        document.getElementById('promCurrentSectionName').innerText = d.currentSectionName || '-';
+                        document.getElementById('promCurrentRollNo').innerText = d.currentRollNumber || '-';
+                        document.getElementById('promNewRollNumber').value = d.newRollNumber || '';
+
+                        // Populate Academic Years
+                        const aySelect = document.getElementById('promNextAcademicYearId');
+                        aySelect.innerHTML = '<option value="">-- Select Destination Academic Year --</option>';
+                        if (d.academicYearOptions) {
+                            d.academicYearOptions.forEach(ay => {
+                                const opt = document.createElement('option');
+                                opt.value = ay.value;
+                                opt.text = ay.text;
+                                if (ay.selected) opt.selected = true;
+                                aySelect.appendChild(opt);
+                            });
+                        }
+
+                        // Set Recommended Next Class
+                        if (d.nextClassId) {
+                            document.getElementById('promNextClassId').value = d.nextClassId;
+                        }
+                        if (d.nextSectionId) {
+                            document.getElementById('promNextSectionId').value = d.nextSectionId;
+                        }
+
+                        // Populate Fee Structures
+                        const fsSelect = document.getElementById('promNextFeeStructureId');
+                        fsSelect.innerHTML = '<option value="">-- Select Fee Structure (Standard / Class Default) --</option>';
+                        if (d.feeStructureOptions) {
+                            d.feeStructureOptions.forEach(fs => {
+                                const opt = document.createElement('option');
+                                opt.value = fs.value;
+                                opt.text = fs.text;
+                                fsSelect.appendChild(opt);
+                            });
+                        }
+                    }
+                })
+                .catch(err => console.error("Error loading promotion data:", err));
+        }
+
+        // AJAX submit for Single Promotion Modal
+        document.getElementById('promoteStudentForm')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitPromotion');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing Promotion...';
+
+            const formData = new FormData(this);
+            fetch('/Enrollment/PromoteStudent', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    const modalEl = document.getElementById('promoteStudentModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    alert("Success: " + (res.message || "Student promoted successfully!"));
+                    window.location.reload();
+                } else {
+                    alert("Promotion Failed: " + (res.message || "An error occurred."));
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            })
+            .catch(err => {
+                alert("An error occurred while submitting promotion: " + err);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+        });
+    </script>
+}

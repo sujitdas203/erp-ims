@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,11 +10,11 @@ using IMS.Services.Interfaces;
 
 namespace IMS.Services
 {
-    public class StuddentStuddentPortalService : IStuddentPortalService
+    public class StudentPortalService : IStudentPortalService
     {
         private readonly IStudentPortalDAL _dal;
 
-        public StuddentStuddentPortalService(IStudentPortalDAL dal)
+        public StudentPortalService(IStudentPortalDAL dal)
         {
             _dal = dal;
         }
@@ -136,9 +137,16 @@ namespace IMS.Services
             return _dal.GetFeeTransactionsAsync(studentId, tenantId);
         }
 
-        public Task<PortalReceiptViewModel?> GetReceiptDetailsAsync(Guid paymentId, Guid tenantId)
+        public async Task<PortalReceiptViewModel?> GetReceiptDetailsAsync(Guid paymentId, Guid studentId, Guid tenantId)
         {
-            return _dal.GetReceiptDetailsAsync(paymentId, tenantId);
+            // Enforce ownership: the receipt must belong to the active student.
+            var transactions = await _dal.GetFeeTransactionsAsync(studentId, tenantId);
+            if (transactions.Payments == null || !transactions.Payments.Any(p => p.PaymentId == paymentId))
+            {
+                return null;
+            }
+
+            return await _dal.GetReceiptDetailsAsync(paymentId, tenantId);
         }
 
         public async Task<(bool Success, string Message)> ApplyLeaveAsync(Guid tenantId, Guid studentId, DateTime fromDate, DateTime toDate, string leaveType, string reason, string appliedBy)
@@ -187,12 +195,26 @@ namespace IMS.Services
 
         public async Task<(bool Success, string Message)> DeleteLeaveAsync(Guid leaveId, Guid studentId, Guid tenantId)
         {
+            // Enforce ownership: only the active student's own leave requests may be deleted.
+            var leaves = await _dal.GetLeavesAsync(studentId, tenantId);
+            if (leaves == null || !leaves.Any(l => l.LeaveId == leaveId))
+            {
+                return (false, "Leave application not found or does not belong to the active student.");
+            }
+
             var ok = await _dal.DeleteLeaveAsync(leaveId, studentId, tenantId);
             return ok ? (true, "Leave application deleted successfully.") : (false, "Could not delete leave application.");
         }
 
         public async Task<(bool Success, string Message)> DeleteTCAsync(Guid tcId, Guid studentId, Guid tenantId)
         {
+            // Enforce ownership: only the active student's own TC requests may be deleted.
+            var certificates = await _dal.GetTCStatusAsync(studentId, tenantId);
+            if (certificates == null || !certificates.Any(t => t.TCId == tcId))
+            {
+                return (false, "Transfer Certificate application not found or does not belong to the active student.");
+            }
+
             var ok = await _dal.DeleteTCAsync(tcId, studentId, tenantId);
             return ok ? (true, "Transfer Certificate application deleted successfully.") : (false, "Could not delete TC application.");
         }
@@ -207,11 +229,44 @@ namespace IMS.Services
             return _dal.GetNoticesAsync(tenantId);
         }
 
-        public async Task<(bool Success, string Message)> ChangePasswordAsync(Guid userId, string userType, string currentPassword, string newPassword)
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(Guid userId, string userType, string email, string currentPassword, string newPassword)
         {
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
             {
                 return (false, "New password must be at least 6 characters long.");
+            }
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                return (false, "Current password is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return (false, "Your account email could not be determined. Please sign in again.");
+            }
+
+            // Verify the current password before allowing a change.
+            var auth = await _dal.AuthenticateByEmailAsync(email.Trim());
+            if (!auth.IsAuthenticated || auth.UserId != userId)
+            {
+                return (false, "Your account could not be verified. Please sign in again.");
+            }
+
+            bool currentValid;
+            if (string.IsNullOrEmpty(auth.StoredPassword))
+            {
+                currentValid = currentPassword == "Welcome@123"
+                    || (!string.IsNullOrEmpty(auth.StudentCode) && currentPassword == auth.StudentCode);
+            }
+            else
+            {
+                currentValid = VerifyPassword(currentPassword, auth.StoredPassword);
+            }
+
+            if (!currentValid)
+            {
+                return (false, "The current password you entered is incorrect.");
             }
 
             var hashed = HashPassword(newPassword);

@@ -4,17 +4,546 @@
     Layout = "~/Views/Shared/_LayoutPublic.cshtml";
 }
 
-<div class="admission-page" style="background: var(--parchment-dim, #fbfaf7); min-height: 85vh; padding: 3rem 0;">
-    <div class="container" style="max-width: 960px;">
-        
+@section Styles {
+    <!-- Transfer Certificate Design Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .admission-page {
+            background: var(--parchment-dim, #f8fafc);
+            min-height: 85vh;
+            padding: 2.5rem 0 4rem 0;
+        }
+
+        /* Stepper Navigation */
+        .stepper-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 2rem;
+            padding: 0.5rem 0;
+            gap: 0.5rem;
+        }
+
+        .stepper-nav::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-width: 90px;
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-label {
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s ease;
+            line-height: 1.2;
+        }
+
+        /* Stepper Active State */
+        .step-item.active .step-icon {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+            transform: scale(1.08);
+        }
+
+        .step-item.active .step-label {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* Stepper Completed State */
+        .step-item.completed .step-icon {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+        }
+
+        .step-item.completed .step-label {
+            color: #059669;
+        }
+
+        /* Form Steps Animation */
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active-step {
+            display: block;
+            animation: fadeInStep 0.35s ease-in-out forwards;
+        }
+
+        @@keyframes fadeInStep {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Input Validation Styling */
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #ef4444 !important;
+            background-image: none !important;
+            box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15) !important;
+        }
+
+        .form-control.is-valid, .form-select.is-valid {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.12) !important;
+        }
+
+        .invalid-feedback-custom {
+            color: #dc2626;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .invalid-feedback-custom.d-block {
+            display: block;
+        }
+
+        /* Step Banners */
+        .step-banner {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-left: 4px solid #2563eb;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Section-Wise Admission Form Preview Design System */
+        .form-preview-sheet {
+            width: 100%;
+            background: #ffffff;
+            padding: 24px 28px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            position: relative;
+            border: 2px solid #1e3a8a;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1e293b;
+        }
+
+        .prev-header-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .prev-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .prev-logo-icon {
+            width: 52px;
+            height: 52px;
+            background: #eff6ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #1e3a8a;
+            color: #1e3a8a;
+            font-size: 24px;
+        }
+
+        .prev-org-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .prev-org-sub {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .prev-badge-title {
+            background: #1e3a8a;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Top Applicant Summary Card */
+        .prev-applicant-card {
+            background: linear-gradient(135deg, #f8fafc, #eff6ff);
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .prev-applicant-info {
+            flex: 1;
+        }
+
+        .prev-applicant-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .prev-applicant-meta {
+            font-size: 11.5px;
+            color: #475569;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .prev-applicant-photo-box {
+            width: 75px;
+            height: 90px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+
+        .prev-applicant-photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Section Boxes */
+        .prev-section {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .prev-section-header {
+            background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+            color: #ffffff;
+            padding: 6px 12px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .prev-section-header i {
+            font-size: 13px;
+        }
+
+        .prev-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+        }
+
+        .prev-table tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .prev-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .prev-table td {
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+
+        .prev-table td.lbl {
+            width: 25%;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            border-right: 1px solid #f1f5f9;
+        }
+
+        .prev-table td.val {
+            width: 25%;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .prev-table td.lbl-wide {
+            width: 20%;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            border-right: 1px solid #f1f5f9;
+        }
+
+        .prev-table td.val-wide {
+            width: 80%;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        /* Declaration & Signatures */
+        .prev-declaration {
+            font-size: 10.5px;
+            color: #475569;
+            line-height: 1.4;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-left: 3px solid #1e3a8a;
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0;
+        }
+
+        .prev-signatures {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 14px;
+            margin-top: 6px;
+        }
+
+        .prev-sig-box {
+            text-align: center;
+            width: 160px;
+        }
+
+        .prev-sig-line {
+            border-top: 1.5px solid #334155;
+            margin-bottom: 4px;
+        }
+
+        .prev-sig-title {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #1e3a8a;
+            text-transform: uppercase;
+        }
+
+        .prev-sig-sub {
+            font-size: 9.5px;
+            color: #64748b;
+        }
+
+        .prev-seal-box {
+            width: 90px;
+            height: 50px;
+            border: 1.5px dashed #94a3b8;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 8.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Print Media Formatting */
+        @@media print {
+            @@page {
+                size: A4 portrait;
+                margin: 5mm 8mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 8pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            header, footer, nav, .site-header, .site-footer, .admission-page > .container > div:not(#previewAppModal), .modal-header, .modal-footer, .btn, .btn-close, .modal-backdrop, .invalid-feedback-custom {
+                display: none !important;
+            }
+            .modal {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                display: block !important;
+                background: none !important;
+                border: none !important;
+            }
+            .modal-dialog {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+                min-height: 0 !important;
+                height: auto !important;
+                transform: none !important;
+            }
+            .modal-content, .modal-body {
+                position: static !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                display: block !important;
+            }
+            #printableDraftApplication {
+                max-width: 100% !important;
+                width: 100% !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 10px 14px !important;
+                border: 2px solid #1e3a8a !important;
+                background: #ffffff !important;
+            }
+            .prev-section {
+                margin-bottom: 8px !important;
+                page-break-inside: avoid !important;
+            }
+            .prev-section-header {
+                padding: 4px 8px !important;
+                font-size: 8.5pt !important;
+                background: #1e3a8a !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .prev-table {
+                font-size: 7.5pt !important;
+            }
+            .prev-table td {
+                padding: 2.5px 6px !important;
+            }
+            .prev-applicant-card {
+                padding: 8px 12px !important;
+                margin-bottom: 10px !important;
+                border: 1px solid #bfdbfe !important;
+                background: #eff6ff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .prev-applicant-photo-box {
+                width: 65px !important;
+                height: 80px !important;
+            }
+            .prev-declaration {
+                font-size: 7.5pt !important;
+                margin: 6px 0 !important;
+                padding: 4px 8px !important;
+            }
+            .prev-signatures {
+                padding-top: 6px !important;
+                margin-top: 4px !important;
+                page-break-inside: avoid !important;
+            }
+        }
+
+        /* Mobile Adjustments */
+        @@media (max-width: 768px) {
+            .stepper-nav {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 0.75rem;
+            }
+            .stepper-nav::before {
+                display: none;
+            }
+            .step-item {
+                min-width: 80px;
+            }
+            .step-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            .step-label {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+}
+
+<div class="admission-page">
+    <div class="container-fluid">
+
         <!-- Header Banner -->
-        <div class="text-center mb-5">
-            <span class="badge rounded-pill px-3 py-2 text-uppercase mb-2 shadow-sm" style="background:#2563eb; color:#ffffff; font-size:0.75rem; letter-spacing:1px;">
-                Admissions Open 2026-2027
+        <div class="text-center mb-4">
+            <span class="badge rounded-pill px-3 py-2 text-uppercase mb-2 shadow-sm" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; font-size:0.75rem; letter-spacing:1px;">
+                <i class="bi bi-stars me-1"></i> Academic Session 2026-2027
             </span>
-            <h1 class="fw-bold text-dark mb-2">Apply for Online Admission</h1>
-            <p class="text-muted mx-auto" style="max-width: 650px;">
-                Take the first step towards academic excellence. Complete the application form below. Our admissions office will verify your credentials and guide you through the enrollment process.
+            <h1 class="fw-bold text-dark mb-2" style="font-family: 'Fraunces', serif;">Online Admission Application</h1>
+            <p class="text-muted mx-auto mb-0" style="max-width: 650px;">
+                Complete the step-by-step application form below. Your application reference number will be generated immediately for live tracking.
             </p>
         </div>
 
@@ -30,329 +559,516 @@
             </div>
         }
 
-        <!-- Application Form Card -->
+        <!-- Stepper Navigation Wrapper -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4" style="background:#ffffff; border:1px solid #e2e8f0;">
+            <!-- Progress Bar & Indicator -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    Step <span id="currentStepNum">1</span> of 6
+                </span>
+                <span class="small fw-semibold text-muted" id="stepProgressPercent">17% Completed</span>
+            </div>
+            <div class="progress rounded-pill mb-3" style="height: 8px; background-color: #f1f5f9;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary rounded-pill" id="admissionProgressBar" role="progressbar" style="width: 16.66%;"></div>
+            </div>
+
+            <!-- Stepper Items -->
+            <div class="stepper-nav">
+                <div class="step-item active" data-step="1" onclick="handleStepNavClick(1)">
+                    <div class="step-icon" id="step-icon-1"><i class="bi bi-mortarboard-fill"></i></div>
+                    <div class="step-label">1. Campus</div>
+                </div>
+                <div class="step-item" data-step="2" onclick="handleStepNavClick(2)">
+                    <div class="step-icon" id="step-icon-2"><i class="bi bi-person-badge-fill"></i></div>
+                    <div class="step-label">2. Student</div>
+                </div>
+                <div class="step-item" data-step="3" onclick="handleStepNavClick(3)">
+                    <div class="step-icon" id="step-icon-3"><i class="bi bi-people-fill"></i></div>
+                    <div class="step-label">3. Parents</div>
+                </div>
+                <div class="step-item" data-step="4" onclick="handleStepNavClick(4)">
+                    <div class="step-icon" id="step-icon-4"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="step-label">4. Address</div>
+                </div>
+                <div class="step-item" data-step="5" onclick="handleStepNavClick(5)">
+                    <div class="step-icon" id="step-icon-5"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
+                    <div class="step-label">5. Documents</div>
+                </div>
+                <div class="step-item" data-step="6" onclick="handleStepNavClick(6)">
+                    <div class="step-icon" id="step-icon-6"><i class="bi bi-check2-circle"></i></div>
+                    <div class="step-label">6. Review</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Main Form Card -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background:#ffffff; border:1px solid #e2e8f0;">
             <div class="card-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #1e293b, #0f172a); color:#ffffff;">
                 <div class="d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold"><i class="bi bi-person-lines-fill me-2"></i>New Student Application Form</span>
-                    <span class="badge bg-light text-dark fw-bold">Online Portal</span>
+                    <span class="fw-semibold" id="formHeaderTitle"><i class="bi bi-mortarboard me-2"></i>Academic &amp; Campus Preference</span>
+                    <span class="badge bg-light text-dark fw-bold">Online Admission Portal</span>
                 </div>
             </div>
 
             <div class="card-body p-4 p-md-5">
-                <form asp-controller="Home" asp-action="ApplyAdmission" method="post" enctype="multipart/form-data" id="admissionForm">
+                <form asp-controller="Home" asp-action="ApplyAdmission" method="post" enctype="multipart/form-data" id="admissionForm" novalidate>
                     @Html.AntiForgeryToken()
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-4"></div>
 
-                    <!-- 1. Academic & Campus Preference -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-mortarboard text-primary me-2"></i>1. Academic &amp; Campus Preference
-                        </h5>
+                    <!-- ========================================== -->
+                    <!-- STEP 1: Academic & Campus Preference -->
+                    <!-- ========================================== -->
+                    <div class="form-step active-step" id="step-1">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-info-circle-fill text-primary me-2"></i>Campus &amp; Program Selection</h6>
+                            <small class="text-muted">Select your target campus branch and academic year to begin your application process.</small>
+                        </div>
+
                         <div class="row g-3">
-                            <div class="col-md-3">
-                                <label asp-for="AA_BranchId" class="form-label fw-semibold small text-muted">Preferred Campus / Branch <span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <label asp-for="AA_BranchId" class="form-label fw-semibold small text-dark">Preferred Campus / Branch <span class="text-danger">*</span></label>
                                 <select asp-for="AA_BranchId" id="AA_BranchId" class="form-select rounded-3 py-2" required>
                                 </select>
-                                <span asp-validation-for="AA_BranchId" class="text-danger small d-block"></span>
+                                <div class="invalid-feedback-custom" id="err_AA_BranchId">Please select a preferred campus branch.</div>
                             </div>
-                            <div class="col-md-3">
-                                <label asp-for="AA_AcademicYearId" class="form-label fw-semibold small text-muted">Academic Session / Year <span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <label asp-for="AA_AcademicYearId" class="form-label fw-semibold small text-dark">Academic Session / Year <span class="text-danger">*</span></label>
                                 <select asp-for="AA_AcademicYearId" id="AA_AcademicYearId" class="form-select rounded-3 py-2" required>
                                 </select>
-                                <span asp-validation-for="AA_AcademicYearId" class="text-danger small d-block"></span>
+                                <div class="invalid-feedback-custom" id="err_AA_AcademicYearId">Please select an academic session.</div>
                             </div>
-                            <div class="col-md-3">
-                                <label asp-for="AA_ClassId" class="form-label fw-semibold small text-muted">Applying For Grade / Class</label>
+                            <div class="col-md-6">
+                                <label asp-for="AA_ClassId" class="form-label fw-semibold small text-dark">Applying For Grade / Class</label>
                                 <select asp-for="AA_ClassId" id="AA_ClassId" class="form-select rounded-3 py-2">
                                 </select>
-                                <span asp-validation-for="AA_ClassId" class="text-danger small d-block"></span>
+                                <span class="text-muted small">Select class for school level admissions</span>
                             </div>
-                            <div class="col-md-3">
-                                <label asp-for="AA_CourseId" class="form-label fw-semibold small text-muted">Stream / Course</label>
+                            <div class="col-md-6">
+                                <label asp-for="AA_CourseId" class="form-label fw-semibold small text-dark">Stream / Course</label>
                                 <select asp-for="AA_CourseId" id="AA_CourseId" class="form-select rounded-3 py-2">
                                 </select>
-                                <span asp-validation-for="AA_CourseId" class="text-danger small d-block"></span>
+                                <span class="text-muted small">Select stream/course for higher education</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. Student Personal Details & Photo Upload -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-person-badge text-primary me-2"></i>2. Student Information &amp; Photograph
-                        </h5>
-                        <div class="row g-3">
-                            <!-- Student Photo Box -->
+                    <!-- ========================================== -->
+                    <!-- STEP 2: Student Personal Details & Photo -->
+                    <!-- ========================================== -->
+                    <div class="form-step" id="step-2">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-person-badge-fill text-primary me-2"></i>Student Information &amp; Photograph</h6>
+                            <small class="text-muted">Enter student's legal personal details as recorded in official identification documents.</small>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Photo Preview Box -->
                             <div class="col-md-3 text-center border-end pe-md-4">
-                                <label class="form-label fw-semibold small text-muted d-block text-start mb-2">Student Photo (Passport size)</label>
+                                <label class="form-label fw-semibold small text-dark d-block text-start mb-2">Passport Size Photo</label>
                                 <div class="position-relative d-inline-block mb-2">
                                     <img id="pubPhotoPreview" 
                                          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='150' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" 
                                          alt="Student Photo" 
                                          class="rounded-3 shadow-sm border img-thumbnail" 
-                                         style="width: 130px; height: 150px; object-fit: cover; background: #f8fafc;"
-                                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'130\' height=\'150\' viewBox=\'0 0 24 24\' fill=\'%2394a3b8\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'" />
+                                         style="width: 130px; height: 150px; object-fit: cover; background: #f8fafc;" />
                                 </div>
-                                <input type="file" name="StudentPhoto" id="StudentPhoto" class="form-control form-control-sm" accept="image/*" onchange="previewPublicPhoto(this)" />
+                                <input type="file" name="StudentPhoto" id="StudentPhoto" class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg" onchange="previewPublicPhoto(this)" />
                                 <small class="text-muted d-block mt-1">JPG/PNG max 2MB</small>
+                                <div class="invalid-feedback-custom" id="err_StudentPhoto">Photo size must be less than 2MB.</div>
                             </div>
 
                             <!-- Personal Details Fields -->
                             <div class="col-md-9">
                                 <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label asp-for="AA_FirstName" class="form-label fw-semibold small text-muted">First Name <span class="text-danger">*</span></label>
-                                        <input asp-for="AA_FirstName" class="form-control rounded-3 py-2" placeholder="e.g. John" required />
-                                        <span asp-validation-for="AA_FirstName" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_FirstName" class="form-label fw-semibold small text-dark">First Name <span class="text-danger">*</span></label>
+                                        <input asp-for="AA_FirstName" id="AA_FirstName" class="form-control rounded-3 py-2" placeholder="e.g. Rahul" required />
+                                        <div class="invalid-feedback-custom" id="err_AA_FirstName">First name is required.</div>
                                     </div>
                                     <div class="col-md-4">
-                                        <label asp-for="AA_MiddleName" class="form-label fw-semibold small text-muted">Middle Name</label>
-                                        <input asp-for="AA_MiddleName" class="form-control rounded-3 py-2" placeholder="e.g. William" />
-                                        <span asp-validation-for="AA_MiddleName" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_MiddleName" class="form-label fw-semibold small text-dark">Middle Name</label>
+                                        <input asp-for="AA_MiddleName" id="AA_MiddleName" class="form-control rounded-3 py-2" placeholder="e.g. Kumar" />
                                     </div>
                                     <div class="col-md-4">
-                                        <label asp-for="AA_LastName" class="form-label fw-semibold small text-muted">Last Name <span class="text-danger">*</span></label>
-                                        <input asp-for="AA_LastName" class="form-control rounded-3 py-2" placeholder="e.g. Doe" required />
-                                        <span asp-validation-for="AA_LastName" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_LastName" class="form-label fw-semibold small text-dark">Last Name <span class="text-danger">*</span></label>
+                                        <input asp-for="AA_LastName" id="AA_LastName" class="form-control rounded-3 py-2" placeholder="e.g. Sharma" required />
+                                        <div class="invalid-feedback-custom" id="err_AA_LastName">Last name is required.</div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="AA_DateOfBirth" class="form-label fw-semibold small text-muted">Date of Birth</label>
-                                        <input asp-for="AA_DateOfBirth" type="date" class="form-control rounded-3 py-2" />
-                                        <span asp-validation-for="AA_DateOfBirth" class="text-danger small d-block"></span>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_DateOfBirth" class="form-label fw-semibold small text-dark">Date of Birth</label>
+                                        <input asp-for="AA_DateOfBirth" id="AA_DateOfBirth" type="date" class="form-control rounded-3 py-2" />
+                                        <div class="invalid-feedback-custom" id="err_AA_DateOfBirth">Please enter a valid date of birth.</div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="AA_Gender" class="form-label fw-semibold small text-muted">Gender</label>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_Gender" class="form-label fw-semibold small text-dark">Gender</label>
                                         <select asp-for="AA_Gender" id="AA_Gender" class="form-select rounded-3 py-2">
                                         </select>
-                                        <span asp-validation-for="AA_Gender" class="text-danger small d-block"></span>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="AA_BloodGroup" class="form-label fw-semibold small text-muted">Blood Group</label>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_BloodGroup" class="form-label fw-semibold small text-dark">Blood Group</label>
                                         <select asp-for="AA_BloodGroup" id="AA_BloodGroup" class="form-select rounded-3 py-2">
                                         </select>
-                                        <span asp-validation-for="AA_BloodGroup" class="text-danger small d-block"></span>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="AA_Category" class="form-label fw-semibold small text-muted">Category / Quota</label>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_Category" class="form-label fw-semibold small text-dark">Category / Quota</label>
                                         <select asp-for="AA_Category" id="AA_Category" class="form-select rounded-3 py-2">
                                         </select>
-                                        <span asp-validation-for="AA_Category" class="text-danger small d-block"></span>
                                     </div>
                                     <div class="col-md-4">
-                                        <label asp-for="AA_AadhaarNumber" class="form-label fw-semibold small text-muted">Aadhaar / National ID</label>
-                                        <input asp-for="AA_AadhaarNumber" class="form-control rounded-3 py-2" placeholder="12-digit Aadhaar / ID" />
-                                        <span asp-validation-for="AA_AadhaarNumber" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_Nationality" class="form-label fw-semibold small text-dark">Nationality</label>
+                                        <input asp-for="AA_Nationality" id="AA_Nationality" class="form-control rounded-3 py-2" placeholder="e.g. Indian" />
                                     </div>
                                     <div class="col-md-4">
-                                        <label asp-for="AA_Phone" class="form-label fw-semibold small text-muted">Student Mobile Number <span class="text-danger">*</span></label>
-                                        <input asp-for="AA_Phone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" required />
-                                        <span asp-validation-for="AA_Phone" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_Religion" class="form-label fw-semibold small text-dark">Religion</label>
+                                        <input asp-for="AA_Religion" id="AA_Religion" class="form-control rounded-3 py-2" placeholder="e.g. Hindu / Muslim / Christian" />
                                     </div>
                                     <div class="col-md-4">
-                                        <label asp-for="AA_Email" class="form-label fw-semibold small text-muted">Student Email Address</label>
-                                        <input asp-for="AA_Email" type="email" class="form-control rounded-3 py-2" placeholder="student@example.com" />
-                                        <span asp-validation-for="AA_Email" class="text-danger small d-block"></span>
+                                        <label asp-for="AA_Phone" class="form-label fw-semibold small text-dark">Student Mobile Number <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted fw-semibold">+91</span>
+                                            <input asp-for="AA_Phone" id="AA_Phone" class="form-control rounded-end-3 py-2" placeholder="10-digit mobile number" maxlength="10" required />
+                                        </div>
+                                        <div class="invalid-feedback-custom" id="err_AA_Phone">Valid 10-digit mobile number is required (starting with 6-9).</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_Email" class="form-label fw-semibold small text-dark">Student Email Address</label>
+                                        <input asp-for="AA_Email" id="AA_Email" type="email" class="form-control rounded-3 py-2" placeholder="student@example.com" />
+                                        <div class="invalid-feedback-custom" id="err_AA_Email">Please enter a valid email address.</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="AA_AadhaarNumber" class="form-label fw-semibold small text-dark">Aadhaar / National ID</label>
+                                        <input asp-for="AA_AadhaarNumber" id="AA_AadhaarNumber" class="form-control rounded-3 py-2" placeholder="12-digit Aadhaar number" maxlength="12" />
+                                        <div class="invalid-feedback-custom" id="err_AA_AadhaarNumber">Aadhaar number must be exactly 12 digits.</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. Parent & Guardian Information -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-people text-primary me-2"></i>3. Parents &amp; Guardian Information
-                        </h5>
-                        
-                        <!-- Father -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label asp-for="AA_FatherName" class="form-label fw-semibold small text-muted">Father's Full Name</label>
-                                <input asp-for="AA_FatherName" class="form-control rounded-3 py-2" placeholder="Father's Name" />
-                                <span asp-validation-for="AA_FatherName" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_FatherPhone" class="form-label fw-semibold small text-muted">Father's Mobile</label>
-                                <input asp-for="AA_FatherPhone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" />
-                                <span asp-validation-for="AA_FatherPhone" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_FatherOccupation" class="form-label fw-semibold small text-muted">Father's Occupation</label>
-                                <input asp-for="AA_FatherOccupation" class="form-control rounded-3 py-2" placeholder="e.g. Business / Service" />
-                            </div>
+                    <!-- ========================================== -->
+                    <!-- STEP 3: Parents & Guardian Information -->
+                    <!-- ========================================== -->
+                    <div class="form-step" id="step-3">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Parents &amp; Guardian Information</h6>
+                            <small class="text-muted">Provide contact details of parents or legal guardians for official communication.</small>
                         </div>
 
-                        <!-- Mother -->
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label asp-for="AA_MotherName" class="form-label fw-semibold small text-muted">Mother's Full Name</label>
-                                <input asp-for="AA_MotherName" class="form-control rounded-3 py-2" placeholder="Mother's Name" />
-                                <span asp-validation-for="AA_MotherName" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_MotherPhone" class="form-label fw-semibold small text-muted">Mother's Mobile</label>
-                                <input asp-for="AA_MotherPhone" class="form-control rounded-3 py-2" placeholder="+91 9876543210" />
-                                <span asp-validation-for="AA_MotherPhone" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_MotherOccupation" class="form-label fw-semibold small text-muted">Mother's Occupation</label>
-                                <input asp-for="AA_MotherOccupation" class="form-control rounded-3 py-2" placeholder="e.g. Homemaker / Teacher" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. Residential Address & Emergency Contact -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-geo-alt text-primary me-2"></i>4. Residential Address &amp; Emergency Contact
-                        </h5>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="AA_AddressLine1" class="form-label fw-semibold small text-muted">Address Line 1 (House No, Street)</label>
-                                <input asp-for="AA_AddressLine1" class="form-control rounded-3 py-2" placeholder="Flat / House No, Street name" />
-                                <span asp-validation-for="AA_AddressLine1" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="AA_AddressLine2" class="form-label fw-semibold small text-muted">Address Line 2 (Area / Landmark)</label>
-                                <input asp-for="AA_AddressLine2" class="form-control rounded-3 py-2" placeholder="Area, Landmark" />
-                                <span asp-validation-for="AA_AddressLine2" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_City" class="form-label fw-semibold small text-muted">City / District</label>
-                                <input asp-for="AA_City" class="form-control rounded-3 py-2" placeholder="City" />
-                                <span asp-validation-for="AA_City" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_State" class="form-label fw-semibold small text-muted">State</label>
-                                <input asp-for="AA_State" class="form-control rounded-3 py-2" placeholder="State" />
-                                <span asp-validation-for="AA_State" class="text-danger small d-block"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_PostalCode" class="form-label fw-semibold small text-muted">PIN Code</label>
-                                <input asp-for="AA_PostalCode" class="form-control rounded-3 py-2" placeholder="Postal / PIN Code" />
-                                <span asp-validation-for="AA_PostalCode" class="text-danger small d-block"></span>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label asp-for="AA_EmergencyContactName" class="form-label fw-semibold small text-muted"><i class="bi bi-shield-check text-primary me-1"></i> Emergency Contact Name</label>
-                                <input asp-for="AA_EmergencyContactName" class="form-control rounded-3 py-2" placeholder="Name of emergency contact person" />
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="AA_EmergencyContactPhone" class="form-label fw-semibold small text-muted"><i class="bi bi-telephone text-primary me-1"></i> Emergency Contact Phone</label>
-                                <input asp-for="AA_EmergencyContactPhone" class="form-control rounded-3 py-2" placeholder="Emergency phone number" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. Previous Academic Background & Document Uploads -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-building text-primary me-2"></i>5. Previous Academic Record &amp; Documents
-                        </h5>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label asp-for="AA_PreviousSchool" class="form-label fw-semibold small text-muted">Previous School / Institute</label>
-                                <input asp-for="AA_PreviousSchool" class="form-control rounded-3 py-2" placeholder="Previous School Name" />
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_PreviousBoard" class="form-label fw-semibold small text-muted">Board (CBSE / ICSE / State)</label>
-                                <input asp-for="AA_PreviousBoard" class="form-control rounded-3 py-2" placeholder="e.g. CBSE / State" />
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="AA_PreviousMarks" class="form-label fw-semibold small text-muted">Previous Grade / Marks (%)</label>
-                                <input asp-for="AA_PreviousMarks" class="form-control rounded-3 py-2" placeholder="e.g. 88.5% or Grade A" />
-                            </div>
-                        </div>
-
-                        <!-- Documents Upload -->
-                        <h6 class="text-primary fw-bold small pb-1 border-top pt-2 mb-2"><i class="bi bi-paperclip me-1"></i> Upload Supporting Documents (PDF / JPG / PNG max 5MB)</h6>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold small text-muted">Birth Certificate</label>
-                                <input type="file" name="BirthCertificateDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/*" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold small text-muted">Previous Marksheet</label>
-                                <input type="file" name="MarksheetDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/*" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold small text-muted">Transfer Certificate (TC)</label>
-                                <input type="file" name="TransferCertificateDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/*" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold small text-muted">Aadhaar / National ID</label>
-                                <input type="file" name="NationalIdDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/*" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 6. Facilities & Preferences -->
-                    <div class="mb-4">
-                        <h5 class="fw-bold text-dark pb-2 border-bottom mb-3" style="color:#1e3a8a;">
-                            <i class="bi bi-bus-front text-primary me-2"></i>6. Facilities &amp; Health Information
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label asp-for="AA_SecondLanguage" class="form-label fw-semibold small text-muted">Second Language Preference</label>
-                                <input asp-for="AA_SecondLanguage" class="form-control rounded-3 py-2" placeholder="e.g. Hindi / Sanskrit" />
-                            </div>
-                            <div class="col-md-3">
-                                <label asp-for="AA_MotherTongue" class="form-label fw-semibold small text-muted">Mother Tongue</label>
-                                <input asp-for="AA_MotherTongue" class="form-control rounded-3 py-2" placeholder="e.g. Bengali / Hindi / English" />
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-switch mt-4">
-                                    <input class="form-check-input" type="checkbox" id="pub_RequiresTransport" name="AA_RequiresTransport" value="true" onchange="$('#pubTransportPoint').toggle(this.checked)" />
-                                    <label class="form-check-label fw-semibold small text-muted" for="pub_RequiresTransport">School Transport</label>
+                        <!-- Father's Details Card -->
+                        <div class="card border rounded-3 p-3 mb-3 bg-light-subtle">
+                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-fill me-1"></i>Father's Details</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label asp-for="AA_FatherName" class="form-label fw-semibold small text-dark">Father's Full Name</label>
+                                    <input asp-for="AA_FatherName" id="AA_FatherName" class="form-control rounded-3 py-2" placeholder="Father's full name" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_FatherPhone" class="form-label fw-semibold small text-dark">Father's Mobile</label>
+                                    <input asp-for="AA_FatherPhone" id="AA_FatherPhone" class="form-control rounded-3 py-2" placeholder="10-digit mobile number" maxlength="10" />
+                                    <div class="invalid-feedback-custom" id="err_AA_FatherPhone">Enter a valid 10-digit mobile number.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_FatherEmail" class="form-label fw-semibold small text-dark">Father's Email</label>
+                                    <input asp-for="AA_FatherEmail" id="AA_FatherEmail" type="email" class="form-control rounded-3 py-2" placeholder="father@example.com" />
+                                    <div class="invalid-feedback-custom" id="err_AA_FatherEmail">Enter a valid email address.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_FatherOccupation" class="form-label fw-semibold small text-dark">Occupation</label>
+                                    <input asp-for="AA_FatherOccupation" id="AA_FatherOccupation" class="form-control rounded-3 py-2" placeholder="e.g. Business / Service" />
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-switch mt-4">
-                                    <input class="form-check-input" type="checkbox" id="pub_RequiresHostel" name="AA_RequiresHostel" value="true" />
-                                    <label class="form-check-label fw-semibold small text-muted" for="pub_RequiresHostel">Hostel Facility</label>
+                        </div>
+
+                        <!-- Mother's Details Card -->
+                        <div class="card border rounded-3 p-3 mb-3 bg-light-subtle">
+                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-fill me-1"></i>Mother's Details</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label asp-for="AA_MotherName" class="form-label fw-semibold small text-dark">Mother's Full Name</label>
+                                    <input asp-for="AA_MotherName" id="AA_MotherName" class="form-control rounded-3 py-2" placeholder="Mother's full name" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_MotherPhone" class="form-label fw-semibold small text-dark">Mother's Mobile</label>
+                                    <input asp-for="AA_MotherPhone" id="AA_MotherPhone" class="form-control rounded-3 py-2" placeholder="10-digit mobile number" maxlength="10" />
+                                    <div class="invalid-feedback-custom" id="err_AA_MotherPhone">Enter a valid 10-digit mobile number.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_MotherEmail" class="form-label fw-semibold small text-dark">Mother's Email</label>
+                                    <input asp-for="AA_MotherEmail" id="AA_MotherEmail" type="email" class="form-control rounded-3 py-2" placeholder="mother@example.com" />
+                                    <div class="invalid-feedback-custom" id="err_AA_MotherEmail">Enter a valid email address.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_MotherOccupation" class="form-label fw-semibold small text-dark">Occupation</label>
+                                    <input asp-for="AA_MotherOccupation" id="AA_MotherOccupation" class="form-control rounded-3 py-2" placeholder="e.g. Homemaker / Teacher" />
                                 </div>
                             </div>
-                            <div class="col-md-6" id="pubTransportPoint" style="display:none;">
-                                <label asp-for="AA_TransportPickupPoint" class="form-label fw-semibold small text-muted">Preferred Bus Pickup / Stop Point</label>
-                                <input asp-for="AA_TransportPickupPoint" class="form-control rounded-3 py-2" placeholder="Enter landmark or stop" />
+                        </div>
+
+                        <!-- Guardian Details Card (Optional) -->
+                        <div class="card border rounded-3 p-3 bg-light-subtle">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-primary mb-0"><i class="bi bi-shield-person me-1"></i>Legal Guardian Details (Optional)</h6>
+                                <small class="text-muted">Fill if applicant lives with a legal guardian</small>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label asp-for="AA_GuardianName" class="form-label fw-semibold small text-dark">Guardian Name</label>
+                                    <input asp-for="AA_GuardianName" id="AA_GuardianName" class="form-control rounded-3 py-2" placeholder="Guardian's name" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_GuardianRelation" class="form-label fw-semibold small text-dark">Relation with Student</label>
+                                    <input asp-for="AA_GuardianRelation" id="AA_GuardianRelation" class="form-control rounded-3 py-2" placeholder="e.g. Uncle / Grandfather" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_GuardianPhone" class="form-label fw-semibold small text-dark">Guardian Mobile</label>
+                                    <input asp-for="AA_GuardianPhone" id="AA_GuardianPhone" class="form-control rounded-3 py-2" placeholder="10-digit mobile number" maxlength="10" />
+                                    <div class="invalid-feedback-custom" id="err_AA_GuardianPhone">Enter a valid 10-digit mobile number.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="AA_GuardianEmail" class="form-label fw-semibold small text-dark">Guardian Email</label>
+                                    <input asp-for="AA_GuardianEmail" id="AA_GuardianEmail" type="email" class="form-control rounded-3 py-2" placeholder="guardian@example.com" />
+                                    <div class="invalid-feedback-custom" id="err_AA_GuardianEmail">Enter a valid email address.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- STEP 4: Residential Address & Emergency -->
+                    <!-- ========================================== -->
+                    <div class="form-step" id="step-4">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Residential Address &amp; Emergency Contact</h6>
+                            <small class="text-muted">Enter current postal residential address and emergency contact person details.</small>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="AA_AddressLine1" class="form-label fw-semibold small text-dark">Address Line 1 (House / Flat No, Street)</label>
+                                <input asp-for="AA_AddressLine1" id="AA_AddressLine1" class="form-control rounded-3 py-2" placeholder="Flat / House No, Street name" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="AA_MedicalConditions" class="form-label fw-semibold small text-muted">Medical Conditions / Allergies (if any)</label>
-                                <input asp-for="AA_MedicalConditions" class="form-control rounded-3 py-2" placeholder="e.g. Asthma, allergies, spectacles, None" />
+                                <label asp-for="AA_AddressLine2" class="form-label fw-semibold small text-dark">Address Line 2 (Locality / Landmark)</label>
+                                <input asp-for="AA_AddressLine2" id="AA_AddressLine2" class="form-control rounded-3 py-2" placeholder="Area, Landmark" />
                             </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_City" class="form-label fw-semibold small text-dark">City / District</label>
+                                <input asp-for="AA_City" id="AA_City" class="form-control rounded-3 py-2" placeholder="City name" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_State" class="form-label fw-semibold small text-dark">State</label>
+                                <input asp-for="AA_State" id="AA_State" class="form-control rounded-3 py-2" placeholder="State name" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_PostalCode" class="form-label fw-semibold small text-dark">PIN Code / Postal Code</label>
+                                <input asp-for="AA_PostalCode" id="AA_PostalCode" class="form-control rounded-3 py-2" placeholder="6-digit PIN code" maxlength="6" />
+                                <div class="invalid-feedback-custom" id="err_AA_PostalCode">PIN code must be exactly 6 digits.</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="AA_Country" class="form-label fw-semibold small text-dark">Country</label>
+                                <input asp-for="AA_Country" id="AA_Country" class="form-control rounded-3 py-2" placeholder="India" />
+                            </div>
+                        </div>
+
+                        <!-- Emergency Contact -->
+                        <div class="card border rounded-3 p-3 bg-light-subtle">
+                            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-telephone-plus-fill me-2"></i>Emergency Contact Person</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="AA_EmergencyContactName" class="form-label fw-semibold small text-dark">Emergency Contact Name</label>
+                                    <input asp-for="AA_EmergencyContactName" id="AA_EmergencyContactName" class="form-control rounded-3 py-2" placeholder="Person to contact in emergency" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="AA_EmergencyContactPhone" class="form-label fw-semibold small text-dark">Emergency Phone Number</label>
+                                    <input asp-for="AA_EmergencyContactPhone" id="AA_EmergencyContactPhone" class="form-control rounded-3 py-2" placeholder="10-digit emergency contact phone" maxlength="10" />
+                                    <div class="invalid-feedback-custom" id="err_AA_EmergencyContactPhone">Enter a valid 10-digit phone number.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- STEP 5: Academic Record & Documents Upload -->
+                    <!-- ========================================== -->
+                    <div class="form-step" id="step-5">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-building-fill-add text-primary me-2"></i>Previous Academic Record &amp; Documents</h6>
+                            <small class="text-muted">Enter details of previous school/institute and upload scanned copies of certificates.</small>
+                        </div>
+
+                        <!-- Previous School -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousSchool" class="form-label fw-semibold small text-dark">Previous School / Institute</label>
+                                <input asp-for="AA_PreviousSchool" id="AA_PreviousSchool" class="form-control rounded-3 py-2" placeholder="Name of previous school" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousBoard" class="form-label fw-semibold small text-dark">Board (CBSE / ICSE / State)</label>
+                                <input asp-for="AA_PreviousBoard" id="AA_PreviousBoard" class="form-control rounded-3 py-2" placeholder="e.g. CBSE / State Board" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_PreviousMarks" class="form-label fw-semibold small text-dark">Previous Grade / Marks (%)</label>
+                                <input asp-for="AA_PreviousMarks" id="AA_PreviousMarks" class="form-control rounded-3 py-2" placeholder="e.g. 88.5% or Grade A" />
+                            </div>
+                        </div>
+
+                        <!-- Document Upload Grid -->
+                        <div class="card border rounded-3 p-3 bg-light-subtle">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-paperclip text-primary me-2"></i>Upload Supporting Certificates &amp; Documents</h6>
+                            <small class="text-muted d-block mb-3">Allowed formats: PDF, JPG, PNG (Max 5MB per document)</small>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 bg-white">
+                                        <label class="form-label fw-semibold small text-dark mb-1"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>Birth Certificate</label>
+                                        <input type="file" name="BirthCertificateDoc" id="BirthCertificateDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/jpeg,image/png,image/jpg" onchange="validateFileSize(this, 5)" />
+                                        <div class="invalid-feedback-custom" id="err_BirthCertificateDoc">File size must be under 5MB (PDF/JPG/PNG).</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 bg-white">
+                                        <label class="form-label fw-semibold small text-dark mb-1"><i class="bi bi-file-earmark-text text-primary me-1"></i>Previous Marksheet / Transcript</label>
+                                        <input type="file" name="MarksheetDoc" id="MarksheetDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/jpeg,image/png,image/jpg" onchange="validateFileSize(this, 5)" />
+                                        <div class="invalid-feedback-custom" id="err_MarksheetDoc">File size must be under 5MB (PDF/JPG/PNG).</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 bg-white">
+                                        <label class="form-label fw-semibold small text-dark mb-1"><i class="bi bi-journal-check text-success me-1"></i>Transfer Certificate (TC) / Migration</label>
+                                        <input type="file" name="TransferCertificateDoc" id="TransferCertificateDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/jpeg,image/png,image/jpg" onchange="validateFileSize(this, 5)" />
+                                        <div class="invalid-feedback-custom" id="err_TransferCertificateDoc">File size must be under 5MB (PDF/JPG/PNG).</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded-3 bg-white">
+                                        <label class="form-label fw-semibold small text-dark mb-1"><i class="bi bi-card-heading text-warning me-1"></i>Aadhaar / National ID Proof</label>
+                                        <input type="file" name="NationalIdDoc" id="NationalIdDoc" class="form-control form-control-sm rounded-3" accept=".pdf,image/jpeg,image/png,image/jpg" onchange="validateFileSize(this, 5)" />
+                                        <div class="invalid-feedback-custom" id="err_NationalIdDoc">File size must be under 5MB (PDF/JPG/PNG).</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- STEP 6: Facilities, Preferences & Review -->
+                    <!-- ========================================== -->
+                    <div class="form-step" id="step-6">
+                        <div class="step-banner">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-sliders2 text-primary me-2"></i>Facilities &amp; Final Application Review</h6>
+                            <small class="text-muted">Select optional campus facilities and double-check your application details before final submission.</small>
+                        </div>
+
+                        <!-- Facilities Grid -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label asp-for="AA_SecondLanguage" class="form-label fw-semibold small text-dark">Second Language Preference</label>
+                                <input asp-for="AA_SecondLanguage" id="AA_SecondLanguage" class="form-control rounded-3 py-2" placeholder="e.g. Hindi / Sanskrit / French" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_MotherTongue" class="form-label fw-semibold small text-dark">Mother Tongue</label>
+                                <input asp-for="AA_MotherTongue" id="AA_MotherTongue" class="form-control rounded-3 py-2" placeholder="e.g. Hindi / Bengali / English" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AA_MedicalConditions" class="form-label fw-semibold small text-dark">Medical Conditions / Allergies</label>
+                                <input asp-for="AA_MedicalConditions" id="AA_MedicalConditions" class="form-control rounded-3 py-2" placeholder="e.g. Asthma, Spectacles, None" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <strong class="d-block text-dark small"><i class="bi bi-bus-front text-primary me-1"></i>School Transport Required?</strong>
+                                        <small class="text-muted">Check if you require campus bus service</small>
+                                    </div>
+                                    <div class="form-check form-switch m-0 fs-5">
+                                        <input class="form-check-input" type="checkbox" id="pub_RequiresTransport" name="AA_RequiresTransport" value="true" onchange="$('#pubTransportPoint').toggle(this.checked)" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <strong class="d-block text-dark small"><i class="bi bi-building text-primary me-1"></i>Hostel Facility Required?</strong>
+                                        <small class="text-muted">Check if you require residential hostel stay</small>
+                                    </div>
+                                    <div class="form-check form-switch m-0 fs-5">
+                                        <input class="form-check-input" type="checkbox" id="pub_RequiresHostel" name="AA_RequiresHostel" value="true" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12" id="pubTransportPoint" style="display:none;">
+                                <label asp-for="AA_TransportPickupPoint" class="form-label fw-semibold small text-dark">Preferred Bus Pickup Point / Stop</label>
+                                <input asp-for="AA_TransportPickupPoint" id="AA_TransportPickupPoint" class="form-control rounded-3 py-2" placeholder="Enter landmark or bus stop location" />
+                            </div>
+
                             <div class="col-12">
-                                <label asp-for="AA_Notes" class="form-label fw-semibold small text-muted">Additional Information / Remarks</label>
-                                <textarea asp-for="AA_Notes" class="form-control rounded-3" rows="2" placeholder="Enter any extra details or inquiries..."></textarea>
+                                <label asp-for="AA_Notes" class="form-label fw-semibold small text-dark">Additional Remarks / Inquiries</label>
+                                <textarea asp-for="AA_Notes" id="AA_Notes" class="form-control rounded-3" rows="2" placeholder="Enter any extra details, scholarship requests or queries..."></textarea>
                             </div>
+                        </div>
+
+                        <!-- Dynamic Application Review Box -->
+                        <div class="card border rounded-3 p-4 mb-4 bg-light">
+                            <h6 class="fw-bold text-dark pb-2 border-bottom mb-3"><i class="bi bi-eye-fill text-primary me-2"></i>Application Summary Review</h6>
+                            
+                            <div class="row g-3 small">
+                                <div class="col-md-6 border-end">
+                                    <p class="mb-1"><span class="text-muted">Target Campus:</span> <strong id="sum_Branch" class="text-primary">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Academic Session:</span> <strong id="sum_Year">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Applying For:</span> <strong id="sum_ClassCourse">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Student Name:</span> <strong id="sum_StudentName" class="text-dark">-</strong></p>
+                                    <p class="mb-0"><span class="text-muted">Mobile &amp; Email:</span> <strong id="sum_Contact">-</strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><span class="text-muted">Parents:</span> <strong id="sum_Parents">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Residential City:</span> <strong id="sum_CityState">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Previous School:</span> <strong id="sum_PrevSchool">-</strong></p>
+                                    <p class="mb-1"><span class="text-muted">Facilities:</span> <strong id="sum_Facilities">-</strong></p>
+                                    <p class="mb-0"><span class="text-muted">Attached Documents:</span> <strong id="sum_Docs" class="text-success">-</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms & Declaration Checkbox -->
+                        <div class="form-check p-3 bg-light border rounded-3 mb-3">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label small text-dark fw-semibold" for="agreeTerms">
+                                I hereby declare that all details furnished in this online admission application are true, accurate and complete to the best of my knowledge.
+                            </label>
+                            <div class="invalid-feedback-custom" id="err_agreeTerms">You must accept the declaration to submit your application.</div>
                         </div>
                     </div>
 
-                    <!-- Submission Agreement -->
-                    <div class="form-check mb-4 p-3 bg-light rounded-3">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" id="agreeTerms" required>
-                        <label class="form-check-label small text-muted" for="agreeTerms">
-                            I declare that all information provided in this admission application form is accurate and true to the best of my knowledge.
-                        </label>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex align-items-center justify-content-between pt-2">
-                        <a href="/" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="bi bi-arrow-left me-1"></i> Cancel
+                    <!-- ========================================== -->
+                    <!-- STEPPER NAVIGATION BUTTONS -->
+                    <!-- ========================================== -->
+                    <div class="d-flex align-items-center justify-content-between pt-4 border-top mt-4">
+                        <!-- Back Button -->
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="btnPrevStep" onclick="navigateStep(-1)" style="display:none;">
+                            <i class="bi bi-arrow-left me-1"></i> Back
+                        </button>
+                        <a href="/" class="btn btn-link text-muted rounded-pill text-decoration-none" id="btnCancelForm">
+                            Cancel
                         </a>
+
+                        <!-- Next / Submit Action Buttons -->
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold shadow-sm" id="btnPreviewApp">
-                                <i class="bi bi-eye me-1"></i> Preview &amp; Print Form
+                            <button type="button" class="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow-sm" id="btnNextStep" onclick="navigateStep(1)">
+                                Next Step <i class="bi bi-arrow-right ms-1"></i>
                             </button>
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-semibold shadow" id="btnDirectSubmit">
+
+                            <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold" id="btnPreviewApp" style="display:none;">
+                                <i class="bi bi-printer me-1"></i> Preview &amp; Print Slip
+                            </button>
+
+                            <button type="submit" class="btn btn-success rounded-pill px-5 py-2 fw-bold shadow" id="btnDirectSubmit" style="display:none;">
                                 <i class="bi bi-send-fill me-2"></i> Submit Application
                             </button>
                         </div>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -360,7 +1076,9 @@
     </div>
 </div>
 
-<!-- Draft Application Form Preview & Print Modal -->
+<!-- ========================================== -->
+<!-- DRAFT APPLICATION PREVIEW & PRINT MODAL -->
+<!-- ========================================== -->
 <div class="modal fade" id="previewAppModal" tabindex="-1" aria-labelledby="previewAppModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -368,98 +1086,238 @@
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text text-primary fs-4"></i>
                     <div>
-                        <h5 class="modal-title fw-bold text-white mb-0" id="previewAppModalLabel">Application Form Preview</h5>
-                        <small class="text-white-50">Please review your filled information carefully before final submission</small>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="previewAppModalLabel">Application Form Preview Slip</h5>
+                        <small class="text-white-50">Official Draft Application Verification Document</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
             <div class="modal-body p-4 bg-light" id="previewAppModalBody">
-                <div class="bg-white p-4 rounded-3 border shadow-sm" id="printableDraftApplication">
-                    <!-- Institutional Header for Print -->
-                    <div class="text-center pb-3 mb-3 border-bottom">
-                        <h4 class="fw-bold text-dark mb-1">IMS ERP &bull; ADMISSION APPLICATION</h4>
-                        <span class="badge bg-primary px-3 py-1 text-uppercase">Draft Application Slip</span>
-                    </div>
-
-                    <div class="row g-3 align-items-start mb-3">
-                        <!-- Photo -->
-                        <div class="col-sm-3 text-center">
-                            <img id="prev_Photo" src="" alt="Student Photo" class="img-thumbnail rounded-3 shadow-sm border" style="width: 120px; height: 140px; object-fit: cover; background: #f8fafc;" />
-                        </div>
-                        <!-- Key Summary -->
-                        <div class="col-sm-9">
-                            <h5 class="fw-bold text-primary mb-1" id="prev_FullName">Student Name</h5>
-                            <div class="row g-2 small text-dark">
-                                <div class="col-6"><span class="text-muted">Campus / Branch:</span> <strong id="prev_Branch">-</strong></div>
-                                <div class="col-6"><span class="text-muted">Academic Session:</span> <strong id="prev_Year">-</strong></div>
-                                <div class="col-6"><span class="text-muted">Applied Class/Grade:</span> <strong id="prev_Class">-</strong></div>
-                                <div class="col-6"><span class="text-muted">Course / Stream:</span> <strong id="prev_Course">-</strong></div>
+                <div class="form-preview-sheet" id="printableDraftApplication">
+                    <!-- Header Banner -->
+                    <div class="prev-header-box">
+                        <div class="prev-header-left">
+                            <div class="prev-logo-icon">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                            <div>
+                                <div class="prev-org-name">SCHOOL MANAGEMENT SYSTEM</div>
+                                <div class="prev-org-sub">
+                                    <span id="prev_BranchMeta">Target Campus: Main Branch</span> &bull; 
+                                    <span id="prev_YearMeta">Academic Session 2026-2027</span>
+                                </div>
                             </div>
                         </div>
+                        <div class="text-end">
+                            <span class="prev-badge-title">Admission Application Slip</span>
+                            <div class="small text-muted mt-1" style="font-size: 10px;">Ref: <strong class="text-primary">DRAFT VERIFICATION SLIP</strong></div>
+                            <div class="small text-muted" style="font-size: 9.5px;">Date: <span id="prev_GeneratedAt">-</span></div>
+                        </div>
                     </div>
 
-                    <!-- Personal Information Table -->
-                    <h6 class="fw-bold text-dark pb-1 border-bottom mt-3 small"><i class="bi bi-person me-1 text-primary"></i> Personal Details</h6>
-                    <table class="table table-sm table-bordered small mb-3">
-                        <tbody>
-                            <tr>
-                                <th class="bg-light text-muted w-25">Date of Birth</th><td id="prev_DOB" class="w-25">-</td>
-                                <th class="bg-light text-muted w-25">Gender</th><td id="prev_Gender" class="w-25">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Blood Group</th><td id="prev_BloodGroup">-</td>
-                                <th class="bg-light text-muted">Category / Quota</th><td id="prev_Category">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Mobile Number</th><td id="prev_Phone">-</td>
-                                <th class="bg-light text-muted">Email Address</th><td id="prev_Email">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Aadhaar / ID</th><td colspan="3" id="prev_Aadhaar">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- Applicant Overview Card -->
+                    <div class="prev-applicant-card">
+                        <div class="prev-applicant-info">
+                            <div class="prev-applicant-name" id="prev_FullName">APPLICANT NAME</div>
+                            <div class="prev-applicant-meta">
+                                <span><strong>Target Campus:</strong> <span id="prev_Branch">-</span></span>
+                                <span><strong>Session:</strong> <span id="prev_Year">-</span></span>
+                                <span><strong>Grade / Class:</strong> <span id="prev_Class">-</span></span>
+                                <span><strong>Stream:</strong> <span id="prev_Course">-</span></span>
+                            </div>
+                        </div>
+                        <div class="prev-applicant-photo-box">
+                            <img id="prev_Photo" src="" alt="Applicant Photo" />
+                        </div>
+                    </div>
 
-                    <!-- Parent & Address -->
-                    <h6 class="fw-bold text-dark pb-1 border-bottom mt-3 small"><i class="bi bi-people me-1 text-primary"></i> Parents &amp; Residence</h6>
-                    <table class="table table-sm table-bordered small mb-3">
-                        <tbody>
-                            <tr>
-                                <th class="bg-light text-muted w-25">Father's Name</th><td id="prev_FatherName" class="w-25">-</td>
-                                <th class="bg-light text-muted w-25">Father's Phone</th><td id="prev_FatherPhone" class="w-25">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Mother's Name</th><td id="prev_MotherName">-</td>
-                                <th class="bg-light text-muted">Mother's Phone</th><td id="prev_MotherPhone">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Residential Address</th><td colspan="3" id="prev_Address">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Emergency Contact</th><td colspan="3" id="prev_Emergency">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- SECTION 1: Campus & Academic Preference -->
+                    <div class="prev-section">
+                        <div class="prev-section-header">
+                            <span><i class="bi bi-mortarboard-fill me-2"></i> Section 1: Campus &amp; Academic Preference</span>
+                            <span class="badge bg-white text-primary fw-bold px-2 py-0.5" style="font-size: 9px;">Step 1</span>
+                        </div>
+                        <table class="prev-table">
+                            <tbody>
+                                <tr>
+                                    <td class="lbl">Preferred Campus / Branch:</td>
+                                    <td class="val" id="prev_BranchSec">-</td>
+                                    <td class="lbl">Academic Session / Year:</td>
+                                    <td class="val" id="prev_YearSec">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Grade / Class:</td>
+                                    <td class="val" id="prev_ClassSec">-</td>
+                                    <td class="lbl">Stream / Course:</td>
+                                    <td class="val" id="prev_CourseSec">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <!-- Academic History & Facilities -->
-                    <h6 class="fw-bold text-dark pb-1 border-bottom mt-3 small"><i class="bi bi-building me-1 text-primary"></i> Previous School &amp; Preferences</h6>
-                    <table class="table table-sm table-bordered small mb-0">
-                        <tbody>
-                            <tr>
-                                <th class="bg-light text-muted w-25">Previous School</th><td id="prev_PrevSchool" class="w-25">-</td>
-                                <th class="bg-light text-muted w-25">Board &amp; Marks</th><td id="prev_PrevMarks" class="w-25">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Languages</th><td id="prev_Languages">-</td>
-                                <th class="bg-light text-muted">Transport &amp; Hostel</th><td id="prev_Facilities">-</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light text-muted">Attached Files</th><td colspan="3" id="prev_Docs">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- SECTION 2: Student Personal Details -->
+                    <div class="prev-section">
+                        <div class="prev-section-header">
+                            <span><i class="bi bi-person-badge-fill me-2"></i> Section 2: Student Personal Details</span>
+                            <span class="badge bg-white text-primary fw-bold px-2 py-0.5" style="font-size: 9px;">Step 2</span>
+                        </div>
+                        <table class="prev-table">
+                            <tbody>
+                                <tr>
+                                    <td class="lbl">Date of Birth:</td>
+                                    <td class="val" id="prev_DOB">-</td>
+                                    <td class="lbl">Gender:</td>
+                                    <td class="val" id="prev_Gender">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Blood Group:</td>
+                                    <td class="val" id="prev_BloodGroup">-</td>
+                                    <td class="lbl">Category / Quota:</td>
+                                    <td class="val" id="prev_Category">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Nationality:</td>
+                                    <td class="val" id="prev_Nationality">Indian</td>
+                                    <td class="lbl">Religion:</td>
+                                    <td class="val" id="prev_Religion">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Student Mobile:</td>
+                                    <td class="val" id="prev_Phone">-</td>
+                                    <td class="lbl">Email Address:</td>
+                                    <td class="val" id="prev_Email">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Aadhaar / National ID:</td>
+                                    <td class="val" id="prev_Aadhaar" colspan="3">Not Specified</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SECTION 3: Parents & Guardian Information -->
+                    <div class="prev-section">
+                        <div class="prev-section-header">
+                            <span><i class="bi bi-people-fill me-2"></i> Section 3: Parents &amp; Guardian Information</span>
+                            <span class="badge bg-white text-primary fw-bold px-2 py-0.5" style="font-size: 9px;">Step 3</span>
+                        </div>
+                        <table class="prev-table">
+                            <tbody>
+                                <tr>
+                                    <td class="lbl">Father's Full Name:</td>
+                                    <td class="val" id="prev_FatherName">-</td>
+                                    <td class="lbl">Father's Occupation:</td>
+                                    <td class="val" id="prev_FatherOccupation">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Father's Mobile:</td>
+                                    <td class="val" id="prev_FatherPhone">-</td>
+                                    <td class="lbl">Father's Email:</td>
+                                    <td class="val" id="prev_FatherEmail">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Mother's Full Name:</td>
+                                    <td class="val" id="prev_MotherName">-</td>
+                                    <td class="lbl">Mother's Occupation:</td>
+                                    <td class="val" id="prev_MotherOccupation">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Mother's Mobile:</td>
+                                    <td class="val" id="prev_MotherPhone">-</td>
+                                    <td class="lbl">Mother's Email:</td>
+                                    <td class="val" id="prev_MotherEmail">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-wide">Legal Guardian Info:</td>
+                                    <td class="val-wide" id="prev_GuardianDetails" colspan="3">Not Applicable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SECTION 4: Address & Emergency Contact -->
+                    <div class="prev-section">
+                        <div class="prev-section-header">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i> Section 4: Address &amp; Emergency Contact</span>
+                            <span class="badge bg-white text-primary fw-bold px-2 py-0.5" style="font-size: 9px;">Step 4</span>
+                        </div>
+                        <table class="prev-table">
+                            <tbody>
+                                <tr>
+                                    <td class="lbl-wide">Residential Address:</td>
+                                    <td class="val-wide" id="prev_Address" colspan="3">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-wide">Emergency Contact:</td>
+                                    <td class="val-wide" id="prev_Emergency" colspan="3">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SECTION 5: Previous Academic History & Facilities -->
+                    <div class="prev-section">
+                        <div class="prev-section-header">
+                            <span><i class="bi bi-file-earmark-text-fill me-2"></i> Section 5: Academic Record, Languages &amp; Facilities</span>
+                            <span class="badge bg-white text-primary fw-bold px-2 py-0.5" style="font-size: 9px;">Step 5</span>
+                        </div>
+                        <table class="prev-table">
+                            <tbody>
+                                <tr>
+                                    <td class="lbl">Previous School/College:</td>
+                                    <td class="val" id="prev_PrevSchool">-</td>
+                                    <td class="lbl">Board &amp; Marks / Grade:</td>
+                                    <td class="val" id="prev_PrevMarks">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-wide">Languages Info:</td>
+                                    <td class="val-wide" id="prev_Languages" colspan="3">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-wide">Requested Facilities:</td>
+                                    <td class="val-wide" id="prev_Facilities" colspan="3">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-wide">Attached Documents:</td>
+                                    <td class="val-wide text-success" id="prev_Docs" colspan="3">None attached in draft</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Declaration Statement -->
+                    <div class="prev-declaration">
+                        <strong>Declaration &amp; Verification:</strong> I hereby declare that all information furnished in this admission application form is true, correct, and complete to the best of my knowledge and belief. I understand that any false statement or omission may lead to rejection of application or cancellation of admission.
+                    </div>
+
+                    <!-- Signatures Section -->
+                    <div class="prev-signatures">
+                        <div class="prev-sig-box">
+                            <div class="prev-sig-line"></div>
+                            <div class="prev-sig-title">Applicant Signature</div>
+                            <div class="prev-sig-sub">Student Candidate</div>
+                        </div>
+
+                        <div class="prev-sig-box">
+                            <div class="prev-sig-line"></div>
+                            <div class="prev-sig-title">Parent / Guardian</div>
+                            <div class="prev-sig-sub">Authorized Signature</div>
+                        </div>
+
+                        <div class="prev-sig-box" style="display: flex; justify-content: center;">
+                            <div class="prev-seal-box">
+                                <i class="bi bi-patch-check-fill mb-1 text-primary fs-6"></i>
+                                <span>Official Seal</span>
+                            </div>
+                        </div>
+
+                        <div class="prev-sig-box">
+                            <div class="prev-sig-line"></div>
+                            <div class="prev-sig-title">Admission Desk</div>
+                            <div class="prev-sig-sub">Authorized Signatory</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -468,11 +1326,11 @@
                     <i class="bi bi-pencil me-1"></i> Edit Details
                 </button>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-dark rounded-pill px-3" onclick="printDraftApplication()">
-                        <i class="bi bi-printer me-1"></i> Print Form
+                    <button type="button" class="btn btn-outline-dark rounded-pill px-4" onclick="printPreviewSlip()">
+                        <i class="bi bi-printer-fill me-1"></i> Print Form Slip
                     </button>
                     <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnConfirmFinalSubmit">
-                        <i class="bi bi-check-circle-fill me-1"></i> Confirm &amp; Final Submit
+                        <i class="bi bi-check-circle-fill me-1"></i> Confirm &amp; Submit
                     </button>
                 </div>
             </div>
@@ -481,95 +1339,497 @@
 </div>
 
 @section Scripts {
-    <style>
-        .form-control.is-invalid, .form-select.is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-        }
-        @@media print {
-            body * { visibility: hidden; }
-            #printableDraftApplication, #printableDraftApplication * { visibility: visible; }
-            #printableDraftApplication { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-    </style>
     <script>
-        function previewPublicPhoto(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#pubPhotoPreview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+        var currentStep = 1;
+        var maxStepReached = 1;
+        var totalSteps = 6;
 
-        function printDraftApplication() {
+        var stepTitles = {
+            1: '<i class="bi bi-mortarboard me-2"></i>Academic & Campus Preference',
+            2: '<i class="bi bi-person-badge me-2"></i>Student Personal Details & Photograph',
+            3: '<i class="bi bi-people me-2"></i>Parents & Guardian Information',
+            4: '<i class="bi bi-geo-alt me-2"></i>Residential Address & Emergency Contact',
+            5: '<i class="bi bi-file-earmark-arrow-up me-2"></i>Previous Academic Record & Documents Upload',
+            6: '<i class="bi bi-sliders2 me-2"></i>Facilities, Preferences & Final Review'
+        };
+
+        function printPreviewSlip() {
             window.print();
         }
 
-        function populatePreviewModal() {
-            var fName = $("input[name='AA_FirstName']").val() || "";
-            var mName = $("input[name='AA_MiddleName']").val() || "";
-            var lName = $("input[name='AA_LastName']").val() || "";
+        // File validation helpers
+        function previewPublicPhoto(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    showFieldError("#StudentPhoto", "err_StudentPhoto", "Photo file size exceeds 2MB limit.");
+                    input.value = "";
+                    return;
+                }
+                clearFieldError("#StudentPhoto", "err_StudentPhoto");
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#pubPhotoPreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function validateFileSize(input, maxMb) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var inputId = $(input).attr("id");
+                var errId = "err_" + inputId;
+                if (file.size > maxMb * 1024 * 1024) {
+                    showFieldError("#" + inputId, errId, "File size exceeds " + maxMb + "MB limit.");
+                    input.value = "";
+                    return false;
+                } else {
+                    clearFieldError("#" + inputId, errId);
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        // Inline Field Error Functions
+        function showFieldError(selector, errorElemId, msg) {
+            var $el = $(selector);
+            $el.addClass("is-invalid").removeClass("is-valid");
+            $("#" + errorElemId).text(msg).addClass("d-block");
+        }
+
+        function clearFieldError(selector, errorElemId) {
+            var $el = $(selector);
+            $el.removeClass("is-invalid");
+            $("#" + errorElemId).text("").removeClass("d-block");
+        }
+
+        // Per-Step Validation Logic
+        function validateStep(step) {
+            var isValid = true;
+            var firstErrEl = null;
+
+            if (step === 1) {
+                var branchVal = $("#AA_BranchId").val();
+                if (!branchVal) {
+                    showFieldError("#AA_BranchId", "err_AA_BranchId", "Please select a preferred campus branch.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_BranchId";
+                } else {
+                    clearFieldError("#AA_BranchId", "err_AA_BranchId");
+                }
+
+                var yearVal = $("#AA_AcademicYearId").val();
+                if (!yearVal) {
+                    showFieldError("#AA_AcademicYearId", "err_AA_AcademicYearId", "Please select an academic session.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_AcademicYearId";
+                } else {
+                    clearFieldError("#AA_AcademicYearId", "err_AA_AcademicYearId");
+                }
+            }
+            else if (step === 2) {
+                var fName = $.trim($("#AA_FirstName").val());
+                if (!fName) {
+                    showFieldError("#AA_FirstName", "err_AA_FirstName", "First Name is required.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_FirstName";
+                } else {
+                    clearFieldError("#AA_FirstName", "err_AA_FirstName");
+                }
+
+                var lName = $.trim($("#AA_LastName").val());
+                if (!lName) {
+                    showFieldError("#AA_LastName", "err_AA_LastName", "Last Name is required.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_LastName";
+                } else {
+                    clearFieldError("#AA_LastName", "err_AA_LastName");
+                }
+
+                var phone = $.trim($("#AA_Phone").val());
+                var phoneRegex = /^[6-9]\d{9}$/;
+                if (!phone || !phoneRegex.test(phone)) {
+                    showFieldError("#AA_Phone", "err_AA_Phone", "Enter a valid 10-digit mobile number starting with 6-9.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_Phone";
+                } else {
+                    clearFieldError("#AA_Phone", "err_AA_Phone");
+                }
+
+                var email = $.trim($("#AA_Email").val());
+                if (email) {
+                    var emailRegex = /^[^\s\x40]+\x40[^\s\x40]+\.[^\s\x40]+$/;
+                    if (!emailRegex.test(email)) {
+                        showFieldError("#AA_Email", "err_AA_Email", "Please enter a valid email address.");
+                        isValid = false;
+                        if (!firstErrEl) firstErrEl = "#AA_Email";
+                    } else {
+                        clearFieldError("#AA_Email", "err_AA_Email");
+                    }
+                } else {
+                    clearFieldError("#AA_Email", "err_AA_Email");
+                }
+
+                var aadhaar = $.trim($("#AA_AadhaarNumber").val());
+                if (aadhaar) {
+                    if (!/^\d{12}$/.test(aadhaar)) {
+                        showFieldError("#AA_AadhaarNumber", "err_AA_AadhaarNumber", "Aadhaar number must be exactly 12 digits.");
+                        isValid = false;
+                        if (!firstErrEl) firstErrEl = "#AA_AadhaarNumber";
+                    } else {
+                        clearFieldError("#AA_AadhaarNumber", "err_AA_AadhaarNumber");
+                    }
+                } else {
+                    clearFieldError("#AA_AadhaarNumber", "err_AA_AadhaarNumber");
+                }
+            }
+            else if (step === 3) {
+                var fPhone = $.trim($("#AA_FatherPhone").val());
+                if (fPhone && !/^[6-9]\d{9}$/.test(fPhone)) {
+                    showFieldError("#AA_FatherPhone", "err_AA_FatherPhone", "Enter a valid 10-digit mobile number.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_FatherPhone";
+                } else {
+                    clearFieldError("#AA_FatherPhone", "err_AA_FatherPhone");
+                }
+
+                var fEmail = $.trim($("#AA_FatherEmail").val());
+                if (fEmail && !/^[^\s\x40]+\x40[^\s\x40]+\.[^\s\x40]+$/.test(fEmail)) {
+                    showFieldError("#AA_FatherEmail", "err_AA_FatherEmail", "Enter a valid email address.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_FatherEmail";
+                } else {
+                    clearFieldError("#AA_FatherEmail", "err_AA_FatherEmail");
+                }
+
+                var mPhone = $.trim($("#AA_MotherPhone").val());
+                if (mPhone && !/^[6-9]\d{9}$/.test(mPhone)) {
+                    showFieldError("#AA_MotherPhone", "err_AA_MotherPhone", "Enter a valid 10-digit mobile number.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_MotherPhone";
+                } else {
+                    clearFieldError("#AA_MotherPhone", "err_AA_MotherPhone");
+                }
+
+                var mEmail = $.trim($("#AA_MotherEmail").val());
+                if (mEmail && !/^[^\s\x40]+\x40[^\s\x40]+\.[^\s\x40]+$/.test(mEmail)) {
+                    showFieldError("#AA_MotherEmail", "err_AA_MotherEmail", "Enter a valid email address.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_MotherEmail";
+                } else {
+                    clearFieldError("#AA_MotherEmail", "err_AA_MotherEmail");
+                }
+
+                var gPhone = $.trim($("#AA_GuardianPhone").val());
+                if (gPhone && !/^[6-9]\d{9}$/.test(gPhone)) {
+                    showFieldError("#AA_GuardianPhone", "err_AA_GuardianPhone", "Enter a valid 10-digit mobile number.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_GuardianPhone";
+                } else {
+                    clearFieldError("#AA_GuardianPhone", "err_AA_GuardianPhone");
+                }
+
+                var gEmail = $.trim($("#AA_GuardianEmail").val());
+                if (gEmail && !/^[^\s\x40]+\x40[^\s\x40]+\.[^\s\x40]+$/.test(gEmail)) {
+                    showFieldError("#AA_GuardianEmail", "err_AA_GuardianEmail", "Enter a valid email address.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_GuardianEmail";
+                } else {
+                    clearFieldError("#AA_GuardianEmail", "err_AA_GuardianEmail");
+                }
+            }
+            else if (step === 4) {
+                var pin = $.trim($("#AA_PostalCode").val());
+                if (pin && !/^\d{6}$/.test(pin)) {
+                    showFieldError("#AA_PostalCode", "err_AA_PostalCode", "PIN code must be exactly 6 digits.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_PostalCode";
+                } else {
+                    clearFieldError("#AA_PostalCode", "err_AA_PostalCode");
+                }
+
+                var ePhone = $.trim($("#AA_EmergencyContactPhone").val());
+                if (ePhone && !/^[6-9]\d{9}$/.test(ePhone)) {
+                    showFieldError("#AA_EmergencyContactPhone", "err_AA_EmergencyContactPhone", "Enter a valid 10-digit mobile number.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#AA_EmergencyContactPhone";
+                } else {
+                    clearFieldError("#AA_EmergencyContactPhone", "err_AA_EmergencyContactPhone");
+                }
+            }
+            else if (step === 6) {
+                if (!$("#agreeTerms").is(":checked")) {
+                    showFieldError("#agreeTerms", "err_agreeTerms", "You must accept the declaration to submit your application.");
+                    isValid = false;
+                    if (!firstErrEl) firstErrEl = "#agreeTerms";
+                } else {
+                    clearFieldError("#agreeTerms", "err_agreeTerms");
+                }
+            }
+
+            if (!isValid && firstErrEl) {
+                $(firstErrEl).focus();
+                var el = document.querySelector(firstErrEl);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            return isValid;
+        }
+
+        // Stepper Navigation Function
+        function navigateStep(direction) {
+            var target = currentStep + direction;
+
+            if (direction > 0) {
+                // Moving forward: validate current step
+                if (!validateStep(currentStep)) return;
+            }
+
+            if (target >= 1 && target <= totalSteps) {
+                goToStep(target);
+            }
+        }
+
+        function handleStepNavClick(targetStep) {
+            if (targetStep === currentStep) return;
+
+            if (targetStep > currentStep) {
+                // Check all intermediate steps up to targetStep
+                for (var s = currentStep; s < targetStep; s++) {
+                    if (!validateStep(s)) {
+                        return;
+                    }
+                }
+            }
+            goToStep(targetStep);
+        }
+
+        function goToStep(stepNum) {
+            // Update Stepper Icon status
+            if (stepNum > maxStepReached) {
+                maxStepReached = stepNum;
+            }
+
+            // Mark previous step as completed if valid
+            for (var i = 1; i <= totalSteps; i++) {
+                var $item = $('.step-item[data-step="' + i + '"]');
+                var $icon = $('#step-icon-' + i);
+
+                if (i < stepNum) {
+                    $item.removeClass('active').addClass('completed');
+                    $icon.html('<i class="bi bi-check-lg"></i>');
+                } else if (i === stepNum) {
+                    $item.removeClass('completed').addClass('active');
+                    $icon.html(getStepIconHtml(i));
+                } else {
+                    $item.removeClass('active completed');
+                    $icon.html(getStepIconHtml(i));
+                }
+            }
+
+            // Hide all steps, show target step
+            $('.form-step').removeClass('active-step');
+            $('#step-' + stepNum).addClass('active-step');
+
+            // Update Progress Bar
+            currentStep = stepNum;
+            var pct = Math.round((stepNum / totalSteps) * 100);
+            $('#currentStepNum').text(stepNum);
+            $('#stepProgressPercent').text(pct + '% Completed');
+            $('#admissionProgressBar').css('width', pct + '%');
+
+            // Update Header Title
+            if (stepTitles[stepNum]) {
+                $('#formHeaderTitle').html(stepTitles[stepNum]);
+            }
+
+            // Update Buttons
+            if (currentStep === 1) {
+                $('#btnPrevStep').hide();
+                $('#btnCancelForm').show();
+            } else {
+                $('#btnPrevStep').show();
+                $('#btnCancelForm').hide();
+            }
+
+            if (currentStep === totalSteps) {
+                $('#btnNextStep').hide();
+                $('#btnPreviewApp').show();
+                $('#btnDirectSubmit').show();
+                updateSummaryReviewCard();
+            } else {
+                $('#btnNextStep').show();
+                $('#btnPreviewApp').hide();
+                $('#btnDirectSubmit').hide();
+            }
+
+            window.scrollTo({ top: 180, behavior: 'smooth' });
+        }
+
+        function getStepIconHtml(step) {
+            switch(step) {
+                case 1: return '<i class="bi bi-mortarboard-fill"></i>';
+                case 2: return '<i class="bi bi-person-badge-fill"></i>';
+                case 3: return '<i class="bi bi-people-fill"></i>';
+                case 4: return '<i class="bi bi-geo-alt-fill"></i>';
+                case 5: return '<i class="bi bi-file-earmark-arrow-up-fill"></i>';
+                case 6: return '<i class="bi bi-check2-circle"></i>';
+                default: return step;
+            }
+        }
+
+        function getSelectedText(selector, defaultFallback) {
+            var $opt = $(selector + " option:selected");
+            var val = $(selector).val();
+            if (!val || val === "" || val === "0") return defaultFallback || "-";
+            var txt = $.trim($opt.text());
+            if (!txt || txt.indexOf("-- Select") === 0 || txt.indexOf("--Select") === 0) {
+                return defaultFallback || "-";
+            }
+            return txt;
+        }
+
+        function updateSummaryReviewCard() {
+            var fName = $.trim($("#AA_FirstName").val());
+            var mName = $.trim($("#AA_MiddleName").val());
+            var lName = $.trim($("#AA_LastName").val());
             var fullName = [fName, mName, lName].filter(Boolean).join(" ");
             
-            $("#prev_FullName").text(fullName || "Applicant Name");
-            $("#prev_Branch").text($("#AA_BranchId option:selected").text() || "-");
-            $("#prev_Year").text($("#AA_AcademicYearId option:selected").text() || "-");
-            $("#prev_Class").text($("#AA_ClassId option:selected").text() || "-");
-            $("#prev_Course").text($("#AA_CourseId option:selected").text() || "-");
+            $("#sum_Branch").text(getSelectedText("#AA_BranchId", "-"));
+            $("#sum_Year").text(getSelectedText("#AA_AcademicYearId", "-"));
+
+            var cls = getSelectedText("#AA_ClassId", "");
+            var crs = getSelectedText("#AA_CourseId", "");
+            var clsCrs = [cls, crs].filter(Boolean).join(" / ");
+            $("#sum_ClassCourse").text(clsCrs || "-");
+
+            $("#sum_StudentName").text(fullName || "Not Entered");
+            var ph = $.trim($("#AA_Phone").val());
+            var em = $.trim($("#AA_Email").val());
+            $("#sum_Contact").text([ph ? "+91 " + ph : "", em].filter(Boolean).join(" | ") || "-");
+
+            var fN = $.trim($("#AA_FatherName").val());
+            var mN = $.trim($("#AA_MotherName").val());
+            $("#sum_Parents").text([fN ? "Father: " + fN : "", mN ? "Mother: " + mN : ""].filter(Boolean).join(" / ") || "Not Specified");
+
+            var city = $.trim($("#AA_City").val());
+            var state = $.trim($("#AA_State").val());
+            $("#sum_CityState").text([city, state].filter(Boolean).join(", ") || "-");
+
+            $("#sum_PrevSchool").text($.trim($("#AA_PreviousSchool").val()) || "-");
+
+            var tr = $("#pub_RequiresTransport").is(":checked") ? "Bus Transport" : "";
+            var ho = $("#pub_RequiresHostel").is(":checked") ? "Hostel" : "";
+            $("#sum_Facilities").text([tr, ho].filter(Boolean).join(" & ") || "Standard (No Host/Trans)");
+
+            var docs = [];
+            if ($("#BirthCertificateDoc").val()) docs.push("Birth Cert");
+            if ($("#MarksheetDoc").val()) docs.push("Marksheet");
+            if ($("#TransferCertificateDoc").val()) docs.push("TC");
+            if ($("#NationalIdDoc").val()) docs.push("Aadhaar");
+            $("#sum_Docs").text(docs.length > 0 ? docs.join(", ") : "None attached");
+        }
+
+        function populatePreviewModal() {
+            var fName = $.trim($("#AA_FirstName").val());
+            var mName = $.trim($("#AA_MiddleName").val());
+            var lName = $.trim($("#AA_LastName").val());
+            var fullName = [fName, mName, lName].filter(Boolean).join(" ");
             
-            $("#prev_DOB").text($("input[name='AA_DateOfBirth']").val() || "-");
-            $("#prev_Gender").text($("#AA_Gender option:selected").text() || "-");
-            $("#prev_BloodGroup").text($("#AA_BloodGroup option:selected").text() || "-");
-            $("#prev_Category").text($("#AA_Category option:selected").text() || "-");
-            $("#prev_Phone").text($("input[name='AA_Phone']").val() || "-");
-            $("#prev_Email").text($("input[name='AA_Email']").val() || "-");
-            $("#prev_Aadhaar").text($("input[name='AA_AadhaarNumber']").val() || "Not Specified");
+            $("#prev_FullName").text(fullName ? fullName.toUpperCase() : "APPLICANT NAME");
+            
+            var branchTxt = getSelectedText("#AA_BranchId", "-");
+            $("#prev_Branch, #prev_BranchSec").text(branchTxt);
+            $("#prev_BranchMeta").text("Target Campus: " + (branchTxt !== "-" ? branchTxt : "Main Branch"));
+            
+            var yearTxt = getSelectedText("#AA_AcademicYearId", "-");
+            $("#prev_Year, #prev_YearSec").text(yearTxt);
+            $("#prev_YearMeta").text("Academic Session: " + (yearTxt !== "-" ? yearTxt : "2026-2027"));
 
-            $("#prev_FatherName").text($("input[name='AA_FatherName']").val() || "-");
-            $("#prev_FatherPhone").text($("input[name='AA_FatherPhone']").val() || "-");
-            $("#prev_MotherName").text($("input[name='AA_MotherName']").val() || "-");
-            $("#prev_MotherPhone").text($("input[name='AA_MotherPhone']").val() || "-");
+            var classTxt = getSelectedText("#AA_ClassId", "-");
+            $("#prev_Class, #prev_ClassSec").text(classTxt);
 
-            var addr1 = $("input[name='AA_AddressLine1']").val() || "";
-            var addr2 = $("input[name='AA_AddressLine2']").val() || "";
-            var city = $("input[name='AA_City']").val() || "";
-            var state = $("input[name='AA_State']").val() || "";
-            var pin = $("input[name='AA_PostalCode']").val() || "";
-            var fullAddr = [addr1, addr2, city, state, pin].filter(Boolean).join(", ");
+            var courseTxt = getSelectedText("#AA_CourseId", "-");
+            $("#prev_Course, #prev_CourseSec").text(courseTxt);
+            
+            $("#prev_DOB").text($.trim($("#AA_DateOfBirth").val()) || "-");
+            $("#prev_Gender").text(getSelectedText("#AA_Gender", "-"));
+            $("#prev_BloodGroup").text(getSelectedText("#AA_BloodGroup", "-"));
+            $("#prev_Category").text(getSelectedText("#AA_Category", "-"));
+            $("#prev_Nationality").text($.trim($("#AA_Nationality").val()) || "Indian");
+            $("#prev_Religion").text($.trim($("#AA_Religion").val()) || "-");
+            $("#prev_Phone").text($.trim($("#AA_Phone").val()) ? "+91 " + $.trim($("#AA_Phone").val()) : "-");
+            $("#prev_Email").text($.trim($("#AA_Email").val()) || "-");
+            $("#prev_Aadhaar").text($.trim($("#AA_AadhaarNumber").val()) || "Not Specified");
+
+            var fNameVal = $.trim($("#AA_FatherName").val());
+            $("#prev_FatherName").text(fNameVal ? fNameVal.toUpperCase() : "-");
+            $("#prev_FatherPhone").text($.trim($("#AA_FatherPhone").val()) ? "+91 " + $.trim($("#AA_FatherPhone").val()) : "-");
+            $("#prev_FatherEmail").text($.trim($("#AA_FatherEmail").val()) || "-");
+            $("#prev_FatherOccupation").text($.trim($("#AA_FatherOccupation").val()) || "-");
+
+            var mNameVal = $.trim($("#AA_MotherName").val());
+            $("#prev_MotherName").text(mNameVal ? mNameVal.toUpperCase() : "-");
+            $("#prev_MotherPhone").text($.trim($("#AA_MotherPhone").val()) ? "+91 " + $.trim($("#AA_MotherPhone").val()) : "-");
+            $("#prev_MotherEmail").text($.trim($("#AA_MotherEmail").val()) || "-");
+            $("#prev_MotherOccupation").text($.trim($("#AA_MotherOccupation").val()) || "-");
+
+            var gName = $.trim($("#AA_GuardianName").val());
+            var gRel = $.trim($("#AA_GuardianRelation").val());
+            var gPhone = $.trim($("#AA_GuardianPhone").val());
+            var gEmail = $.trim($("#AA_GuardianEmail").val());
+            if (gName) {
+                $("#prev_GuardianDetails").text(gName.toUpperCase() + (gRel ? " (" + gRel + ")" : "") + (gPhone ? " - Mob: +91 " + gPhone : "") + (gEmail ? " | Email: " + gEmail : ""));
+            } else {
+                $("#prev_GuardianDetails").text("Not Applicable");
+            }
+
+            var addr1 = $.trim($("#AA_AddressLine1").val());
+            var addr2 = $.trim($("#AA_AddressLine2").val());
+            var city = $.trim($("#AA_City").val());
+            var state = $.trim($("#AA_State").val());
+            var pin = $.trim($("#AA_PostalCode").val());
+            var country = $.trim($("#AA_Country").val()) || "India";
+            var fullAddr = [addr1, addr2, city, state, pin, country].filter(Boolean).join(", ");
             $("#prev_Address").text(fullAddr || "-");
 
-            var emerName = $("input[name='AA_EmergencyContactName']").val() || "";
-            var emerPhone = $("input[name='AA_EmergencyContactPhone']").val() || "";
-            $("#prev_Emergency").text(emerName ? (emerName + " (" + emerPhone + ")") : "-");
+            var emerName = $.trim($("#AA_EmergencyContactName").val());
+            var emerPhone = $.trim($("#AA_EmergencyContactPhone").val());
+            $("#prev_Emergency").text(emerName ? (emerName + (emerPhone ? " (+91 " + emerPhone + ")" : "")) : "-");
 
-            $("#prev_PrevSchool").text($("input[name='AA_PreviousSchool']").val() || "-");
-            var board = $("input[name='AA_PreviousBoard']").val() || "";
-            var marks = $("input[name='AA_PreviousMarks']").val() || "";
+            $("#prev_PrevSchool").text($.trim($("#AA_PreviousSchool").val()) || "-");
+            var board = $.trim($("#AA_PreviousBoard").val());
+            var marks = $.trim($("#AA_PreviousMarks").val());
             $("#prev_PrevMarks").text([board, marks].filter(Boolean).join(" - ") || "-");
 
-            var secLang = $("input[name='AA_SecondLanguage']").val() || "";
-            var mothTongue = $("input[name='AA_MotherTongue']").val() || "";
-            $("#prev_Languages").text("Second: " + (secLang || "None") + " | Mother: " + (mothTongue || "-"));
+            var secLang = $.trim($("#AA_SecondLanguage").val());
+            var mothTongue = $.trim($("#AA_MotherTongue").val());
+            $("#prev_Languages").text("Second Language: " + (secLang || "None") + " | Mother Tongue: " + (mothTongue || "-"));
 
-            var transport = $("#pub_RequiresTransport").is(":checked") ? "Bus Transport Requested" : "No Transport";
+            var transport = $("#pub_RequiresTransport").is(":checked") ? ("Bus Transport (" + ($.trim($("#AA_TransportPickupPoint").val()) || "Standard Pickup") + ")") : "No Transport";
             var hostel = $("#pub_RequiresHostel").is(":checked") ? "Hostel Requested" : "No Hostel";
             $("#prev_Facilities").text(transport + " | " + hostel);
 
             var docs = [];
-            if ($("input[name='BirthCertificateDoc']").val()) docs.push("Birth Certificate");
-            if ($("input[name='MarksheetDoc']").val()) docs.push("Marksheet");
-            if ($("input[name='TransferCertificateDoc']").val()) docs.push("TC");
-            if ($("input[name='NationalIdDoc']").val()) docs.push("ID Card");
+            if ($("#BirthCertificateDoc").val()) docs.push("Birth Certificate");
+            if ($("#MarksheetDoc").val()) docs.push("Previous Marksheet");
+            if ($("#TransferCertificateDoc").val()) docs.push("Transfer Certificate (TC)");
+            if ($("#NationalIdDoc").val()) docs.push("Aadhaar / ID Card");
             $("#prev_Docs").text(docs.length > 0 ? docs.join(", ") : "None attached in draft");
 
             var photoSrc = $('#pubPhotoPreview').attr('src');
             $("#prev_Photo").attr('src', photoSrc);
+
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            $("#prev_GeneratedAt").text(dateStr);
         }
 
         $(function () {
-            Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: '-- Select Branch --', includeDefault: true });
+            // Load Dropdown Options
+            Dropdown.load({ element: '#AA_BranchId', entityType: 'Branch', defaultText: '-- Select Branch / Campus --', includeDefault: true });
             Dropdown.load({ element: '#AA_AcademicYearId', entityType: 'AcademicYear', defaultText: '-- Select Academic Year --', includeDefault: true });
             Dropdown.load({ element: '#AA_ClassId', entityType: 'Class', defaultText: '-- Select Class --', includeDefault: true });
             Dropdown.load({ element: '#AA_CourseId', entityType: 'Course', defaultText: '-- Select Course --', includeDefault: true });
@@ -577,47 +1837,17 @@
             Dropdown.load({ element: '#AA_BloodGroup', entityType: 'BloodGroup', defaultText: '-- Select Blood Group --', includeDefault: true });
             Dropdown.load({ element: '#AA_Category', entityType: 'Category', defaultText: '-- Select Category --', includeDefault: true });
 
-            function clearValidationErrors($form) {
-                $form.find(".is-invalid").removeClass("is-invalid");
-                $form.find("span[asp-validation-for]").empty();
-            }
-
-            function applyFieldErrors($form, errors, defaultMsg) {
-                clearValidationErrors($form);
-                var firstEl = null;
-                if (errors && typeof errors === "object") {
-                    $.each(errors, function (fieldKey, msgs) {
-                        var msg = Array.isArray(msgs) ? msgs.join(" ") : msgs;
-                        var $el = $form.find("[name='" + fieldKey + "'], #" + fieldKey + ", [name='AA_" + fieldKey + "'], [name$='." + fieldKey + "']").first();
-                        if ($el.length) {
-                            $el.addClass("is-invalid");
-                            var $valSpan = $form.find("span[asp-validation-for='" + fieldKey + "'], span[asp-validation-for='AA_" + fieldKey + "']").first();
-                            if ($valSpan.length) {
-                                $valSpan.text(msg).show();
-                            }
-                            if (!firstEl) firstEl = $el;
-                        }
-                    });
-                }
-                if (firstEl) {
-                    firstEl[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstEl.focus();
-                }
-            }
-
-            $("#admissionForm").on("input change", ".is-invalid", function () {
-                $(this).removeClass("is-invalid");
-                var name = $(this).attr("name") || $(this).attr("id");
-                if (name) {
-                    $("span[asp-validation-for='" + name + "']").empty();
+            // Clear invalid status on typing / changing
+            $("#admissionForm").on("input change", "input, select, textarea", function () {
+                var id = $(this).attr("id");
+                if (id) {
+                    clearFieldError("#" + id, "err_" + id);
                 }
             });
 
-            // Preview & Print Button Click Handler
+            // Preview & Print Modal Handler
             $("#btnPreviewApp").on("click", function () {
-                var form = document.getElementById("admissionForm");
-                if (!form.checkValidity()) {
-                    form.reportValidity();
+                if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
                     return;
                 }
                 populatePreviewModal();
@@ -636,18 +1866,20 @@
             // AJAX Submission Handler
             $("#admissionForm").on("submit", function (e) {
                 e.preventDefault();
-                var form = this;
-                var $form = $(form);
-                clearValidationErrors($form);
 
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
+                // Validate all steps before submitting
+                for (var s = 1; s <= totalSteps; s++) {
+                    if (!validateStep(s)) {
+                        goToStep(s);
+                        return;
+                    }
                 }
 
+                var form = this;
+                var $form = $(form);
                 var formData = new FormData(form);
                 var $btn = $("#btnDirectSubmit");
-                $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Submitting...');
+                $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Submitting Application...');
 
                 $.ajax({
                     url: $form.attr("action"),
@@ -658,31 +1890,29 @@
                     success: function (r) {
                         if (r.success) {
                             var appNo = r.applicationNumber || "APP-2026";
-                            var fullName = $("input[name='AA_FirstName']").val() + " " + $("input[name='AA_LastName']").val();
-                            var branch = $("#AA_BranchId option:selected").text();
 
                             $form.closest(".card-body").html(
-                                '<div class="text-center py-4 px-2">' +
-                                    '<div class="display-2 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>' +
-                                    '<h3 class="fw-bold text-dark mb-1">Application Submitted Successfully!</h3>' +
-                                    '<p class="text-muted fs-6 mb-4">Your application has been received and registered in our admissions system.</p>' +
+                                '<div class="text-center py-5 px-3">' +
+                                    '<div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>' +
+                                    '<h2 class="fw-bold text-dark mb-2">Application Submitted Successfully!</h2>' +
+                                    '<p class="text-muted fs-6 mb-4">Your admission application has been registered in our system. An email notification with tracking details has been sent to your registered email address.</p>' +
                                     
-                                    '<div class="card border border-2 border-primary-subtle bg-light mx-auto p-4 rounded-4 mb-4" style="max-width: 550px;">' +
+                                    '<div class="card border border-2 border-primary-subtle bg-light mx-auto p-4 rounded-4 mb-4" style="max-width: 580px;">' +
                                         '<span class="text-muted small text-uppercase fw-bold letter-spacing-1 d-block mb-1">Your Application Reference Number</span>' +
                                         '<div class="d-flex align-items-center justify-content-center gap-2 mb-2">' +
-                                            '<span class="fs-2 fw-bold text-primary font-monospace" id="confAppNum">' + appNo + '</span>' +
-                                            '<button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-2" onclick="navigator.clipboard.writeText(\'' + appNo + '\'); if(window.toastr) toastr.success(\'Reference copied!\'); else alert(\'Copied: ' + appNo + '\');">' +
+                                            '<span class="fs-1 fw-bold text-primary font-monospace" id="confAppNum">' + appNo + '</span>' +
+                                            '<button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="navigator.clipboard.writeText(\'' + appNo + '\'); alert(\'Reference copied: ' + appNo + '\');">' +
                                                 '<i class="bi bi-clipboard me-1"></i> Copy' +
                                             '</button>' +
                                         '</div>' +
-                                        '<small class="text-muted d-block">Please save this reference number to track your application status online.</small>' +
+                                        '<small class="text-muted d-block">Please save this reference number to check real-time updates on your admission status.</small>' +
                                     '</div>' +
 
                                     '<div class="d-flex justify-content-center gap-3 flex-wrap">' +
                                         '<a href="/Home/TrackAdmission?appNumber=' + encodeURIComponent(appNo) + '" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">' +
-                                            '<i class="bi bi-search me-1"></i> Track Live Application Status' +
+                                            '<i class="bi bi-search me-1"></i> Track Application Status Live' +
                                         '</a>' +
-                                        '<button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" onclick="window.print()">' +
+                                        '<button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" onclick="printPreviewSlip()">' +
                                             '<i class="bi bi-printer me-1"></i> Print Official Slip' +
                                         '</button>' +
                                         '<a href="/" class="btn btn-link text-muted rounded-pill px-3 py-2">' +
@@ -691,22 +1921,22 @@
                                     '</div>' +
                                 '</div>'
                             );
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            window.scrollTo({ top: 100, behavior: 'smooth' });
                         } else {
-                            applyFieldErrors($form, r.errors, r.message);
-                            if (window.toastr) toastr.error(r.message || "Please check the highlighted fields.");
-                            else alert(r.message || "Please check the highlighted fields.");
+                            if (r.errors && typeof r.errors === "object") {
+                                $.each(r.errors, function(key, msgs) {
+                                    var msg = Array.isArray(msgs) ? msgs.join(" ") : msgs;
+                                    showFieldError("[name='" + key + "'], #" + key, "err_" + key, msg);
+                                });
+                            }
+                            alert(r.message || "Please check the highlighted fields.");
                             $btn.prop("disabled", false).html('<i class="bi bi-send-fill me-2"></i> Submit Application');
                         }
                     },
                     error: function (xhr) {
                         var resp = xhr.responseJSON;
-                        if (resp && resp.errors) {
-                            applyFieldErrors($form, resp.errors, resp.message);
-                        }
-                        var msg = (resp && resp.message) ? resp.message : "Submission failed. Please try again.";
-                        if (window.toastr) toastr.error(msg);
-                        else alert(msg);
+                        var msg = (resp && resp.message) ? resp.message : "Submission failed. Please check your network connection and try again.";
+                        alert(msg);
                         $btn.prop("disabled", false).html('<i class="bi bi-send-fill me-2"></i> Submit Application');
                     }
                 });

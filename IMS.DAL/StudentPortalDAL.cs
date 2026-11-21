@@ -10,11 +10,11 @@ using IMS.Models.Portal;
 
 namespace IMS.DAL
 {
-    public class StudentStudentPortalDAL : IStudentPortalDAL
+    public class StudentPortalDAL : IStudentPortalDAL
     {
         private readonly DBHelper _dbHelper;
 
-        public StudentStudentPortalDAL(DBHelper dbHelper)
+        public StudentPortalDAL(DBHelper dbHelper)
         {
             _dbHelper = dbHelper;
         }
@@ -792,7 +792,7 @@ namespace IMS.DAL
 
             await conn.OpenAsync();
             var res = await cmd.ExecuteScalarAsync();
-            return res != null;
+            return res != null && Convert.ToInt32(res) > 0;
         }
 
         public async Task<List<StudentLeaveDto>> GetLeavesAsync(Guid studentId, Guid tenantId)
@@ -871,7 +871,7 @@ namespace IMS.DAL
 
             await conn.OpenAsync();
             var res = await cmd.ExecuteScalarAsync();
-            return res != null;
+            return res != null && Convert.ToInt32(res) > 0;
         }
 
         public async Task<List<TransferCertificateDto>> GetTCStatusAsync(Guid studentId, Guid tenantId)

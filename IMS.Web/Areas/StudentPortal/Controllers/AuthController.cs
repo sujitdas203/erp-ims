@@ -14,20 +14,27 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
     [Area("StudentPortal")]
     public class AuthController : Controller
     {
-        private readonly IStuddentPortalService _StuddentPortalService;
+        private readonly IStudentPortalService _portalService;
 
-        public AuthController(IStuddentPortalService StuddentPortalService)
+        public AuthController(IStudentPortalService portalService)
         {
-            _StuddentPortalService = StuddentPortalService;
+            _portalService = portalService;
         }
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
-            if (User.Identity?.IsAuthenticated == true && (User.FindFirstValue(ClaimTypes.Role) == "STUDENT" || User.FindFirstValue(ClaimTypes.Role) == "GUARDIAN"))
+            // Explicitly authenticate against the portal cookie scheme. Relying on the
+            // default scheme here would read the Keycloak admin cookie instead.
+            var portalAuth = await HttpContext.AuthenticateAsync("StudentPortalAuth");
+            if (portalAuth.Succeeded)
             {
-                return RedirectToAction("Index", "Dashboard", new { area = "StudentPortal" });
+                var role = portalAuth.Principal?.FindFirstValue(ClaimTypes.Role);
+                if (role == "STUDENT" || role == "GUARDIAN")
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "StudentPortal" });
+                }
             }
 
             ViewData["ReturnUrl"] = returnUrl;
@@ -44,7 +51,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
                 return View(model);
             }
 
-            var result = await _StuddentPortalService.AuthenticateAsync(model.Email.Trim(), model.Password);
+            var result = await _portalService.AuthenticateAsync(model.Email.Trim(), model.Password);
             if (!result.IsAuthenticated)
             {
                 ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Invalid credentials. Please check your email and password.");
@@ -171,7 +178,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
             }
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            var res = await _StuddentPortalService.ForgotPasswordAsync(model.Email.Trim(), baseUrl);
+            var res = await _portalService.ForgotPasswordAsync(model.Email.Trim(), baseUrl);
 
             model.EmailSent = res.Success;
             if (res.Success)
@@ -209,7 +216,7 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
                 return View(model);
             }
 
-            var res = await _StuddentPortalService.ResetPasswordWithTokenAsync(model.Token, model.NewPassword);
+            var res = await _portalService.ResetPasswordWithTokenAsync(model.Token, model.NewPassword);
             if (res.Success)
             {
                 model.IsSuccess = true;
@@ -240,13 +247,14 @@ namespace IMS.Web.Areas.StudentPortal.Controllers
 
             var userIdVal = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userType = User.FindFirstValue(ClaimTypes.Role) ?? "STUDENT";
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
 
             if (!Guid.TryParse(userIdVal, out var userId))
             {
                 return RedirectToAction("Login");
             }
 
-            var res = await _StuddentPortalService.ChangePasswordAsync(userId, userType, model.CurrentPassword, model.NewPassword);
+            var res = await _portalService.ChangePasswordAsync(userId, userType, email, model.CurrentPassword, model.NewPassword);
             if (res.Success)
             {
                 TempData["SuccessMessage"] = "Password updated successfully!";
